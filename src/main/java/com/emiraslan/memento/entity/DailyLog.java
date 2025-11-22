@@ -39,5 +39,5 @@ public class DailyLog {
 
     @Column(name = "created_at", columnDefinition = "DATETIME2 DEFAULT GETDATE()")
     @Builder.Default
-    private LocalDateTime creaatedAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
