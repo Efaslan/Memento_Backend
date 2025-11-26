@@ -19,6 +19,7 @@ public class AlertDto {
     private Integer patientUserId;
     private AlertType alertType;
     private LocalDateTime alertTimestamp;
+    // Location data is included to provide relatives with the data
     private BigDecimal latitude;
     private BigDecimal longitude;
     private AlertStatus status;
