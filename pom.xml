@@ -4,13 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- 1. SPRING BOOT PARENT -->
-    <!-- Tüm versiyon yönetimini bu üst proje yapar. Uyumlu kütüphaneleri otomatik seçer. -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.5</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
 
     <groupId>com.emiraslan</groupId>
@@ -23,25 +21,16 @@
     </properties>
 
     <dependencies>
-        <!-- ================================================= -->
-        <!-- 1. WEB & API KATMANI -->
-        <!-- ================================================= -->
-        <!-- REST API'ler (Controller) yazmak ve Tomcat sunucusunu ayağa kaldırmak için -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- API Validasyonları (@NotNull, @Size vb. kullanmak için) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- ================================================= -->
-        <!-- 2. VERİTABANI VE JPA -->
-        <!-- ================================================= -->
-        <!-- Spring Data JPA (Hibernate, Repository Pattern) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -53,39 +42,23 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- ================================================= -->
-        <!-- 3. GÜVENLİK (SECURITY) -->
-        <!-- ================================================= -->
-        <!-- Şifreleme (BCrypt) ve Giriş Kontrolleri için -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- ================================================= -->
-        <!-- 4. ARAÇLAR VE YARDIMCILAR -->
-        <!-- ================================================= -->
-        <!-- Lombok: Getter/Setter/Constructor yazmaktan kurtarır (@Data, @Entity) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- ================================================= -->
-        <!-- 5. DÖKÜMANTASYON (SWAGGER / OPENAPI) -->
-        <!-- ================================================= -->
-        <!-- API'leri otomatik dökümante eder ve test arayüzü sunar (http://localhost:8080/swagger-ui.html) -->
-        <!-- Not: Springfox eskidi, Spring Boot 3 için 'springdoc' kullanılır. -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.5.0</version>
         </dependency>
 
-        <!-- ================================================= -->
-        <!-- 6. TEST -->
-        <!-- ================================================= -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -95,6 +68,22 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
         </dependency>
     </dependencies>
 
