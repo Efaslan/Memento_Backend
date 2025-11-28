@@ -1,0 +1,98 @@
+package com.emiraslan.memento.exception;
+
+import com.emiraslan.memento.dto.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice // listens to the entire app
+@Slf4j // Simple logging facade for java
+public class GlobalExceptionHandler {
+
+    // @Valid errors, checking for correct input (client-side)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex, HttpServletRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), error.getDefaultMessage());
+        }
+        // using info because the error is client-side
+        log.info("Validation Error: {} - Path: {}", errors, request.getRequestURI());
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value()) // 400
+                .error("Validation Error")
+                .message("Input validation failed.")
+                .validationErrors(errors) // sending validation errors as json objects ("email cant be empty")
+                .path(request.getRequestURI()) // points to the endpoint where the error occurred
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // authentication errors
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+
+        // warn to discern suspicious login attempts, logs their ip address
+        log.warn("Failed Login Attempt: IP={} Path={}", request.getRemoteAddr(), request.getRequestURI());
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value()) // 401
+                .error("Unauthorized")
+                .message("Incorrect email or password.") // no further details for security reasons
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    // Expected business logic errors (client-side, in service layer)
+    @ExceptionHandler({UsernameNotFoundException.class, IllegalArgumentException.class, IllegalStateException.class})
+    public ResponseEntity<ErrorResponse> handleBusinessExceptions(Exception ex, HttpServletRequest request) {
+
+        log.info("Business Logic Error: {} - Path: {}", ex.getMessage(), request.getRequestURI());
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value()) // 400
+                .error("Operation Failed")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // Unexpected server-side errors
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
+
+        // Stack trace is visible only to console
+        log.error("CRITICAL ERROR: Path: {} Message: {}", request.getRequestURI(), ex.getMessage(), ex);
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value()) // 500
+                .error("Internal Server Error")
+                .message("An unexpected error has occurred. Please try again later.") // short message sent to mobile
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
