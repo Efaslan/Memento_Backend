@@ -34,7 +34,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    @Transactional // rollback if a function fails
+    @Transactional // rollback all changes if the method fails somewhere
     public UserDto register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {

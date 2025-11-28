@@ -24,7 +24,7 @@ public class ApplicationConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // implementing loadUserByUsername from UserDetailsService interface
+    // implementing loadUserByUsername from UserDetailsService interface, overriding loadUserByUsername
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
