@@ -27,7 +27,7 @@ public class User implements UserDetails {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "email", nullable = false, unique = true, length = 255)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
     @Column(name = "password_hash", nullable = false, columnDefinition = "NVARCHAR(MAX)")

@@ -21,10 +21,8 @@ public class PatientProfile {
     @Column(name = "patient_user_id")
     private Integer patientUserId;
 
-    // @MapsId kullanımı:
-    // Bu entity'nin PK'sı (patient_user_id), aşağıdaki 'user' ilişkisinden (Users.user_id) gelir.
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
+    @MapsId // gets the patient's id from user relation
     @JoinColumn(name = "patient_user_id") // FK column
     private User patient; // naming the User entity as patient for readability
 

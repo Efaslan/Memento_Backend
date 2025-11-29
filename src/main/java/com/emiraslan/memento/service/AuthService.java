@@ -38,7 +38,7 @@ public class AuthService {
     public UserDto register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Bu email adresi zaten kullanımda.");
+            throw new RuntimeException("EMAIL_ALREADY_EXISTS");
         }
 
         User user = User.builder()

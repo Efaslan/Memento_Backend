@@ -27,7 +27,7 @@ public class MedicationSchedule {
 
     // If the doctor gets removed from the database, this field will become null to protect the patient's medical history.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_user_id", nullable = true)
+    @JoinColumn(name = "doctor_user_id")
     private User doctor;
 
     @Column(name = "medication_name", nullable = false, length = 200)
@@ -53,5 +53,5 @@ public class MedicationSchedule {
     // Acts as a protection against false diagnosis without deleting/editing the entire prescription.
     @Column(name = "is_active")
     @Builder.Default
-    private Boolean isActive = true; // the patient wont be notified for medicines that are isActive = false
+    private Boolean isActive = true; // the patient won't be notified for medicines that are isActive = false
 }

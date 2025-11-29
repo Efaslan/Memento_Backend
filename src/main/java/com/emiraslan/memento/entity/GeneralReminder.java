@@ -26,7 +26,7 @@ public class GeneralReminder {
 
     // Creator of the reminder(doctor, relative, or the patient themselves)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "creator_user_id", nullable = true)
+    @JoinColumn(name = "creator_user_id")
     private User creator;
 
     @Column(name = "title", nullable = false, length = 200)

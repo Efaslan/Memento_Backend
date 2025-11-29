@@ -24,7 +24,7 @@ public class Alert {
     @Column(name = "alert_id")
     private Integer alertId;
 
-    @ManyToOne(fetch = FetchType.LAZY) // corresponding user's whole data isnt automatically pulled when we fetch Alerts, improves performance
+    @ManyToOne(fetch = FetchType.LAZY) // corresponding user's whole data isn't automatically pulled when we fetch Alerts, improves performance
     @JoinColumn(name = "patient_user_id", nullable = false) // Foreign Key
     private User patient;
 

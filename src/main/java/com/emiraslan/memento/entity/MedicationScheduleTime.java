@@ -26,6 +26,6 @@ public class MedicationScheduleTime {
     private MedicationSchedule schedule;
 
     // The time assigned to the schedule. Nullable to cover isPrn = 1 medicines.
-    @Column(name = "scheduled_time", nullable = true)
+    @Column(name = "scheduled_time")
     private LocalTime scheduledTime;
 }

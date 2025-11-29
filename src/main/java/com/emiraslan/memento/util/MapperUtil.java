@@ -79,7 +79,7 @@ public class MapperUtil {
     public static GeneralReminderDto toGeneralReminderDto(GeneralReminder entity) {
         if (entity == null) return null;
 
-        String creatorName = "Sistem"; // default in case creator is null
+        String creatorName = "System"; // default in case creator is null
         Integer creatorId = null;
 
         if (entity.getCreator() != null) {
@@ -174,7 +174,7 @@ public class MapperUtil {
     public static MedicationScheduleDto toMedicationScheduleDto(MedicationSchedule entity, List<MedicationScheduleTime> times) {
         if (entity == null) return null;
 
-        String doctorName = "Bilinmiyor"; // default in case of null
+        String doctorName = "Unknown"; // default in case of null
         Integer doctorId = null;
 
         if (entity.getDoctor() != null) {

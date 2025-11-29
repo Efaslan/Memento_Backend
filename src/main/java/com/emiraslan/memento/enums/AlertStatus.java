@@ -5,7 +5,4 @@ public enum AlertStatus {
     SENT, // notifications sent to all relatives
     ACKNOWLEDGED, // a relative is handling the situation
     CANCELLED // false alarm, patient cancelled within 30 seconds
-
-    // acknowledged yakin bildirimi onayladiginda oluyor galiba,
-    // pek mantikli degil, silip CANCELLED eklemek daha iyi olur
 }
