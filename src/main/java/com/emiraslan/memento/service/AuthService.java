@@ -11,7 +11,6 @@ import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.DoctorProfileRepository;
 import com.emiraslan.memento.repository.PatientProfileRepository;
 import com.emiraslan.memento.repository.UserRepository;
-import com.emiraslan.memento.security.JwtService;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

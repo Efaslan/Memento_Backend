@@ -1,6 +1,6 @@
 package com.emiraslan.memento.config;
 
-import com.emiraslan.memento.security.JwtService;
+import com.emiraslan.memento.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

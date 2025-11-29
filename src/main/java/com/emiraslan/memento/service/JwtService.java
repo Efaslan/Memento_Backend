@@ -1,4 +1,4 @@
-package com.emiraslan.memento.security;
+package com.emiraslan.memento.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
