@@ -12,7 +12,6 @@ public interface GeneralReminderRepository extends JpaRepository<GeneralReminder
     // All ongoing(not completed) reminders of a patient
     List<GeneralReminder> findByPatient_UserIdAndIsCompletedFalseOrderByReminderTimeAsc(Integer patientId);
 
-    // All(complete and incomplete) reminders of a patient.
-    List<GeneralReminder> findByPatient_UserIdOrderByReminderTimeAsc(Integer patientId);
-    // takvimde eski event'leri gostermek icin bir buton bunu cagirir.
+    // All complete(past) reminders of a patient. Used with mobile's "show past events" toggle
+    List<GeneralReminder> findByPatient_UserIdAndIsCompletedTrueOrderByReminderTimeAsc(Integer patientId);
 }
