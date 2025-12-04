@@ -4,6 +4,7 @@ import com.emiraslan.memento.entity.MedicationSchedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -20,4 +21,7 @@ public interface MedicationScheduleRepository extends JpaRepository<MedicationSc
 
     // All medication a specific doctor has prescribed
     List<MedicationSchedule> findByDoctor_UserId(Integer doctorId);
+
+    // For automatic deactivation of a schedule upon endDate
+    List<MedicationSchedule> findByIsActiveTrueAndEndDateBefore(LocalDate date);
 }

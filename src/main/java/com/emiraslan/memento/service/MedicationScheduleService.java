@@ -12,14 +12,18 @@ import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MedicationScheduleService {
 
     private final MedicationScheduleRepository scheduleRepository;
@@ -136,11 +140,36 @@ public class MedicationScheduleService {
         }
     }
 
+    // manual deactivation of a schedule, in case the doctor wants to end it earlier than planned
     public void deactivateSchedule(Integer scheduleId) {
         MedicationSchedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND: " + scheduleId));
 
         schedule.setIsActive(false);
         scheduleRepository.save(schedule);
+    }
+
+    // automatic deactivation of expired medication schedules
+    // operates at day at 00:01
+    @Scheduled(cron = "0 1 0 * * *")
+    @Transactional
+    public void autoDeactivateExpiredSchedules() {
+        log.info("Scheduled Task started: Checking for expired medication schedules...");
+
+        LocalDate today = LocalDate.now();
+
+        // find all schedules with an endDate before today
+        List<MedicationSchedule> expiredSchedules = scheduleRepository.findByIsActiveTrueAndEndDateBefore(today);
+
+        if (!expiredSchedules.isEmpty()) {
+            for (MedicationSchedule schedule : expiredSchedules) {
+                schedule.setIsActive(false); // deactivate all found expired schedules
+            }
+            scheduleRepository.saveAll(expiredSchedules);
+
+            log.info("Deactivated {} expired medication schedules.", expiredSchedules.size());
+        } else {
+            log.info("No expired medication schedule was found.");
+        }
     }
 }
