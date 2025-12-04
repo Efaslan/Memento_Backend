@@ -31,16 +31,39 @@ public class MedicationScheduleService {
     private final UserRepository userRepository;
     private final MedicationLogRepository logRepository;
 
-    // brings active medications and times
+    // helper method: Entity -> DTO conversion (with times)
+    private MedicationScheduleDto convertToDtoWithTimes(MedicationSchedule schedule) {
+        List<MedicationScheduleTime> times = timeRepository.findBySchedule_ScheduleId(schedule.getScheduleId());
+        return MapperUtil.toMedicationScheduleDto(schedule, times);
+    }
+
+    // brings active medication schedules and times
     public List<MedicationScheduleDto> getActiveSchedulesByPatient(Integer patientId) {
         return scheduleRepository.findByPatient_UserIdAndIsActiveTrue(patientId).stream()
-                .map(schedule -> {
-                    List<MedicationScheduleTime> times = timeRepository.findBySchedule_ScheduleId(schedule.getScheduleId());
-                    return MapperUtil.toMedicationScheduleDto(schedule, times);
-                })
+                .map(this::convertToDtoWithTimes)
                 .collect(Collectors.toList());
     }
 
+    // brings all schedules (including deactivated)
+    public List<MedicationScheduleDto> getAllSchedulesByPatient(Integer patientId) {
+        return scheduleRepository.findByPatient_UserId(patientId).stream()
+                .map(this::convertToDtoWithTimes)
+                .collect(Collectors.toList());
+    }
+
+    // brings all active PRN schedules
+    public List<MedicationScheduleDto> getPrnSchedulesByPatient(Integer patientId) {
+        return scheduleRepository.findByPatient_UserIdAndIsActiveTrueAndIsPrnTrue(patientId).stream()
+                .map(this::convertToDtoWithTimes)
+                .collect(Collectors.toList());
+    }
+
+    // brings all schedules prescribed by a specific doctor
+    public List<MedicationScheduleDto> getSchedulesByDoctor(Integer doctorId) {
+        return scheduleRepository.findByDoctor_UserId(doctorId).stream()
+                .map(this::convertToDtoWithTimes)
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public MedicationScheduleDto createSchedule(MedicationScheduleDto dto) {

@@ -28,6 +28,24 @@ public class MedicationController {
         return ResponseEntity.ok(scheduleService.getActiveSchedulesByPatient(patientId));
     }
 
+    // brings all schedules (including deactivated)
+    @GetMapping("/schedules/patient/{patientId}/history")
+    public ResponseEntity<List<MedicationScheduleDto>> getScheduleHistory(@PathVariable Integer patientId) {
+        return ResponseEntity.ok(scheduleService.getAllSchedulesByPatient(patientId));
+    }
+
+    // brings all active PRN schedules
+    @GetMapping("/schedules/patient/{patientId}/prn")
+    public ResponseEntity<List<MedicationScheduleDto>> getPrnSchedules(@PathVariable Integer patientId) {
+        return ResponseEntity.ok(scheduleService.getPrnSchedulesByPatient(patientId));
+    }
+
+    // brings all schedules prescribed by a doctor
+    @GetMapping("/schedules/doctor/{doctorId}")
+    public ResponseEntity<List<MedicationScheduleDto>> getDoctorSchedules(@PathVariable Integer doctorId) {
+        return ResponseEntity.ok(scheduleService.getSchedulesByDoctor(doctorId));
+    }
+
     // creating a new schedule
     @PostMapping("/schedules")
     public ResponseEntity<MedicationScheduleDto> createSchedule(@RequestBody MedicationScheduleDto dto) {
