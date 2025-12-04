@@ -36,7 +36,7 @@ public class MedicationLog {
     @Builder.Default
     private LocalDateTime takenAt = LocalDateTime.now();
 
-    @Enumerated(EnumType.STRING) // TAKEN, DELAYED, SKIPPED
+    @Enumerated(EnumType.STRING) // TAKEN, LATE_DOSE, SKIPPED
     @Column(name = "status", length = 50)
     private MedicationStatus status;
 }

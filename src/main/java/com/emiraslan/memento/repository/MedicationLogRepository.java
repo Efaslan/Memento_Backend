@@ -15,4 +15,8 @@ public interface MedicationLogRepository extends JpaRepository<MedicationLog, In
 
     // Checks if a medicine that has a time is taken between given dates. (Scenario: the 10:00 am medicine of today.)
     boolean existsByScheduleTime_TimeIdAndTakenAtBetween(Integer scheduleTimeId, LocalDateTime start, LocalDateTime end);
+
+    // Checks if there is a log assigned to a medication schedule. Used to determine if a doctor can edit the schedule or not
+    // Relationship chain: Log -> Time -> Schedule -> ScheduleId
+    boolean existsByScheduleTime_Schedule_ScheduleId(Integer scheduleId);
 }
