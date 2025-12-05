@@ -31,6 +31,7 @@ public class SecurityConfiguration {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                               // .anyRequest().permitAll() // FOR TESTING
                         .anyRequest().authenticated() // other paths are locked
                 )
                 .sessionManagement(sess -> sess

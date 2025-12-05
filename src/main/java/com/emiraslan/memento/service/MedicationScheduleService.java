@@ -173,8 +173,8 @@ public class MedicationScheduleService {
     }
 
     // automatic deactivation of expired medication schedules
-    // operates at day at 00:01
-    @Scheduled(cron = "0 1 0 * * *")
+    // operates each day at 00:05
+    @Scheduled(cron = "0 5 0 * * *")
     @Transactional
     public void autoDeactivateExpiredSchedules() {
         log.info("Scheduled Task started: Checking for expired medication schedules...");

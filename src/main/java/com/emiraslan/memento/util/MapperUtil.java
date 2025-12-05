@@ -253,26 +253,11 @@ public class MapperUtil {
                 .firstName(doctor.getFirstName())
                 .lastName(doctor.getLastName())
                 .email(doctor.getEmail())
+                .phoneNumber(doctor.getPhoneNumber())
                 .specialization(entity.getSpecialization())
                 .hospitalName(entity.getHospitalName())
                 .title(entity.getTitle())
                 .build();
-    }
-
-    // DoctorProfile update (updating the blank profile AuthService creates on register)
-    public static void updateDoctorProfileFromDto(DoctorProfile entity, DoctorProfileDto dto) {
-        if (entity == null || dto == null) return;
-
-        // ID and User relation stays the same, updating only the Profile data
-        if (dto.getSpecialization() != null) {
-            entity.setSpecialization(dto.getSpecialization());
-        }
-        if (dto.getHospitalName() != null) {
-            entity.setHospitalName(dto.getHospitalName());
-        }
-        if (dto.getTitle() != null) {
-            entity.setTitle(dto.getTitle());
-        }
     }
 
     // PatientProfile Mapping (entity->dto only)
@@ -293,27 +278,5 @@ public class MapperUtil {
                 .bloodType(entity.getBloodType())
                 .emergencyNotes(entity.getEmergencyNotes())
                 .build();
-    }
-
-    // PatientProfile update (updating the blank profile AuthService creates on register)
-    public static void updatePatientProfileFromDto(PatientProfile entity, PatientProfileDto dto) {
-        if (entity == null || dto == null) return;
-
-        // updating only the data of PatientProfile
-        if (dto.getDateOfBirth() != null) {
-            entity.setDateOfBirth(dto.getDateOfBirth());
-        }
-        if (dto.getHeightCm() != null) {
-            entity.setHeightCm(dto.getHeightCm());
-        }
-        if (dto.getWeightKg() != null) {
-            entity.setWeightKg(dto.getWeightKg());
-        }
-        if (dto.getBloodType() != null) {
-            entity.setBloodType(dto.getBloodType());
-        }
-        if (dto.getEmergencyNotes() != null) {
-            entity.setEmergencyNotes(dto.getEmergencyNotes());
-        }
     }
 }

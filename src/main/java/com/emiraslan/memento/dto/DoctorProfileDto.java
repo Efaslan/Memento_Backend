@@ -15,6 +15,7 @@ public class DoctorProfileDto {
     private String firstName;
     private String lastName;
     private String email;
+    private String phoneNumber;
     // from DoctorProfile
     private String specialization;
     private String hospitalName;
