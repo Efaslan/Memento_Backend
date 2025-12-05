@@ -151,7 +151,7 @@ public class MapperUtil {
         return DailyLogDto.builder()
                 .dailyLogId(entity.getDailyLogId())
                 .patientUserId(entity.getPatient().getUserId())
-                .logType(entity.getLogType())
+                .dailyLogType(entity.getDailyLogType())
                 .description(entity.getDescription())
                 .quantityMl(entity.getQuantityMl())
                 .createdAt(entity.getCreatedAt())
@@ -163,7 +163,7 @@ public class MapperUtil {
         return DailyLog.builder()
                 .dailyLogId(dto.getDailyLogId())
                 .patient(patient)
-                .logType(dto.getLogType())
+                .dailyLogType(dto.getDailyLogType())
                 .description(dto.getDescription())
                 .quantityMl(dto.getQuantityMl())
                 // createdAt is now() by default
@@ -242,7 +242,7 @@ public class MapperUtil {
                 .build();
     }
 
-    // DoctorProfile Mapping (entity->dto only)
+    // DoctorProfile Mapping (entity->dto only, no dto->entity because profiles are auto created on register)
     public static DoctorProfileDto toDoctorProfileDto(DoctorProfile entity) {
         if (entity == null) return null;
 

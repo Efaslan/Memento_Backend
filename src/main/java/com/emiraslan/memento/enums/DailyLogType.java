@@ -1,6 +1,6 @@
 package com.emiraslan.memento.enums;
 
-public enum LogType {
+public enum DailyLogType {
     FOOD,
     WATER
 }

@@ -1,6 +1,6 @@
 package com.emiraslan.memento.dto;
 
-import com.emiraslan.memento.enums.LogType;
+import com.emiraslan.memento.enums.DailyLogType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class DailyLogDto {
     private Integer dailyLogId;
     private Integer patientUserId;
-    private LogType logType;
+    private DailyLogType dailyLogType;
     private String description;
     private Integer quantityMl;
     private LocalDateTime createdAt;
