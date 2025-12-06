@@ -37,13 +37,14 @@ public class Alert {
     @Builder.Default
     private LocalDateTime alertTimestamp = LocalDateTime.now();
 
+    // can be null in case the user's location is off in their phone
     @Column(name = "latitude", precision = 9, scale = 6)
     private BigDecimal latitude;
 
     @Column(name = "longitude", precision = 9, scale = 6)
     private BigDecimal longitude;
 
-    // PENDING -> SENT -> ACKNOWLEDGED
+    // PENDING -> CANCELLED/SENT -> ACKNOWLEDGED
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 50)
     @Builder.Default
