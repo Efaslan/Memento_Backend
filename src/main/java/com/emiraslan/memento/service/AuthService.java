@@ -61,7 +61,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
-                )
+                ) // returns BadCredentialsException 401 automatically on fail
         );
         // find the authenticated user
         User user = userRepository.findByEmail(request.getEmail())
