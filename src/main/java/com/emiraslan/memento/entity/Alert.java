@@ -28,7 +28,6 @@ public class Alert {
     @JoinColumn(name = "patient_user_id", nullable = false) // Foreign Key
     private User patient;
 
-    // FALL_DETECTED or LOCATION_UNKNOWN(????? olmamasi daha mantikli)
     @Enumerated(EnumType.STRING)
     @Column(name = "alert_type", nullable = false, length = 50)
     private AlertType alertType;

@@ -13,6 +13,6 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
     // All alerts of a patient, ordered from latest on top
     List<Alert> findByPatient_UserIdOrderByAlertTimestampDesc(Integer patientId);
 
-    // Finding alerts by their status of: PENDING, SENT, or ACKNOWLEDGED
+    // Finding alerts by their status of: PENDING, CANCELLED/SENT, or ACKNOWLEDGED
     List<Alert> findByStatus(AlertStatus status);
 }
