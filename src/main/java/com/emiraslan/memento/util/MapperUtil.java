@@ -60,6 +60,8 @@ public class MapperUtil {
                 .longitude(entity.getLongitude())
                 .status(entity.getStatus())
                 .details(entity.getDetails())
+                .acknowledgedByUserId(entity.getAcknowledgedBy().getUserId())
+                .acknowledgedByName(entity.getAcknowledgedBy().getFirstName() + " " + entity.getAcknowledgedBy().getLastName())
                 .build();
     }
 

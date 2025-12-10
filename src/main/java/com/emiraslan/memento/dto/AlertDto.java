@@ -24,4 +24,7 @@ public class AlertDto {
     private BigDecimal longitude;
     private AlertStatus status;
     private String details;
+    // alert acknowledged by:
+    private Integer acknowledgedByUserId;
+    private String acknowledgedByName; // for display
 }

@@ -28,6 +28,11 @@ public class Alert {
     @JoinColumn(name = "patient_user_id", nullable = false) // Foreign Key
     private User patient;
 
+    // shows which caregiver is dealing with the alert
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "acknowledged_by_user_id")
+    private User acknowledgedBy;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "alert_type", nullable = false, length = 50)
     private AlertType alertType;

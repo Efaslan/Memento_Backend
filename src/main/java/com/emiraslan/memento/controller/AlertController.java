@@ -35,8 +35,8 @@ public class AlertController {
 
     // Caregiver clicks "I'm handling it" -> Status becomes ACKNOWLEDGED
     @PostMapping("/{alertId}/acknowledge")
-    public ResponseEntity<AlertDto> acknowledgeAlert(@PathVariable Integer alertId) {
-        return ResponseEntity.ok(alertService.acknowledgeAlert(alertId));
+    public ResponseEntity<AlertDto> acknowledgeAlert(@PathVariable Integer alertId, @RequestParam Integer caregiverId) {
+        return ResponseEntity.ok(alertService.acknowledgeAlert(alertId, caregiverId));
     }
 
     // History for patient dashboard

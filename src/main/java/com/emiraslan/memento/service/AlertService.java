@@ -31,6 +31,14 @@ public class AlertService {
     private final DeviceTokenRepository deviceTokenRepository;
     private final FcmService fcmService;
 
+    // returns all alerts of a patient
+    public List<AlertDto> getPatientAlerts(Integer patientId) {
+        return alertRepository.findByPatient_UserIdOrderByAlertTimestampDesc(patientId)
+                .stream()
+                .map(MapperUtil::toAlertDto)
+                .collect(Collectors.toList());
+    }
+
     // immediately creates a PENDING alert when a fall is detected
     @Transactional
     public AlertDto createAlert(AlertDto dto) {
@@ -86,9 +94,12 @@ public class AlertService {
 
     // a relative acknowledges the alert via push notification action
     @Transactional
-    public AlertDto acknowledgeAlert(Integer alertId) {
+    public AlertDto acknowledgeAlert(Integer alertId, Integer caregiverId) {
         Alert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new EntityNotFoundException("ALERT_NOT_FOUND: " + alertId));
+
+        User caregiver = userRepository.findById(caregiverId)
+                .orElseThrow(() -> new EntityNotFoundException("USER_CAREGIVER_NOT_FOUND: " + caregiverId));
 
         // Only SENT alerts can be acknowledged
         if (alert.getStatus() != AlertStatus.SENT) {
@@ -96,20 +107,15 @@ public class AlertService {
         }
 
         alert.setStatus(AlertStatus.ACKNOWLEDGED);
-        log.info("Alert Acknowledged by Caregiver: AlertID={}", alertId);
+        alert.setAcknowledgedBy(caregiver);
 
+        Alert savedAlert = alertRepository.save(alert);
+        log.info("Alert Acknowledged by Caregiver: {} (ID: {})", caregiver.getEmail(), caregiver.getUserId());
 
-        // TODO: Notify other relatives that someone has acknowledged the alert (prevent duplicate efforts)
+        // Notify OTHER relatives that someone has acknowledged the alert
+        notifyOthersOfAcknowledgment(savedAlert, caregiver);
 
-        return MapperUtil.toAlertDto(alertRepository.save(alert));
-    }
-
-    // returns all alerts of a patient
-    public List<AlertDto> getPatientAlerts(Integer patientId) {
-        return alertRepository.findByPatient_UserIdOrderByAlertTimestampDesc(patientId)
-                .stream()
-                .map(MapperUtil::toAlertDto)
-                .collect(Collectors.toList());
+        return MapperUtil.toAlertDto(savedAlert);
     }
 
     // Helper method to find active primary contacts and send notifications
@@ -130,25 +136,45 @@ public class AlertService {
         // for every primary contact
         for (PatientRelationship rel : contacts) {
             User caregiver = rel.getCaregiver();
+            sendPushToUser(caregiver, notificationTitle, notificationBody);
+            log.info("Fall Notification sent to Caregiver: {}", caregiver.getEmail());
+        }
+    }
 
-            // find all device tokens for the caregivers
-            List<DeviceToken> tokens = deviceTokenRepository.findByUser_UserId(caregiver.getUserId());
+    // notifying OTHER relatives when someone takes responsibility
+    private void notifyOthersOfAcknowledgment(Alert alert, User acknowledger) {
+        List<PatientRelationship> contacts = relationshipRepository
+                .findByPatient_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(alert.getPatient().getUserId());
 
-            if (tokens.isEmpty()) {
-                log.warn("Caregiver {} (ID: {}) has no registered device tokens. Cannot send push notification.",
-                        caregiver.getEmail(), caregiver.getUserId());
+        String acknowledgerName = acknowledger.getFirstName() + " " + acknowledger.getLastName();
+        String title = "Durum Güncellemesi: Müdahale Ediliyor";
+        String body = acknowledgerName + " olayla ilgileniyor.";
+
+        for (PatientRelationship rel : contacts) {
+            User relative = rel.getCaregiver();
+
+            // Do not send notification to the person who just clicked the button
+            if (relative.getUserId().equals(acknowledger.getUserId())) {
                 continue;
             }
-            // send notification to all tokens found
-            for (DeviceToken token : tokens) {
-                fcmService.sendNotificationToToken(
-                        token.getFcmToken(),
-                        notificationTitle,
-                        notificationBody
-                );
-            }
 
-            log.info("Notification sent to Caregiver: {}", caregiver.getEmail());
+            sendPushToUser(relative, title, body);
+            log.info("Acknowledgment info sent to other relative: {}", relative.getEmail());
+        }
+    }
+
+    // helper method to push notifications
+    private void sendPushToUser(User user, String title, String body) {
+        // find every token of caregivers
+        List<DeviceToken> tokens = deviceTokenRepository.findByUser_UserId(user.getUserId());
+        if (tokens.isEmpty()) return;
+        // send out notifications to their devices
+        for (DeviceToken token : tokens) {
+            fcmService.sendNotificationToToken(
+                    token.getFcmToken(),
+                    title,
+                    body
+            );
         }
     }
 }
