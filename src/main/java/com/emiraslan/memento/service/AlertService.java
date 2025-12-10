@@ -2,10 +2,12 @@ package com.emiraslan.memento.service;
 
 import com.emiraslan.memento.dto.AlertDto;
 import com.emiraslan.memento.entity.Alert;
+import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.PatientRelationship;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.AlertStatus;
 import com.emiraslan.memento.repository.AlertRepository;
+import com.emiraslan.memento.repository.DeviceTokenRepository;
 import com.emiraslan.memento.repository.PatientRelationshipRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
@@ -26,6 +28,8 @@ public class AlertService {
     private final AlertRepository alertRepository;
     private final UserRepository userRepository;
     private final PatientRelationshipRepository relationshipRepository;
+    private final DeviceTokenRepository deviceTokenRepository;
+    private final FcmService fcmService;
 
     // immediately creates a PENDING alert when a fall is detected
     @Transactional
@@ -94,6 +98,7 @@ public class AlertService {
         alert.setStatus(AlertStatus.ACKNOWLEDGED);
         log.info("Alert Acknowledged by Caregiver: AlertID={}", alertId);
 
+
         // TODO: Notify other relatives that someone has acknowledged the alert (prevent duplicate efforts)
 
         return MapperUtil.toAlertDto(alertRepository.save(alert));
@@ -109,6 +114,7 @@ public class AlertService {
 
     // Helper method to find active primary contacts and send notifications
     private void notifyPrimaryContacts(Alert alert) {
+        // find the patient's primary contacts
         List<PatientRelationship> contacts = relationshipRepository
                 .findByPatient_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(alert.getPatient().getUserId());
 
@@ -117,14 +123,32 @@ public class AlertService {
             return;
         }
 
+        String patientName = alert.getPatient().getFirstName() + " " + alert.getPatient().getLastName();
+        String notificationTitle = "ACİL DURUM: Düşme Tespit Edildi!";
+        String notificationBody = patientName + " düştü! Konumu görmek ve müdahale etmek için tıklayın.";
+
+        // for every primary contact
         for (PatientRelationship rel : contacts) {
-            // Todo: Call FCM Service here later
-            log.info(">>> SENDING PUSH NOTIFICATION to Caregiver: {} (Email: {}) - Message: FALL DETECTED at Lat:{}, Lng:{}",
-                    rel.getCaregiver().getFirstName(),
-                    rel.getCaregiver().getEmail(),
-                    alert.getLatitude(),
-                    alert.getLongitude()
-            );
+            User caregiver = rel.getCaregiver();
+
+            // find all device tokens for the caregivers
+            List<DeviceToken> tokens = deviceTokenRepository.findByUser_UserId(caregiver.getUserId());
+
+            if (tokens.isEmpty()) {
+                log.warn("Caregiver {} (ID: {}) has no registered device tokens. Cannot send push notification.",
+                        caregiver.getEmail(), caregiver.getUserId());
+                continue;
+            }
+            // send notification to all tokens found
+            for (DeviceToken token : tokens) {
+                fcmService.sendNotificationToToken(
+                        token.getFcmToken(),
+                        notificationTitle,
+                        notificationBody
+                );
+            }
+
+            log.info("Notification sent to Caregiver: {}", caregiver.getEmail());
         }
     }
 }
