@@ -2,6 +2,7 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.SavedLocationDto;
 import com.emiraslan.memento.service.SavedLocationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/locations")
 @RequiredArgsConstructor
+@Tag(name = "04 - Saved Locations")
 public class SavedLocationController {
 
     private final SavedLocationService locationService;

@@ -72,12 +72,16 @@ public class GeneralReminderService {
     }
 
     @Transactional
-    public GeneralReminderDto toggleCompletion(Integer reminderId) {
+    public GeneralReminderDto markAsCompleted(Integer reminderId) {
         GeneralReminder reminder = reminderRepository.findById(reminderId)
                 .orElseThrow(() -> new EntityNotFoundException("GENERAL_REMINDER_NOT_FOUND: " + reminderId));
 
-        // True -> False, False -> True, like a checkbox
-        reminder.setIsCompleted(!reminder.getIsCompleted());
+        if (Boolean.TRUE.equals(reminder.getIsCompleted())) {
+            // if its already completed, return it as it is
+            return MapperUtil.toGeneralReminderDto(reminder);
+        }
+
+        reminder.setIsCompleted(true);
 
         return MapperUtil.toGeneralReminderDto(reminderRepository.save(reminder));
     }

@@ -2,6 +2,8 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.PatientRelationshipDto;
 import com.emiraslan.memento.service.PatientRelationshipService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,12 +13,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/relationships")
 @RequiredArgsConstructor
+@Tag(name = "03 - Relationships")
 public class PatientRelationshipController {
 
     private final PatientRelationshipService relationshipService;
 
     // lists all active relationships of a patient, excludeDoctors=true to filter doctors out
-    // Endpoint: GET /api/v1/relationships/patient/{patientId}?excludeDoctors=true
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<PatientRelationshipDto>> getRelationships(
             @PathVariable Integer patientId,
@@ -26,8 +28,6 @@ public class PatientRelationshipController {
     }
 
     // adds a new relationship with an email
-    // Endpoint: POST /api/v1/relationships
-    // Body: { "patientUserId": 1, "caregiverEmail": "dr.ayse@test.com", "relationshipType": "DOCTOR" }
     @PostMapping
     public ResponseEntity<PatientRelationshipDto> addRelationship(@RequestBody PatientRelationshipDto dto) {
         return ResponseEntity.ok(relationshipService.addRelationship(dto));
@@ -40,7 +40,10 @@ public class PatientRelationshipController {
     }
 
     // toggle to change primary contact status
-    // Endpoint: PATCH /api/v1/relationships/{id}/toggle-primary
+    @Operation(
+            summary = "Sets the primary contact status as true or false.",
+            description = "Primary contacts receive notifications during alerts, such as when the Patient falls."
+    )
     @PatchMapping("/{relationshipId}/toggle-primary")
     public ResponseEntity<PatientRelationshipDto> togglePrimaryStatus(@PathVariable Integer relationshipId) {
         return ResponseEntity.ok(relationshipService.togglePrimaryContactStatus(relationshipId));

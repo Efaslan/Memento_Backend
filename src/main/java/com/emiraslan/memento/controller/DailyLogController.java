@@ -2,6 +2,8 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.DailyLogDto;
 import com.emiraslan.memento.service.DailyLogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +15,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/dailylogs")
 @RequiredArgsConstructor
+@Tag(name = "06 - Daily Logs")
 public class DailyLogController {
 
     private final DailyLogService dailyLogService;
 
-    // brings a specific date's logs, if no date is given, it returns today's logs
+    @Operation(
+            description = "This endpoint returns today's daily logs if no date is given."
+    )
     @GetMapping
     public ResponseEntity<List<DailyLogDto>> getLogs(
             @RequestParam Integer patientId,
@@ -26,8 +31,9 @@ public class DailyLogController {
         return ResponseEntity.ok(dailyLogService.getLogsByDate(patientId, targetDate));
     }
 
-    // brings last x days reports
-    // Endpoint: GET /api/v1/dailylogs/recent/7?patientId=1 (last 7 days)
+    @Operation(
+            summary = "Last {days} daily logs."
+    )
     @GetMapping("/recent/{days}")
     public ResponseEntity<List<DailyLogDto>> getRecentLogs(
             @PathVariable Integer days,
@@ -47,7 +53,9 @@ public class DailyLogController {
         return ResponseEntity.noContent().build();
     }
 
-    // returns the amount of water the patient drank today
+    @Operation(
+            description = "The amount of water the patient has drunk today."
+    )
     @GetMapping("/water-total/{patientId}")
     public ResponseEntity<Integer> getTodayWaterTotal(@PathVariable Integer patientId) {
         return ResponseEntity.ok(dailyLogService.getTodayTotalWaterIntake(patientId));

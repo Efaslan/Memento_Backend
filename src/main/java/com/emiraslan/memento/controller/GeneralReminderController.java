@@ -2,6 +2,8 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.GeneralReminderDto;
 import com.emiraslan.memento.service.GeneralReminderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reminders")
 @RequiredArgsConstructor
+@Tag(name = "05 - General Reminders")
 public class GeneralReminderController {
 
     private final GeneralReminderService reminderService;
@@ -21,7 +24,9 @@ public class GeneralReminderController {
         return ResponseEntity.ok(reminderService.getAllOngoingRemindersByPatient(patientId));
     }
 
-    // all inactive (past) reminders
+    @Operation(
+            summary = "List of completed reminders."
+    )
     @GetMapping("/history/{patientId}")
     public ResponseEntity<List<GeneralReminderDto>> getCompletedReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(patientId));
@@ -40,9 +45,12 @@ public class GeneralReminderController {
         return ResponseEntity.ok(reminderService.updateReminder(reminderId, dto));
     }
 
-    @PatchMapping("/{reminderId}/toggle")
-    public ResponseEntity<GeneralReminderDto> toggleCompletion(@PathVariable Integer reminderId) {
-        return ResponseEntity.ok(reminderService.toggleCompletion(reminderId));
+    @Operation(
+            summary = "Set reminder as completed."
+    )
+    @PatchMapping("/{reminderId}/complete")
+    public ResponseEntity<GeneralReminderDto> markAsCompleted(@PathVariable Integer reminderId) {
+        return ResponseEntity.ok(reminderService.markAsCompleted(reminderId));
     }
 
     @DeleteMapping("/{reminderId}")

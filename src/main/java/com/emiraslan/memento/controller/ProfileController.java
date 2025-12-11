@@ -3,6 +3,7 @@ package com.emiraslan.memento.controller;
 import com.emiraslan.memento.dto.DoctorProfileDto;
 import com.emiraslan.memento.dto.PatientProfileDto;
 import com.emiraslan.memento.service.ProfileService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/profiles")
 @RequiredArgsConstructor
+@Tag(name = "02 - Profiles")
 public class ProfileController {
 
     // DTOs contain both profile info and some more from the user table. This is so that the user can update their entire profile from a single form
