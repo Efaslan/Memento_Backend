@@ -73,25 +73,6 @@ public class MedicationLogService {
         return MapperUtil.toMedicationLogDto(logRepository.save(log));
     }
 
-    // a method enabling the patient to manually log their medicine as SKIPPED
-    @Transactional
-    public MedicationLogDto logMedicationSkipped(Integer patientId, Integer scheduleTimeId) {
-        User patient = userRepository.findById(patientId)
-                .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND"));
-
-        MedicationScheduleTime scheduleTime = timeRepository.findById(scheduleTimeId)
-                .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
-
-        MedicationLog log = MedicationLog.builder()
-                .scheduleTime(scheduleTime)
-                .patient(patient)
-                .takenAt(LocalDateTime.now())
-                .status(MedicationStatus.SKIPPED) // automatically setting it SKIPPED without the helper method
-                .build();
-
-        return MapperUtil.toMedicationLogDto(logRepository.save(log));
-    }
-
     // helper method to calculate what the status of a log should be
     private MedicationStatus determineStatus(LocalTime scheduledTime, LocalDateTime takenDateTime) {
 

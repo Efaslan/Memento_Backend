@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DailyLogService {
 
-    private DailyLogRepository dailyLogRepository;
-    private UserRepository userRepository;
+    private final DailyLogRepository dailyLogRepository;
+    private final UserRepository userRepository;
 
     // gets a specific day's daily logs, such as today
     public List<DailyLogDto> getLogsByDate(Integer patientId, LocalDate date){
