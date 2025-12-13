@@ -54,7 +54,7 @@ The system starts with a populated database. You can use these credentials in th
 
 ---
 
-### Database Schema
+### Database Schema (ERD)
 
 The system uses a normalized relational database model designed to handle complex relationships between patients, caregivers, and medical logs.
 <img width="796" height="871" alt="erd" src="https://github.com/user-attachments/assets/102eddd7-6ff0-48ff-9a4a-8b3b484a9daf" />
