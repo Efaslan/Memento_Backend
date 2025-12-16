@@ -6,7 +6,7 @@ Memento is an android app designed to enhance the safety and well-being of elder
 
 ---
 
-## 🚀 Quick Start (Zero-Config Demo)
+## Quick Start
 
 You can run this project immediately without installing MSSQL. The project is configured to use an **In-Memory H2 Database** with pre-populated mock data.
 
@@ -20,7 +20,7 @@ You can run this project immediately without installing MSSQL. The project is co
 4.  **Explore the database:**
     For the H2 In-Memory Database, visit: `http://localhost:8080/h2-console`.
 
-### 🧪 Test Credentials (Demo Data)
+### Test Credentials
 
 The system starts with a populated database. You can use these credentials in the Swagger UI to get a JWT Token and test endpoints:
 
@@ -32,7 +32,7 @@ The system starts with a populated database. You can use these credentials in th
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **Language:** Java 17
 * **Framework:** Spring Boot 3
@@ -44,29 +44,30 @@ The system starts with a populated database. You can use these credentials in th
 
 ---
 
-## ✨ Key Features (In-progress)
+## Key Features (In-progress)
 
-* **🗣️ Action-Oriented AI Support:** Backend infrastructure supporting the mobile AI assistant; processes natural language intents (e.g., *"I took my medicine"*) to trigger database actions automatically.
-* **💊 Medication Management:** Schedules reminders for medicines and tracks intake compliance.
-* **📍 Daily Logs:** Tracks daily hydration (`WATER`) and nutrition (`FOOD`) for future reference.
-* **👥 Role-Based Access Control (RBAC):** A unified ecosystem connecting **Patients**, **Relatives**, and **Doctors** with distinct permissions.
-* **🔔 Notification System:** Push notifications for emergencies and reminders.
+* **Action-Oriented AI Support:** Backend infrastructure supporting the mobile AI assistant; processes natural language intents (e.g., *"I took my medicine"*) to trigger database actions automatically.
+* **Medication Management:** Schedules reminders for medicines and tracks intake compliance.
+* **Daily Logs:** Tracks daily hydration (`WATER`) and nutrition (`FOOD`) for future reference.
+* **Role-Based Access Control (RBAC):** A unified ecosystem connecting **Patients**, **Relatives**, and **Doctors** with distinct permissions.
+* **Notification System:** Push notifications for emergencies and reminders.
 
 ---
 
 ### Database Schema (ERD)
 
 The system uses a normalized relational database model designed to handle complex relationships between patients, caregivers, and medical logs.
+
 <img width="796" height="871" alt="erd" src="https://github.com/user-attachments/assets/102eddd7-6ff0-48ff-9a4a-8b3b484a9daf" />
 
 ---
 
-## 👥 Authors & Contact
+## Authors & Contact
 
 This project is a collaborative thesis work.
 
 **Emir Faik Aslan** (Backend Developer)
-* LinkedIn: [https://www.linkedin.com/in/emir-faik-aslan-ab4346316]
+* LinkedIn: [https://www.linkedin.com/in/emir-faik-aslan]
 * Email: [efaslan11@gmail.com]
 
 **Yusuf Kaya** (Mobile & AI Developer)
