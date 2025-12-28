@@ -4,7 +4,6 @@ import com.emiraslan.memento.dto.SavedLocationDto;
 import com.emiraslan.memento.entity.SavedLocation;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.repository.SavedLocationRepository;
-import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -19,24 +18,16 @@ import java.util.stream.Collectors;
 public class SavedLocationService {
 
     private final SavedLocationRepository locationRepository;
-    private final UserRepository userRepository;
 
     public List<SavedLocationDto> getLocationsByPatient(Integer patientId) {
-
-        List<SavedLocation> locations = locationRepository.findByPatient_UserId(patientId);
-
-        // convert all locations to a list
-        return locations.stream()
+        return locationRepository.findByPatient_UserId(patientId)
+                .stream()
                 .map(MapperUtil::toSavedLocationDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public SavedLocationDto createLocation(SavedLocationDto dto) {
-
-        User patient = userRepository.findById(dto.getPatientUserId())
-                .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
-
+    public SavedLocationDto createLocation(SavedLocationDto dto, User patient) {
         SavedLocation location = MapperUtil.toSavedLocationEntity(dto, patient); // object with nulls
 
         SavedLocation savedLocation = locationRepository.save(location); // obj after it receives an id from the db

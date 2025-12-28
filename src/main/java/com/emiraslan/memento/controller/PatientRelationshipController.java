@@ -1,11 +1,15 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.PatientRelationshipDto;
+import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.PatientRelationshipService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,32 +18,54 @@ import java.util.List;
 @RequestMapping("/api/v1/relationships")
 @RequiredArgsConstructor
 @Tag(name = "03 - Relationships")
+@SecurityRequirement(name = "bearerAuth")
 public class PatientRelationshipController {
 
     private final PatientRelationshipService relationshipService;
 
-    // lists all active relationships of a patient, excludeDoctors=true to filter doctors out
-    @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<PatientRelationshipDto>> getRelationships(
-            @PathVariable Integer patientId,
+    // lists all active relationships of a patient
+    @Operation(description = "You can filter doctors out by setting the boolean as true.")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
+    @GetMapping("/me")
+    public ResponseEntity<List<PatientRelationshipDto>> getMyRelationships(
+            @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "false") boolean excludeDoctors
     ) {
-        return ResponseEntity.ok(relationshipService.getActiveRelationships(patientId, excludeDoctors));
+        return ResponseEntity.ok(relationshipService.getActiveRelationships(user, excludeDoctors));
     }
 
-    // adds a new relationship with an email
+    @Operation(description = "Deactivated relationships of a patient.")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
+    @GetMapping("/me/inactive")
+    public ResponseEntity<List<PatientRelationshipDto>> getMyInactiveRelationships(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(relationshipService.getInactiveRelationships(user));
+    }
+
+    @Operation(description = "Doctors can add patients, and patients can add their relatives through their emails (targetEmail).")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR')")
     @PostMapping
-    public ResponseEntity<PatientRelationshipDto> addRelationship(@RequestBody PatientRelationshipDto dto) {
-        return ResponseEntity.ok(relationshipService.addRelationship(dto));
+    public ResponseEntity<PatientRelationshipDto> addRelationship(@RequestBody PatientRelationshipDto dto, @AuthenticationPrincipal User initiator) {
+        return ResponseEntity.ok(relationshipService.addRelationship(dto, initiator));
     }
 
-    @DeleteMapping("/{relationshipId}")
-    public ResponseEntity<Void> deactivateRelationship(@PathVariable Integer relationshipId) {
-        relationshipService.deactivateRelationship(relationshipId);
-        return ResponseEntity.noContent().build();
+    @Operation(description = "Only updates relationship type or primary contact status. Only doctors can update their own relationships.")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
+    @PutMapping("/{relationshipId}")
+    public ResponseEntity<PatientRelationshipDto> updateRelationship(
+            @PathVariable Integer relationshipId,
+            @RequestBody PatientRelationshipDto dto,
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(relationshipService.updateRelationship(relationshipId, dto, user));
     }
 
-    // toggle to change primary contact status
+    @Operation(description = "Activate or deactivate a relationship.")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR')")
+    @PatchMapping("/{relationshipId}/toggle-active")
+    public ResponseEntity<PatientRelationshipDto> toggleActivation(@PathVariable Integer relationshipId, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(relationshipService.toggleActivation(relationshipId, user));
+    }
+
     @Operation(
             summary = "Sets the primary contact status as true or false.",
             description = "Primary contacts receive notifications during alerts, such as when the Patient falls."

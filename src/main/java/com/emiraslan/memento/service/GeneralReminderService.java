@@ -3,6 +3,7 @@ package com.emiraslan.memento.service;
 import com.emiraslan.memento.dto.GeneralReminderDto;
 import com.emiraslan.memento.entity.GeneralReminder;
 import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.GeneralReminderRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
@@ -38,16 +39,20 @@ public class GeneralReminderService {
     }
 
     @Transactional
-    public GeneralReminderDto createReminder(GeneralReminderDto dto) {
+    public GeneralReminderDto createReminder(GeneralReminderDto dto, User creator) {
+        User patient;
 
-        User patient = userRepository.findById(dto.getPatientUserId())
-                .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
-
-        // find creator if not null
-        User creator = null;
-        if (dto.getCreatorUserId() != null) {
-            creator = userRepository.findById(dto.getCreatorUserId())
-                    .orElseThrow(() -> new EntityNotFoundException("CREATOR_USER_NOT_FOUND: " + dto.getCreatorUserId()));
+        // if the creator is patient
+        if(creator.getRole() == UserRole.PATIENT){
+            patient = creator;
+        }
+        // if the creator is a doctor or relative
+        else {
+            if(dto.getPatientUserId() == null){
+                throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
+            }
+            patient = userRepository.findById(dto.getPatientUserId())
+                    .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
         }
 
         GeneralReminder reminder = MapperUtil.toGeneralReminderEntity(dto, patient, creator);

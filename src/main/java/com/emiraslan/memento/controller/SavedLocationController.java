@@ -1,10 +1,14 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.SavedLocationDto;
+import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.SavedLocationService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,25 +17,25 @@ import java.util.List;
 @RequestMapping("/api/v1/locations")
 @RequiredArgsConstructor
 @Tag(name = "04 - Saved Locations")
+@SecurityRequirement(name = "bearerAuth")
 public class SavedLocationController {
 
     private final SavedLocationService locationService;
 
      // brings all locations of a patient
-     // Endpoint: GET /api/v1/locations/patient/{patientId}
-    @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<SavedLocationDto>> getLocations(@PathVariable Integer patientId) {
-        return ResponseEntity.ok(locationService.getLocationsByPatient(patientId));
+    @PreAuthorize("hasAuthority('PATIENT')")
+    @GetMapping("/me")
+    public ResponseEntity<List<SavedLocationDto>> getLocations(@AuthenticationPrincipal User patient) {
+        return ResponseEntity.ok(locationService.getLocationsByPatient(patient.getUserId()));
     }
 
-     // Endpoint: POST /api/v1/locations
-     // Body: { "patientUserId": 5, "locationName": "Evim", "latitude": 40.123, ... }
+    @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping
-    public ResponseEntity<SavedLocationDto> createLocation(@RequestBody SavedLocationDto dto) {
-        return ResponseEntity.ok(locationService.createLocation(dto));
+    public ResponseEntity<SavedLocationDto> createLocation(@RequestBody SavedLocationDto dto, @AuthenticationPrincipal User patient) {
+        return ResponseEntity.ok(locationService.createLocation(dto, patient));
     }
 
-     // Endpoint: PUT /api/v1/locations/{locationId}
+    @PreAuthorize("hasAuthority('PATIENT')")
     @PutMapping("/{locationId}")
     public ResponseEntity<SavedLocationDto> updateLocation(
             @PathVariable Integer locationId,
@@ -40,7 +44,7 @@ public class SavedLocationController {
         return ResponseEntity.ok(locationService.updateLocation(locationId, dto));
     }
 
-     // Endpoint: DELETE /api/v1/locations/{locationId}
+    @PreAuthorize("hasAuthority('PATIENT')")
     @DeleteMapping("/{locationId}")
     public ResponseEntity<Void> deleteLocation(@PathVariable Integer locationId) {
         locationService.deleteLocation(locationId);

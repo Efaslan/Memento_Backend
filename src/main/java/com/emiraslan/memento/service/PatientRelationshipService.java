@@ -11,6 +11,7 @@ import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,78 +25,151 @@ public class PatientRelationshipService {
     private final PatientRelationshipRepository relationshipRepository;
     private final UserRepository userRepository;
 
-    public List<PatientRelationshipDto> getActiveRelationships(Integer patientId, boolean excludeDoctors) {
-        List<PatientRelationship> relationships;
-
-        if (excludeDoctors) {
-            // filter doctor relations out
-            relationships = relationshipRepository.findByPatient_UserIdAndRelationshipTypeNotAndIsActiveTrue(
-                    patientId,
-                    RelationshipType.DOCTOR
-            );
-        } else {
-            // brings all relationships
-            relationships = relationshipRepository.findByPatient_UserIdAndIsActiveTrue(patientId);
+    public List<PatientRelationshipDto> getActiveRelationships(User user, boolean excludeDoctors) {
+        if (user.getRole() == UserRole.PATIENT) {
+            if (excludeDoctors) {
+                return relationshipRepository.findByPatient_UserIdAndRelationshipTypeNotAndIsActiveTrue(
+                                user.getUserId(), RelationshipType.DOCTOR).stream()
+                        .map(MapperUtil::toPatientRelationshipDto).collect(Collectors.toList());
+            }
+            return relationshipRepository.findByPatient_UserIdAndIsActiveTrue(user.getUserId()).stream()
+                    .map(MapperUtil::toPatientRelationshipDto).collect(Collectors.toList());
         }
+        // if the user is a relative or doctor
+        else {
+            return relationshipRepository.findByCaregiver_UserIdAndIsActiveTrue(user.getUserId())
+                    .stream()
+                    .map(MapperUtil::toPatientRelationshipDto)
+                    .collect(Collectors.toList());
+        }
+    }
 
-        return relationships.stream()
-                .map(MapperUtil::toPatientRelationshipDto)
-                .collect(Collectors.toList());
+    public List<PatientRelationshipDto> getInactiveRelationships(User user) {
+        if (user.getRole() == UserRole.PATIENT) {
+            return relationshipRepository.findByPatient_UserIdAndIsActiveFalse(user.getUserId()).stream()
+                    .map(MapperUtil::toPatientRelationshipDto)
+                    .collect(Collectors.toList());
+        }
+        else {
+            return relationshipRepository.findByCaregiver_UserIdAndIsActiveFalse(user.getUserId()).stream()
+                    .map(MapperUtil::toPatientRelationshipDto)
+                    .collect(Collectors.toList());
+        }
     }
 
     @Transactional
-    public PatientRelationshipDto addRelationship(PatientRelationshipDto dto) {
-
-        User patient = userRepository.findById(dto.getPatientUserId())
-                .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND"));
-
-        // find caregiver through email
-        if (dto.getCaregiverEmail() == null || dto.getCaregiverEmail().isEmpty()) {
-            throw new IllegalArgumentException("EMAIL_IS_REQUIRED");
+    public PatientRelationshipDto addRelationship(PatientRelationshipDto dto, User initiator) {
+        // case 1: patients can only add their relatives
+        if(initiator.getRole() == UserRole.PATIENT){
+            return addRelativeByPatient(dto, initiator);
+        } else if (initiator.getRole() == UserRole.DOCTOR) {
+            return addPatientByDoctor(dto, initiator);
+        }else {
+            throw new IllegalStateException("ONLY_PATIENTS_AND_DOCTORS_CAN_INITIATE_RELATIONSHIPS");
         }
-        User caregiver = userRepository.findByEmail(dto.getCaregiverEmail())
-                .orElseThrow(() -> new EntityNotFoundException("EMAIL_NOT_REGISTERED"));
+    }
 
-        // checks:
+    // case 1: patients can only add a relative
+    private PatientRelationshipDto addRelativeByPatient(PatientRelationshipDto dto, User patient) {
+        if (dto.getTargetEmail() == null) throw new IllegalArgumentException("TARGET_RELATIVE_EMAIL_REQUIRED");
+
+        User caregiver = userRepository.findByEmail(dto.getTargetEmail())
+                .orElseThrow(() -> new EntityNotFoundException("TARGET_CAREGIVER_NOT_FOUND"));
+
+        if (caregiver.getRole() == UserRole.DOCTOR || dto.getRelationshipType() == RelationshipType.DOCTOR) {
+            throw new IllegalArgumentException("PATIENTS_CANNOT_ADD_DOCTORS");
+        }
+        Boolean isPrimary = dto.getIsPrimaryContact() != null ? dto.getIsPrimaryContact() : false;
+
+        return createRelationship(patient, caregiver, dto.getRelationshipType(), isPrimary);
+    }
+
+    // case 2: doctors adding patients
+    private PatientRelationshipDto addPatientByDoctor(PatientRelationshipDto dto, User doctor) {
+        if (dto.getTargetEmail() == null) throw new IllegalArgumentException("TARGET_PATIENT_EMAIL_REQUIRED");
+
+        User patient = userRepository.findByEmail(dto.getTargetEmail())
+                .orElseThrow(() -> new EntityNotFoundException("TARGET_PATIENT_NOT_FOUND"));
+
+        if (patient.getRole() != UserRole.PATIENT) {
+            throw new IllegalArgumentException("TARGET_USER_IS_NOT_PATIENT");
+        }
+
+        // doctor users can also be 'son/daughter etc.' in relationships. If the type is not specified, default is DOCTOR
+        RelationshipType type = dto.getRelationshipType() != null ? dto.getRelationshipType() : RelationshipType.DOCTOR;
+        Boolean isPrimary = dto.getIsPrimaryContact(); // can be null, it is saved as false in that case
+
+        return createRelationship(patient, doctor, type, isPrimary);
+    }
+
+    // common logic for saving/updating relationships
+    private PatientRelationshipDto createRelationship(User patient, User caregiver, RelationshipType type, Boolean isPrimaryContact) {
+
         if (patient.getUserId().equals(caregiver.getUserId())) {
             throw new IllegalArgumentException("SELF_RELATION_NOT_ALLOWED");
         }
-        if (dto.getRelationshipType() == RelationshipType.DOCTOR && caregiver.getRole() != UserRole.DOCTOR) {
-            throw new IllegalArgumentException("CAREGIVER_NOT_DOCTOR");
+        if (type == RelationshipType.DOCTOR && caregiver.getRole() != UserRole.DOCTOR) {
+            throw new IllegalArgumentException("SELECTED_USER_IS_NOT_DOCTOR");
         }
-
-        // checking if that relation exist to prevent unique constraint error
+        // duplicate check
         Optional<PatientRelationship> existingRel = relationshipRepository
-                .findByPatient_UserId(patient.getUserId()) // bring all relations, active or not
-                .stream()
-                .filter(r -> r.getCaregiver().getUserId().equals(caregiver.getUserId()))
-                .findFirst();
-
-        PatientRelationship relationship;
+                .findByPatient_UserIdAndCaregiver_UserId(patient.getUserId(), caregiver.getUserId());
 
         if (existingRel.isPresent()) {
-            // if it exists, update and activate the relationship
-            relationship = existingRel.get();
-            relationship.setIsActive(true);
-            relationship.setRelationshipType(dto.getRelationshipType());
-            relationship.setIsPrimaryContact(dto.getIsPrimaryContact() != null ? dto.getIsPrimaryContact() : false);
-        } else {
-            // if not, add a new relationship
-            relationship = MapperUtil.toPatientRelationshipEntity(dto, patient, caregiver);
-            relationship.setIsActive(true);
+            if (Boolean.TRUE.equals(existingRel.get().getIsActive())) {
+                throw new IllegalStateException("RELATIONSHIP_ALREADY_EXISTS_AND_ACTIVE");
+            } else {
+                throw new IllegalStateException("RELATIONSHIP_EXISTS_BUT_INACTIVE_PLEASE_REACTIVATE");
+            }
         }
+
+        PatientRelationship relationship = PatientRelationship.builder()
+                .patient(patient)
+                .caregiver(caregiver)
+                .relationshipType(type)
+                .isPrimaryContact(isPrimaryContact != null ? isPrimaryContact : false)
+                .isActive(true)
+                .build();
 
         return MapperUtil.toPatientRelationshipDto(relationshipRepository.save(relationship));
     }
 
-    // deactivate instead of deleting relationships to keep track of past doctors
     @Transactional
-    public void deactivateRelationship(Integer relationshipId) {
+    public PatientRelationshipDto updateRelationship(Integer relationshipId, PatientRelationshipDto dto, User initiator) {
         PatientRelationship relationship = relationshipRepository.findById(relationshipId)
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
 
-        relationship.setIsActive(false);
-        relationshipRepository.save(relationship);
+        boolean isPatient = relationship.getPatient().getUserId().equals(initiator.getUserId());
+        boolean isCaregiver = relationship.getCaregiver().getUserId().equals(initiator.getUserId());
+
+        if (!isPatient && !isCaregiver) {
+            throw new AccessDeniedException("YOU_ARE_NOT_PART_OF_THIS_RELATIONSHIP");
+        }
+
+        if (dto.getRelationshipType() == RelationshipType.DOCTOR && relationship.getCaregiver().getRole() != UserRole.DOCTOR) {
+            throw new IllegalArgumentException("SELECTED_USER_IS_NOT_DOCTOR");
+        }
+
+        if (dto.getRelationshipType() != null) relationship.setRelationshipType(dto.getRelationshipType());
+        if (dto.getIsPrimaryContact() != null) relationship.setIsPrimaryContact(dto.getIsPrimaryContact());
+
+        return MapperUtil.toPatientRelationshipDto(relationshipRepository.save(relationship));
+    }
+
+    // toggle to deactivate or reactivate relationships
+    @Transactional
+    public PatientRelationshipDto toggleActivation(Integer relationshipId, User initiator) {
+        PatientRelationship relationship = relationshipRepository.findById(relationshipId)
+                .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
+
+        boolean isPatient = relationship.getPatient().getUserId().equals(initiator.getUserId());
+        boolean isCaregiver = relationship.getCaregiver().getUserId().equals(initiator.getUserId());
+        if (!isPatient && !isCaregiver) {
+            throw new AccessDeniedException("YOU_ARE_NOT_PART_OF_THIS_RELATIONSHIP");
+        }
+
+        relationship.setIsActive(!relationship.getIsActive());
+        return MapperUtil.toPatientRelationshipDto(relationshipRepository.save(relationship));
     }
 
     // toggle to change primary contacts

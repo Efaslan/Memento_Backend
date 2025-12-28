@@ -19,6 +19,9 @@ public class PatientRelationshipDto {
     private String caregiverPhone;
     private String caregiverEmail;
 
+    // used when initiating relationships
+    private String targetEmail;
+
     private RelationshipType relationshipType;
     private Boolean isPrimaryContact;
     private Boolean isActive;
