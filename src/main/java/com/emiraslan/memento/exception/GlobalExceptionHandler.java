@@ -1,6 +1,7 @@
 package com.emiraslan.memento.exception;
 
 import com.emiraslan.memento.dto.ErrorResponse;
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +64,21 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(EntityExistsException.class)
+    public ResponseEntity<ErrorResponse> handleEntityExistsException(EntityExistsException ex, HttpServletRequest request) {
+        log.warn("Conflict Error: {} - Path: {}", ex.getMessage(), request.getRequestURI());
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value()) // 409
+                .error("Conflict")
+                .message(ex.getMessage()) // "EMAIL_ALREADY_EXISTS"
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
     // for cases when JWT is not inputted or invalid

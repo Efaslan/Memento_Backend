@@ -71,7 +71,7 @@ public class PatientRelationshipService {
 
     // case 1: patients can only add a relative
     private PatientRelationshipDto addRelativeByPatient(PatientRelationshipDto dto, User patient) {
-        if (dto.getTargetEmail() == null) throw new IllegalArgumentException("TARGET_RELATIVE_EMAIL_REQUIRED");
+        if (dto.getTargetEmail() == null) throw new IllegalArgumentException("TARGET_CAREGIVER_EMAIL_REQUIRED");
 
         User caregiver = userRepository.findByEmail(dto.getTargetEmail())
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_CAREGIVER_NOT_FOUND"));
@@ -108,9 +108,6 @@ public class PatientRelationshipService {
         if (patient.getUserId().equals(caregiver.getUserId())) {
             throw new IllegalArgumentException("SELF_RELATION_NOT_ALLOWED");
         }
-        if (type == RelationshipType.DOCTOR && caregiver.getRole() != UserRole.DOCTOR) {
-            throw new IllegalArgumentException("SELECTED_USER_IS_NOT_DOCTOR");
-        }
         // duplicate check
         Optional<PatientRelationship> existingRel = relationshipRepository
                 .findByPatient_UserIdAndCaregiver_UserId(patient.getUserId(), caregiver.getUserId());
@@ -146,8 +143,19 @@ public class PatientRelationshipService {
             throw new AccessDeniedException("YOU_ARE_NOT_PART_OF_THIS_RELATIONSHIP");
         }
 
-        if (dto.getRelationshipType() == RelationshipType.DOCTOR && relationship.getCaregiver().getRole() != UserRole.DOCTOR) {
-            throw new IllegalArgumentException("SELECTED_USER_IS_NOT_DOCTOR");
+        // if the relationship is currently doctor-patient, only the doctor can edit
+        if (relationship.getRelationshipType() == RelationshipType.DOCTOR && !isCaregiver) {
+            throw new IllegalStateException("ONLY_DOCTORS_CAN_UPDATE_DOCTOR_RELATIONSHIPS");
+        }
+
+        // if the relationship is currently not doctor-patient, only the doctor can make it doctor-patient
+        if (dto.getRelationshipType() == RelationshipType.DOCTOR) {
+            if (!isCaregiver) { // patients cannot edit the type into doctor
+                throw new IllegalStateException("ONLY_CAREGIVERS_CAN_SET_TYPE_TO_DOCTOR");
+            }
+            if (relationship.getCaregiver().getRole() != UserRole.DOCTOR) { // user has to be a doctor to edit the type into doctor
+                throw new IllegalArgumentException("CANNOT_SET_TYPE_TO_DOCTOR_IF_USER_IS_NOT_DOCTOR");
+            }
         }
 
         if (dto.getRelationshipType() != null) relationship.setRelationshipType(dto.getRelationshipType());

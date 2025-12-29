@@ -41,14 +41,14 @@ public class PatientRelationshipController {
         return ResponseEntity.ok(relationshipService.getInactiveRelationships(user));
     }
 
-    @Operation(description = "Doctors can add patients, and patients can add their relatives through their emails (targetEmail).")
+    @Operation(description = "Doctors can add patients, and patients can add their relatives through their emails (targetEmail). Relatives cannot initiate relationships.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR')")
     @PostMapping
     public ResponseEntity<PatientRelationshipDto> addRelationship(@RequestBody PatientRelationshipDto dto, @AuthenticationPrincipal User initiator) {
         return ResponseEntity.ok(relationshipService.addRelationship(dto, initiator));
     }
 
-    @Operation(description = "Only updates relationship type or primary contact status. Only doctors can update their own relationships.")
+    @Operation(description = "Updates relationship type and/or primary contact status. Doctor relationships can only be edited by doctors.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
     @PutMapping("/{relationshipId}")
     public ResponseEntity<PatientRelationshipDto> updateRelationship(

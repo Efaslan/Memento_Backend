@@ -12,6 +12,7 @@ import com.emiraslan.memento.repository.DoctorProfileRepository;
 import com.emiraslan.memento.repository.PatientProfileRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
+import jakarta.persistence.EntityExistsException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,7 +38,7 @@ public class AuthService {
     public UserDto register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("EMAIL_ALREADY_EXISTS");
+            throw new EntityExistsException("EMAIL_ALREADY_EXISTS");
         }
 
         User user = User.builder()
