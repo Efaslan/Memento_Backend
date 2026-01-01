@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice // listens to the entire app
-@Slf4j // Simple logging facade for java
+@Slf4j
 public class GlobalExceptionHandler {
 
     // @Valid errors, checking for correct input (client-side)
@@ -43,6 +44,29 @@ public class GlobalExceptionHandler {
                 .message("Input validation failed.")
                 .validationErrors(errors) // sending validation errors as json objects ("email cant be empty")
                 .path(request.getRequestURI()) // points to the endpoint where the error occurred
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // JSON format error
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleJsonParseException(HttpMessageNotReadableException ex, HttpServletRequest request) {
+
+        log.warn("JSON Parse Error: {} - Path: {}", ex.getMessage(), request.getRequestURI());
+
+        String message = "Malformed JSON request. Please check your input fields (e.g., Role must be PATIENT, DOCTOR, or RELATIVE).";
+
+        if (ex.getMessage() != null && ex.getMessage().contains("com.emiraslan.memento.enums.UserRole")) {
+            message = "Invalid User Role. Accepted values: PATIENT, DOCTOR, RELATIVE";
+        }
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value()) // 400
+                .error("Bad Request")
+                .message(message)
+                .path(request.getRequestURI())
                 .build();
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -165,7 +189,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value()) // 500
                 .error("Internal Server Error")
-                .message("An unexpected error has occurred. Please try again later.") // short message sent to mobile
+                .message("An unexpected error has occurred. Please try again later.")
                 .path(request.getRequestURI())
                 .build();
 

@@ -6,7 +6,6 @@ import com.emiraslan.memento.entity.MedicationScheduleTime;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.MedicationStatus;
 import com.emiraslan.memento.repository.MedicationLogRepository;
-import com.emiraslan.memento.repository.MedicationScheduleRepository;
 import com.emiraslan.memento.repository.MedicationScheduleTimeRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
@@ -31,7 +30,6 @@ public class MedicationLogService {
 
     private final MedicationLogRepository logRepository;
     private final MedicationScheduleTimeRepository timeRepository;
-    private final MedicationScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
 
     // timespan for "TAKEN" status
