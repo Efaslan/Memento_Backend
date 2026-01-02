@@ -39,25 +39,26 @@ public class GeneralReminderController {
 
     // doctor / relative operations
     @Operation(summary = "For doctors and relatives.")
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE')")
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canAccessPatientReminders(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
     public ResponseEntity<List<GeneralReminderDto>> getPatientActiveReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getAllOngoingRemindersByPatient(patientId));
     }
-    // TODO check for relationships before allowing users to view patients' information
 
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE')")
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canAccessPatientReminders(#patientId, principal)")
     @GetMapping("/history/patient/{patientId}")
     public ResponseEntity<List<GeneralReminderDto>> getPatientCompletedReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(patientId));
     }
 
     // mutual operations (Create, Update, Delete)
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canCreateReminder(#dto, principal)")
     @PostMapping
     public ResponseEntity<GeneralReminderDto> createReminder(@RequestBody GeneralReminderDto dto, @AuthenticationPrincipal User creator) {
         return ResponseEntity.ok(reminderService.createReminder(dto, creator));
     }
 
+    @PreAuthorize("@guard.canModifyReminder(#reminderId, principal)")
     @PutMapping("/{reminderId}")
     public ResponseEntity<GeneralReminderDto> updateReminder(
             @PathVariable Integer reminderId,
@@ -67,11 +68,13 @@ public class GeneralReminderController {
     }
 
     @Operation(summary = "Set reminder as completed.")
+    @PreAuthorize("@guard.canModifyReminder(#reminderId, principal)")
     @PatchMapping("/{reminderId}/complete")
     public ResponseEntity<GeneralReminderDto> markAsCompleted(@PathVariable Integer reminderId) {
         return ResponseEntity.ok(reminderService.markAsCompleted(reminderId));
     }
 
+    @PreAuthorize("@guard.canModifyReminder(#reminderId, principal)")
     @DeleteMapping("/{reminderId}")
     public ResponseEntity<Void> deleteReminder(@PathVariable Integer reminderId) {
         reminderService.deleteReminder(reminderId);

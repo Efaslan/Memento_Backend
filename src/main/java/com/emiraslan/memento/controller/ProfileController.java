@@ -57,7 +57,7 @@ public class ProfileController {
     @Operation(
             summary = "View a patient's profile for Doctors and Relatives."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE')")
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientProfile(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<PatientProfileDto> getPatientProfileById(
             @PathVariable Integer patientId

@@ -9,6 +9,7 @@ import com.emiraslan.memento.repository.DoctorProfileRepository;
 import com.emiraslan.memento.repository.PatientProfileRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +56,7 @@ public class ProfileService {
             // if email has changed, and it is in usage by someone else
             if (!dto.getEmail().equals(user.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
                 // catch and throw a 400 error
-                throw new IllegalArgumentException("This email address is already in usage.");
+                throw new EntityExistsException("EMAIL_ALREADY_EXISTS");
             }
             user.setEmail(dto.getEmail());
         }
@@ -94,7 +95,7 @@ public class ProfileService {
 
         if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
             if (!dto.getEmail().equals(user.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
-                throw new IllegalArgumentException("This email address is already in usage.");
+                throw new EntityExistsException("EMAIL_ALREADY_EXISTS");
             }
             user.setEmail(dto.getEmail());
         }

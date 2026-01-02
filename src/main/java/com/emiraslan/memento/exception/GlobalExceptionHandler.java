@@ -55,9 +55,9 @@ public class GlobalExceptionHandler {
 
         log.warn("JSON Parse Error: {} - Path: {}", ex.getMessage(), request.getRequestURI());
 
-        String message = "Malformed JSON request. Please check your input fields (e.g., Role must be PATIENT, DOCTOR, or RELATIVE).";
+        String message = "Malformed JSON request. Please check your input fields.";
 
-        if (ex.getMessage() != null && ex.getMessage().contains("com.emiraslan.memento.enums.UserRole")) {
+        if (ex.getMessage() != null && ex.getMessage().contains("memento.enums.UserRole")) {
             message = "Invalid User Role. Accepted values: PATIENT, DOCTOR, RELATIVE";
         }
 
@@ -153,7 +153,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.FORBIDDEN.value()) // 403
                 .error("Forbidden")
-                .message("You do not have permission to access this resource.")
+                .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
 

@@ -11,7 +11,6 @@ import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -59,20 +58,15 @@ public class PatientRelationshipService {
 
     @Transactional
     public PatientRelationshipDto addRelationship(PatientRelationshipDto dto, User initiator) {
-        // case 1: patients can only add their relatives
         if(initiator.getRole() == UserRole.PATIENT){
             return addRelativeByPatient(dto, initiator);
-        } else if (initiator.getRole() == UserRole.DOCTOR) {
-            return addPatientByDoctor(dto, initiator);
-        }else {
-            throw new IllegalStateException("ONLY_PATIENTS_AND_DOCTORS_CAN_INITIATE_RELATIONSHIPS");
         }
+        // if the user is not patient, then they are a doctor. Relatives are not allowed through the endpoint
+        return addPatientByDoctor(dto, initiator);
     }
 
     // case 1: patients can only add a relative
     private PatientRelationshipDto addRelativeByPatient(PatientRelationshipDto dto, User patient) {
-        if (dto.getTargetEmail() == null) throw new IllegalArgumentException("TARGET_CAREGIVER_EMAIL_REQUIRED");
-
         User caregiver = userRepository.findByEmail(dto.getTargetEmail())
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_CAREGIVER_NOT_FOUND"));
 
@@ -86,8 +80,6 @@ public class PatientRelationshipService {
 
     // case 2: doctors adding patients
     private PatientRelationshipDto addPatientByDoctor(PatientRelationshipDto dto, User doctor) {
-        if (dto.getTargetEmail() == null) throw new IllegalArgumentException("TARGET_PATIENT_EMAIL_REQUIRED");
-
         User patient = userRepository.findByEmail(dto.getTargetEmail())
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_PATIENT_NOT_FOUND"));
 
@@ -136,17 +128,7 @@ public class PatientRelationshipService {
         PatientRelationship relationship = relationshipRepository.findById(relationshipId)
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
 
-        boolean isPatient = relationship.getPatient().getUserId().equals(initiator.getUserId());
         boolean isCaregiver = relationship.getCaregiver().getUserId().equals(initiator.getUserId());
-
-        if (!isPatient && !isCaregiver) {
-            throw new AccessDeniedException("YOU_ARE_NOT_PART_OF_THIS_RELATIONSHIP");
-        }
-
-        // if the relationship is currently doctor-patient, only the doctor can edit
-        if (relationship.getRelationshipType() == RelationshipType.DOCTOR && !isCaregiver) {
-            throw new IllegalStateException("ONLY_DOCTORS_CAN_UPDATE_DOCTOR_RELATIONSHIPS");
-        }
 
         // if the relationship is currently not doctor-patient, only the doctor can make it doctor-patient
         if (dto.getRelationshipType() == RelationshipType.DOCTOR) {
@@ -166,15 +148,9 @@ public class PatientRelationshipService {
 
     // toggle to deactivate or reactivate relationships
     @Transactional
-    public PatientRelationshipDto toggleActivation(Integer relationshipId, User initiator) {
+    public PatientRelationshipDto toggleActivation(Integer relationshipId) {
         PatientRelationship relationship = relationshipRepository.findById(relationshipId)
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
-
-        boolean isPatient = relationship.getPatient().getUserId().equals(initiator.getUserId());
-        boolean isCaregiver = relationship.getCaregiver().getUserId().equals(initiator.getUserId());
-        if (!isPatient && !isCaregiver) {
-            throw new AccessDeniedException("YOU_ARE_NOT_PART_OF_THIS_RELATIONSHIP");
-        }
 
         relationship.setIsActive(!relationship.getIsActive());
         return MapperUtil.toPatientRelationshipDto(relationshipRepository.save(relationship));

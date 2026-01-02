@@ -42,21 +42,18 @@ public class GeneralReminderService {
     public GeneralReminderDto createReminder(GeneralReminderDto dto, User creator) {
         User patient;
 
-        // if the creator is patient
+        // if the creator is patient, patientId in dto is set automatically
         if(creator.getRole() == UserRole.PATIENT){
             patient = creator;
+            dto.setPatientUserId(creator.getUserId());
         }
         // if the creator is a doctor or relative
         else {
-            if(dto.getPatientUserId() == null){
-                throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
-            }
             patient = userRepository.findById(dto.getPatientUserId())
                     .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
         }
 
         GeneralReminder reminder = MapperUtil.toGeneralReminderEntity(dto, patient, creator);
-
         return MapperUtil.toGeneralReminderDto(reminderRepository.save(reminder));
     }
 
