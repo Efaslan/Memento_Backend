@@ -39,7 +39,6 @@ public class MapperUtil {
     public static SavedLocation toSavedLocationEntity(SavedLocationDto dto, User patient) {
         if (dto == null) return null;
         return SavedLocation.builder()
-                .locationId(dto.getLocationId())
                 .patient(patient) // JPA accepts the object as FK, not just ID(see entity package FKs)
                 .locationName(dto.getLocationName())
                 .latitude(dto.getLatitude())
@@ -105,7 +104,6 @@ public class MapperUtil {
     public static GeneralReminder toGeneralReminderEntity(GeneralReminderDto dto, User patient, User creator) {
         if (dto == null) return null;
         return GeneralReminder.builder()
-                .reminderId(dto.getReminderId())
                 .patient(patient)
                 .creator(creator) // can be null, or equal to patient
                 .title(dto.getTitle())
@@ -135,18 +133,6 @@ public class MapperUtil {
                 .build();
     }
 
-    public static PatientRelationship toPatientRelationshipEntity(PatientRelationshipDto dto, User patient, User caregiver) {
-        if (dto == null) return null;
-        return PatientRelationship.builder()
-                .relationshipId(dto.getRelationshipId())
-                .patient(patient)
-                .caregiver(caregiver)
-                .relationshipType(dto.getRelationshipType())
-                .isPrimaryContact(dto.getIsPrimaryContact() != null ? dto.getIsPrimaryContact() : false)
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
-                .build();
-    }
-
     // DailyLog Mapping
     public static DailyLogDto toDailyLogDto(DailyLog entity) {
         if (entity == null) return null;
@@ -163,7 +149,6 @@ public class MapperUtil {
     public static DailyLog toDailyLogEntity(DailyLogDto dto, User patient) {
         if (dto == null) return null;
         return DailyLog.builder()
-                .dailyLogId(dto.getDailyLogId())
                 .patient(patient)
                 .dailyLogType(dto.getDailyLogType())
                 .description(dto.getDescription())
@@ -211,7 +196,6 @@ public class MapperUtil {
     public static MedicationSchedule toMedicationScheduleEntity(MedicationScheduleDto dto, User patient, User doctor) {
         if (dto == null) return null;
         return MedicationSchedule.builder()
-                .scheduleId(dto.getScheduleId())
                 .patient(patient)
                 .doctor(doctor) // can be null
                 .medicationName(dto.getMedicationName())
