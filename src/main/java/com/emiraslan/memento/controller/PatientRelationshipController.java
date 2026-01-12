@@ -42,7 +42,7 @@ public class PatientRelationshipController {
         return ResponseEntity.ok(relationshipService.getInactiveRelationships(user));
     }
 
-    @Operation(description = "Doctors can add patients, and patients can add their relatives through their emails (targetEmail). Relatives cannot initiate relationships.")
+    @Operation(description = "Doctors can add patients, and patients can add their relatives through their emails (targetEmail). Relatives cannot initiate relationships. Type can be: DOCTOR, WIFE, HUSBAND, SON, DAUGHTER, OTHER.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR')")
     @PostMapping
     public ResponseEntity<PatientRelationshipDto> addRelationship(

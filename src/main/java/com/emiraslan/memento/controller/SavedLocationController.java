@@ -31,6 +31,7 @@ public class SavedLocationController {
         return ResponseEntity.ok(locationService.getLocationsByPatient(patient.getUserId()));
     }
 
+    @Operation(description = "Only Patient users can create locations.")
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping
     public ResponseEntity<SavedLocationDto> createLocation(@RequestBody SavedLocationDto dto, @AuthenticationPrincipal User patient) {

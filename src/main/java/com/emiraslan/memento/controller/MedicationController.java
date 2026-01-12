@@ -30,7 +30,9 @@ public class MedicationController {
 
     // PATIENT SCHEDULE OPERATIONS
 
-    // brings a patient's active schedules with their times
+    @Operation(
+            summary = "Active medications of the patient."
+    )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/schedules/me")
     public ResponseEntity<List<MedicationScheduleDto>> getMyActiveSchedules(@AuthenticationPrincipal User user) {
@@ -38,7 +40,7 @@ public class MedicationController {
     }
 
     @Operation(
-            summary = "Patient's entire medical history."
+            summary = "Entire medical history of the patient."
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/schedules/me/history")
@@ -75,13 +77,12 @@ public class MedicationController {
             summary = "Medication is logged as taken.",
             description = "Log status will only be 'taken' if the patient takes it within a 30 minute range. Past 30 minutes, log status will be 'delayed'."
     )
-    @PreAuthorize("hasAuthority('PATIENT')")
+    @PreAuthorize("hasAuthority('PATIENT') and @guard.isScheduleTimeOwner(#timeId, principal)")
     @PostMapping("/logs/{timeId}/take")
     public ResponseEntity<MedicationLogDto> takeMedication(
             @PathVariable Integer timeId,
             @AuthenticationPrincipal User user
     ) {
-        // we find the user through the token, so that others can not send post requests for a patient
         return ResponseEntity.ok(logService.logMedicationTaken(user.getUserId(), timeId));
     }
 
@@ -95,7 +96,7 @@ public class MedicationController {
         return ResponseEntity.ok(scheduleService.getSchedulesByDoctor(doctorUser.getUserId()));
     }
 
-    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canCreateSchedule(#dto, principal)")
     @PostMapping("/schedules")
     public ResponseEntity<MedicationScheduleDto> createSchedule(
             @RequestBody MedicationScheduleDto dto,
@@ -103,7 +104,6 @@ public class MedicationController {
     ) {
         // we force the doctor's id from jwt instead of taking it from the dto
         dto.setDoctorUserId(doctorUser.getUserId());
-
         return ResponseEntity.ok(scheduleService.createSchedule(dto));
     }
 
@@ -111,7 +111,7 @@ public class MedicationController {
             summary = "Update an existing schedule. Please see descriptions.",
             description = "Updating a schedule is heavily restricted in order to protect a patient's medical history. Schedules can only be updated if the patient has no consumption logs on that schedule. If there are logs, only non-critical fields such as: Notes, End Date, and deactivation can be changed."
     )
-    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canModifySchedule(#scheduleId, principal)")
     @PutMapping("/schedules/{scheduleId}")
     public ResponseEntity<MedicationScheduleDto> updateSchedule(
             @PathVariable Integer scheduleId,
@@ -124,7 +124,7 @@ public class MedicationController {
             summary = "Deactivating schedules instead of deleting.",
             description = "This is in order to protect medical history. Patient's will not receive notifications about their deactivated schedules."
     )
-    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canModifySchedule(#scheduleId, principal)")
     @PatchMapping("/schedules/{scheduleId}/deactivate")
     public ResponseEntity<Void> deactivateSchedule(@PathVariable Integer scheduleId) {
         scheduleService.deactivateSchedule(scheduleId);
@@ -132,9 +132,9 @@ public class MedicationController {
     }
 
     @Operation(
-            summary = "A patient's active schedules for a doctor."
+            summary = "A patient's active schedules for a doctor or a relative."
     )
-    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/schedules/patient/{patientId}")
     public ResponseEntity<List<MedicationScheduleDto>> getPatientActiveSchedules(
             @PathVariable Integer patientId
@@ -143,9 +143,9 @@ public class MedicationController {
     }
 
     @Operation(
-            summary = "A patient's entire medical history for a doctor."
+            summary = "A patient's entire medical history for a doctor or a relative."
     )
-    @PreAuthorize("hasAuthority('DOCTOR')")
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/schedules/patient/{patientId}/history")
     public ResponseEntity<List<MedicationScheduleDto>> getPatientScheduleHistory(
             @PathVariable Integer patientId

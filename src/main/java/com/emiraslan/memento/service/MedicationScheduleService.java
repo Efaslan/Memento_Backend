@@ -102,12 +102,12 @@ public class MedicationScheduleService {
                     !existing.getDosage().equals(dto.getDosage()) ||
                     !existing.getIsPrn().equals(dto.getIsPrn())) {
 
-                throw new IllegalStateException("Medication's name, dosage, and type cannot be changed in order to protect the patient's medical history. Please deactivate the schedule and create a new one.");
+                throw new IllegalStateException("Medication's name, dosage, and type cannot be changed if the patient has already consumed a dose. This is in order to protect the patient's medical history. Please deactivate the schedule and create a new one.");
             }
 
             // times also cannot be changed because logs are directly related to the times
             if (dto.getTimes() != null && !dto.getTimes().isEmpty()) {
-                throw new IllegalStateException("Medication times cannot be changed in order to protect the patient's medical history.");
+                throw new IllegalStateException("Medication times cannot be changed if the patient has already consumed a dose. This is in order to protect the patient's medical history. Please deactivate the schedule and create a new one.");
             }
 
             // update permitted fields, except the start date

@@ -6,7 +6,6 @@ import com.emiraslan.memento.dto.RegisterRequest;
 import com.emiraslan.memento.dto.UserDto;
 import com.emiraslan.memento.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,7 @@ public class AuthController {
     private final AuthService authService;
 
     @Operation(
-            description = "Password must be 6 characters at least."
+            description = "Password must be 6 characters at least. Role can be: PATIENT, DOCTOR, or RELATIVE."
     )
     @PostMapping("/register")
     public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterRequest request){

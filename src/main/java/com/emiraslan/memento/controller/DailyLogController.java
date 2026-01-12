@@ -26,7 +26,7 @@ public class DailyLogController {
     private final DailyLogService dailyLogService;
 
     @Operation(
-            description = "This endpoint returns today's daily logs if no date is given."
+            description = "Returns today's daily logs if no date is given."
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping
@@ -50,6 +50,9 @@ public class DailyLogController {
         return ResponseEntity.ok(dailyLogService.getRecentLogs(user.getUserId(), days));
     }
 
+    @Operation(
+            description = "Patients can only create daily logs for themselves, id is automatically set. Type must be either FOOD or WATER."
+    )
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping
     public ResponseEntity<DailyLogDto> createLog(
@@ -62,7 +65,7 @@ public class DailyLogController {
     }
 
     @DeleteMapping("/{logId}")
-    @PreAuthorize("hasAuthority('PATIENT')")
+    @PreAuthorize("hasAuthority('PATIENT') and @guard.isDailyLogOwner(#logId, principal)")
     public ResponseEntity<Void> deleteLog(@PathVariable Integer logId) {
         dailyLogService.deleteLog(logId);
         return ResponseEntity.noContent().build();
@@ -72,7 +75,7 @@ public class DailyLogController {
             description = "The amount of water the patient has drunk today."
     )
     @PreAuthorize("hasAuthority('PATIENT')")
-    @GetMapping("/water-total")
+    @GetMapping("/my/water-total")
     public ResponseEntity<Integer> getMyTodayWaterTotal(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(dailyLogService.getTodayTotalWaterIntake(user.getUserId()));
     }

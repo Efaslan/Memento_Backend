@@ -50,6 +50,15 @@ public class MapperUtil {
     // Alert Mapping
     public static AlertDto toAlertDto(Alert entity) {
         if (entity == null) return null;
+
+        Integer ackUserId = null;
+        String ackUserName = null;
+
+        if (entity.getAcknowledgedBy() != null) {
+            ackUserId = entity.getAcknowledgedBy().getUserId();
+            ackUserName = entity.getAcknowledgedBy().getFirstName() + " " + entity.getAcknowledgedBy().getLastName();
+        }
+
         return AlertDto.builder()
                 .alertId(entity.getAlertId())
                 .patientUserId(entity.getPatient().getUserId())
@@ -59,8 +68,8 @@ public class MapperUtil {
                 .longitude(entity.getLongitude())
                 .status(entity.getStatus())
                 .details(entity.getDetails())
-                .acknowledgedByUserId(entity.getAcknowledgedBy().getUserId())
-                .acknowledgedByName(entity.getAcknowledgedBy().getFirstName() + " " + entity.getAcknowledgedBy().getLastName())
+                .acknowledgedByUserId(ackUserId)
+                .acknowledgedByName(ackUserName)
                 .build();
     }
 

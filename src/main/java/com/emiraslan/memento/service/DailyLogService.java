@@ -63,9 +63,6 @@ public class DailyLogService {
     }
 
     public void deleteLog(Integer logId) {
-        if (!dailyLogRepository.existsById(logId)) {
-            throw new EntityNotFoundException("DAILY_LOG_NOT_FOUND: " + logId);
-        }
         dailyLogRepository.deleteById(logId);
     }
 

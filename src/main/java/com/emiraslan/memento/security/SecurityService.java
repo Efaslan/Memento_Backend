@@ -1,12 +1,11 @@
 package com.emiraslan.memento.security;
 
 import com.emiraslan.memento.dto.GeneralReminderDto;
+import com.emiraslan.memento.dto.MedicationScheduleDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
-import com.emiraslan.memento.repository.GeneralReminderRepository;
-import com.emiraslan.memento.repository.PatientRelationshipRepository;
-import com.emiraslan.memento.repository.SavedLocationRepository;
+import com.emiraslan.memento.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,12 +18,26 @@ public class SecurityService {
     private final PatientRelationshipRepository relationshipRepository;
     private final SavedLocationRepository locationRepository;
     private final GeneralReminderRepository reminderRepository;
+    private final DailyLogRepository dailyLogRepository;
+    private final AlertRepository alertRepository;
+    private final MedicationScheduleRepository medicationScheduleRepository;
+    private final MedicationScheduleTimeRepository timesRepository;
 
     // --- helper method ----
     private boolean hasActiveRelationship(Integer patientId, Integer caregiverId){
         return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(patientId, caregiverId)
                 .map(rel -> Boolean.TRUE.equals(rel.getIsActive()))
                 .orElse(false);
+    }
+
+    // mutual method to check for relationships
+    public boolean canViewPatientData(Integer patientId, User user) {
+        if (patientId.equals(user.getUserId())) return true;
+
+        if (!hasActiveRelationship(patientId, user.getUserId())) {
+            throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
+        }
+        return true;
     }
 
     // ========================================================================
@@ -52,17 +65,6 @@ public class SecurityService {
     }
 
     // ========================================================================
-    // PROFILE SECURITY
-    // ========================================================================
-
-    public boolean canViewPatientProfile(Integer patientId, User user) {
-        if (!hasActiveRelationship(patientId, user.getUserId())) {
-            throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
-        } // returns the same 403 in ALL cases except 200
-        return true;
-    }
-
-    // ========================================================================
     // SAVED LOCATION SECURITY
     // ========================================================================
 
@@ -80,13 +82,6 @@ public class SecurityService {
     // ========================================================================
     // GENERAL REMINDER SECURITY
     // ========================================================================
-
-    public boolean canAccessPatientReminders(Integer patientId, User user) {
-        if (!hasActiveRelationship(patientId, user.getUserId())) {
-            throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
-        }
-        return true;
-    }
 
     public boolean canCreateReminder(GeneralReminderDto dto, User user) {
         // patients do not need to include id in their request. It is automatically set in service
@@ -120,5 +115,89 @@ public class SecurityService {
                 .orElseThrow(() -> new EntityNotFoundException("GENERAL_REMINDER_NOT_FOUND"));
     }
 
+    // ========================================================================
+    // DAILY LOG SECURITY
+    // ========================================================================
 
+    public boolean isDailyLogOwner(Integer logId, User user) {
+        return dailyLogRepository.findById(logId)
+                .map(log -> {
+                    if (!log.getPatient().getUserId().equals(user.getUserId())) {
+                        throw new AccessDeniedException("NOT_DAILY_LOG_OWNER");
+                    }
+                    return true;
+                })
+                .orElseThrow(() -> new EntityNotFoundException("DAILY_LOG_NOT_FOUND"));
+    }
+
+    // ========================================================================
+    // ALERT SECURITY
+    // ========================================================================
+
+    public boolean isAlertOwner(Integer alertId, User user) {
+        return alertRepository.findById(alertId)
+                .map(alert -> {
+                    if (!alert.getPatient().getUserId().equals(user.getUserId())) {
+                        throw new AccessDeniedException("NOT_ALERT_OWNER");
+                    }
+                    return true;
+                })
+                .orElseThrow(() -> new EntityNotFoundException("ALERT_NOT_FOUND"));
+    }
+
+    public boolean canAcknowledgeAlert(Integer alertId, User user) {
+        // find patient id from alert
+        Integer patientId = alertRepository.findById(alertId)
+                .map(alert -> alert.getPatient().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("ALERT_NOT_FOUND"));
+
+        // check if the user is a primary contact of the patient
+        boolean isPrimaryContact = relationshipRepository
+                .existsByPatient_UserIdAndCaregiver_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(patientId, user.getUserId());
+
+        if (!isPrimaryContact) {
+            throw new AccessDeniedException("ONLY_PRIMARY_CONTACTS_CAN_ACKNOWLEDGE_ALERTS");
+        }
+        return true;
+    }
+
+    // ========================================================================
+    // MEDICATION SECURITY
+    // ========================================================================
+    public boolean isScheduleTimeOwner(Integer timeId, User user){
+        return timesRepository.findById(timeId)
+                .map(time -> {
+                    if(!time.getSchedule().getPatient().getUserId().equals(user.getUserId())){
+                        throw new AccessDeniedException("NOT_YOUR_MEDICATION");
+                    }
+                    return true;
+                }).orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
+    }
+
+    public boolean canCreateSchedule(MedicationScheduleDto dto, User doctor){
+        if (dto.getPatientUserId() == null) throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
+
+        return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(dto.getPatientUserId(), doctor.getUserId())
+                .map(rel -> {
+                    if (!Boolean.TRUE.equals(rel.getIsActive())) {
+                        throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
+                    }
+                    if (rel.getRelationshipType() != RelationshipType.DOCTOR) {
+                        throw new AccessDeniedException("ONLY_ASSIGNED_DOCTORS_CAN_CREATE_PRESCRIPTIONS");
+                    }
+                    return true;
+                })
+                .orElseThrow(() -> new AccessDeniedException("NO_RELATIONSHIP_FOUND"));
+    }
+
+    public boolean canModifySchedule(Integer scheduleId, User user) {
+        return medicationScheduleRepository.findById(scheduleId)
+                .map(schedule -> {
+                    if (schedule.getDoctor() == null || !schedule.getDoctor().getUserId().equals(user.getUserId())) {
+                        throw new AccessDeniedException("ONLY_THE_PRESCRIBING_DOCTOR_CAN_MODIFY_THIS_SCHEDULE");
+                    }
+                    return true;
+                })
+                .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND"));
+    }
 }

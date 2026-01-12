@@ -33,4 +33,7 @@ public interface PatientRelationshipRepository extends JpaRepository<PatientRela
     // For Chatbot to find people with a specific role ("Doktorum kim?", "Oğlum kim?")
     // kizimin telefon numarasi ne, doktorumun adi ne? gibi sorular icin bu metot yazildi. Gerek olmazsa sileriz ileride. Lokasyon icin sadece SavedLocation kullaniliyor, bu degil.
     List<PatientRelationship> findByPatient_UserIdAndRelationshipTypeAndIsActiveTrue(Integer patientId, RelationshipType type);
+
+    // checks if a user is primary contact and active. Used for alert acknowledgements
+    boolean existsByPatient_UserIdAndCaregiver_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(Integer patientId, Integer caregiverId);
 }

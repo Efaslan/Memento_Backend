@@ -24,6 +24,9 @@ public class ProfileController {
     // DTOs contain both profile info and some more from the user table. This is so that the user can update their entire profile from a single form
     private final ProfileService profileService;
 
+    @Operation(
+            description = "Only patients and doctors have profiles."
+    )
     @GetMapping("/me")
     public ResponseEntity<Object> getMyProfile(@AuthenticationPrincipal User user) {
         if (user.getRole() == UserRole.PATIENT) {
@@ -36,6 +39,9 @@ public class ProfileController {
         }
     }
 
+    @Operation(
+            description = "You can only edit your own profile(patient). Id is automatically set."
+    )
     @PreAuthorize("hasAuthority('PATIENT')")
     @PutMapping("/patient/me")
     public ResponseEntity<PatientProfileDto> updateMyPatientProfile(
@@ -45,6 +51,9 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.updatePatientProfile(user.getUserId(), dto));
     }
 
+    @Operation(
+            description = "You can only edit your own profile(doctor). Id is automatically set."
+    )
     @PreAuthorize("hasAuthority('DOCTOR')")
     @PutMapping("/doctor/me")
     public ResponseEntity<DoctorProfileDto> updateMyDoctorProfile(
@@ -55,9 +64,9 @@ public class ProfileController {
     }
 
     @Operation(
-            summary = "View a patient's profile for Doctors and Relatives."
+            summary = "View a patient's profile for Doctors and Relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientProfile(#patientId, principal)")
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<PatientProfileDto> getPatientProfileById(
             @PathVariable Integer patientId
