@@ -38,8 +38,9 @@ public class OpenApiConfig {
                 .addTagsItem(new Tag().name("05 - General Reminders").description("Non-medical reminders of Patient users."))
                 .addTagsItem(new Tag().name("06 - Daily Logs").description("Food and water consumption logs of Patient users."))
                 .addTagsItem(new Tag().name("07 - Alerts").description("Critical situations (such as fall detections) of Patient users."))
-                .addTagsItem(new Tag().name("08 - Medications").description("Medication schedules, and logs, of Patient users."))
-                .addTagsItem(new Tag().name("09 - Notifications").description("Saving FCM tokens of user devices."))
+                .addTagsItem(new Tag().name("08 - Medication Schedules").description("Medication schedules of Patient users."))
+                .addTagsItem(new Tag().name("09 - Medication Logs").description("Medication intake logs of Patient users."))
+                .addTagsItem(new Tag().name("10 - Notifications").description("Saving FCM tokens of user devices."))
 
                 // JWT Authorize button config
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
