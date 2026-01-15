@@ -11,4 +11,7 @@ public interface MedicationScheduleTimeRepository extends JpaRepository<Medicati
 
     // Brings all times assigned to a prescription
     List<MedicationScheduleTime> findBySchedule_ScheduleId(Integer scheduleId);
+
+    // brings the times of active schedules, for automatic medication skip cron job(medication log service)
+    List<MedicationScheduleTime> findBySchedule_IsActiveTrue();
 }

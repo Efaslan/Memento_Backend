@@ -92,7 +92,7 @@ public class MedicationLogService {
     }
 
     // Scheduled Task operating to check schedule times and automatically log old ones as SKIPPED if the next medication time of the schedule has come
-    @Scheduled(cron = "0 0 * * * *") // each hour at any date
+    @Scheduled(cron = "30 57 17 * * *") // each hour at any date
     @Transactional
     public void markMissedMedicationsAsSkipped() {
         log.info("Scheduled Task started: Checking for skipped medication...");
@@ -100,10 +100,12 @@ public class MedicationLogService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
 
-        // Get all times and their ids
-        List<MedicationScheduleTime> allTimes = timeRepository.findAll();
+        // Get active times and their ids
+        List<MedicationScheduleTime> activeTimes = timeRepository.findBySchedule_IsActiveTrue();
 
-        for (MedicationScheduleTime time : allTimes) {
+        boolean anySkipped = false; // to confirm the cron job does not include inactive schedules
+
+        for (MedicationScheduleTime time : activeTimes) {
             // skipping PRN medication, they don't have times
             if (time.getScheduledTime() == null) continue;
 
@@ -126,12 +128,15 @@ public class MedicationLogService {
                             .status(MedicationStatus.SKIPPED)
                             .build();
 
-                    // save the new medicationLog and print it to logger
+                    anySkipped = true;
                     logRepository.save(skippedLog);
                     log.info("Medication Automatically Skipped: UserID={}, Medication={}",
                             skippedLog.getPatient().getUserId(), time.getSchedule().getMedicationName());
                 }
             }
+        }
+        if(!anySkipped){
+            log.info("No skipped medication found.");
         }
     }
 }
