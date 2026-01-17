@@ -25,18 +25,7 @@ public class DailyLogService {
     private final DailyLogRepository dailyLogRepository;
     private final UserRepository userRepository;
 
-    // gets a specific day's daily logs, such as today
-    public List<DailyLogDto> getLogsByDate(Integer patientId, LocalDate date){
-        LocalDateTime startOfDay = date.atStartOfDay();
-        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-
-        return dailyLogRepository.findByPatient_UserIdAndCreatedAtBetween(patientId, startOfDay, endOfDay)
-                .stream()
-                .map(MapperUtil::toDailyLogDto)
-                .collect(Collectors.toList());
-    }
-
-    // brings last x days' reports. For example, if given 7, it will return this week's reports
+    // brings last x days' reports. For example, if given 7, it will return this week's reports. 0 returns today
     public List<DailyLogDto> getRecentLogs(Integer patientId, Integer daysBack) {
         LocalDate today = LocalDate.now();
 
@@ -60,6 +49,18 @@ public class DailyLogService {
 
         DailyLog log = MapperUtil.toDailyLogEntity(dto, patient);
         return MapperUtil.toDailyLogDto(dailyLogRepository.save(log));
+    }
+
+    @Transactional
+    public DailyLogDto updateLog(Integer logId, DailyLogDto dto) {
+        DailyLog existingLog = dailyLogRepository.findById(logId)
+                .orElseThrow(() -> new EntityNotFoundException("DAILY_LOG_NOT_FOUND: " + logId));
+
+        existingLog.setDescription(dto.getDescription());
+        existingLog.setQuantityMl(dto.getQuantityMl());
+        existingLog.setDailyLogType(dto.getDailyLogType());
+
+        return MapperUtil.toDailyLogDto(dailyLogRepository.save(existingLog));
     }
 
     public void deleteLog(Integer logId) {
