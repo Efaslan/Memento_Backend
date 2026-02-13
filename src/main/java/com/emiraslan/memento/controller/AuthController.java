@@ -24,7 +24,7 @@ public class AuthController {
     private final AuthService authService;
 
     @Operation(
-            description = "Password must be 6 characters at least. Role can be: PATIENT, DOCTOR, or RELATIVE."
+            description = "Password must be 6 characters at least. Role can be: PATIENT or RELATIVE."
     )
     @PostMapping("/register")
     public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterRequest request){

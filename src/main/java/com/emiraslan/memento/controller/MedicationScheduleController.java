@@ -52,24 +52,16 @@ public class MedicationScheduleController {
         return ResponseEntity.ok(scheduleService.getPrnSchedulesByPatient(user.getUserId()));
     }
 
-    // -----------------DOCTOR OPERATIONS-------------------
-    @Operation(
-            summary = "Medications you(a doctor) prescribed."
-    )
-    @PreAuthorize("hasAuthority('DOCTOR')")
-    @GetMapping("/doctor/me")
-    public ResponseEntity<List<MedicationScheduleDto>> getMyPrescriptions(@AuthenticationPrincipal User doctorUser) {
-        return ResponseEntity.ok(scheduleService.getSchedulesByDoctor(doctorUser.getUserId()));
-    }
+    // -----------------RELATIVE OPERATIONS-------------------
 
-    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canCreateSchedule(#dto, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canCreateSchedule(#dto, principal)")
     @PostMapping
     public ResponseEntity<MedicationScheduleDto> createSchedule(
             @RequestBody MedicationScheduleDto dto,
-            @AuthenticationPrincipal User doctorUser
+            @AuthenticationPrincipal User relativeUser
     ) {
-        // we force the doctor's id from jwt instead of taking it from the dto
-        dto.setDoctorUserId(doctorUser.getUserId());
+        // we force the relative's id from jwt instead of taking it from the dto
+        dto.setRelativeUserId(relativeUser.getUserId());
         return ResponseEntity.ok(scheduleService.createSchedule(dto));
     }
 
@@ -77,7 +69,7 @@ public class MedicationScheduleController {
             summary = "Update an existing schedule. Please see descriptions.",
             description = "Updating a schedule is heavily restricted in order to protect a patient's medical history. Schedules can only be updated if the patient has no consumption logs on that schedule. If there are logs, only non-critical fields such as: Notes, End Date, and deactivation can be changed."
     )
-    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canModifySchedule(#scheduleId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canModifySchedule(#scheduleId, principal)")
     @PutMapping("/{scheduleId}")
     public ResponseEntity<MedicationScheduleDto> updateSchedule(
             @PathVariable Integer scheduleId,
@@ -90,19 +82,17 @@ public class MedicationScheduleController {
             summary = "Deactivating schedules instead of deleting.",
             description = "This is in order to protect medical history. Patient's will not receive notifications about their deactivated schedules."
     )
-    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canModifySchedule(#scheduleId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canModifySchedule(#scheduleId, principal)")
     @PatchMapping("/{scheduleId}/deactivate")
     public ResponseEntity<Void> deactivateSchedule(@PathVariable Integer scheduleId) {
         scheduleService.deactivateSchedule(scheduleId);
         return ResponseEntity.noContent().build();
     }
 
-    // -----------------DOCTOR/RELATIVE OPERATIONS-------------------
-
     @Operation(
-            summary = "A patient's active schedules for a doctor or a relative."
+            summary = "A patient's active schedules for a relative."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<MedicationScheduleDto>> getPatientActiveSchedules(
             @PathVariable Integer patientId
@@ -111,9 +101,9 @@ public class MedicationScheduleController {
     }
 
     @Operation(
-            summary = "A patient's entire medical history for a doctor or a relative."
+            summary = "A patient's entire medical history for a relative."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}/history")
     public ResponseEntity<List<MedicationScheduleDto>> getPatientScheduleHistory(
             @PathVariable Integer patientId

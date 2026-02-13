@@ -58,25 +58,18 @@ public class MedicationScheduleService {
                 .collect(Collectors.toList());
     }
 
-    // brings all schedules prescribed by a specific doctor
-    public List<MedicationScheduleDto> getSchedulesByDoctor(Integer doctorId) {
-        return scheduleRepository.findByDoctor_UserId(doctorId).stream()
-                .map(this::convertToDtoWithTimes)
-                .collect(Collectors.toList());
-    }
-
     @Transactional
     public MedicationScheduleDto createSchedule(MedicationScheduleDto dto) {
         User patient = userRepository.findById(dto.getPatientUserId())
                 .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
 
-        User doctor = null;
-        if (dto.getDoctorUserId() != null) {
-            doctor = userRepository.findById(dto.getDoctorUserId())
-                    .orElseThrow(() -> new EntityNotFoundException("USER_DOCTOR_NOT_FOUND: " + dto.getDoctorUserId()));
+        User relative = null;
+        if (dto.getRelativeUserId() != null) {
+            relative = userRepository.findById(dto.getRelativeUserId())
+                    .orElseThrow(() -> new EntityNotFoundException("USER_RELATIVE_NOT_FOUND: " + dto.getRelativeUserId()));
         }
 
-        MedicationSchedule schedule = MapperUtil.toMedicationScheduleEntity(dto, patient, doctor);
+        MedicationSchedule schedule = MapperUtil.toMedicationScheduleEntity(dto, patient, relative);
         MedicationSchedule savedSchedule = scheduleRepository.save(schedule);
 
         saveScheduleTimes(savedSchedule, dto);
@@ -85,7 +78,7 @@ public class MedicationScheduleService {
         return MapperUtil.toMedicationScheduleDto(savedSchedule, savedTimes);
     }
 
-    // special update method. The doctor cannot edit parts of a schedule if the patient has taken the medicine according to that schedule before.
+    // special update method. The relative cannot edit parts of a schedule if the patient has taken the medicine according to that schedule before.
     @Transactional
     public MedicationScheduleDto updateSchedule(Integer scheduleId, MedicationScheduleDto dto) {
         MedicationSchedule existing = scheduleRepository.findById(scheduleId)
@@ -96,7 +89,7 @@ public class MedicationScheduleService {
 
         if (hasLogs) {
             // if there are logs, only non-critical fields can be updated
-            // if the doctor tries to edit a medication's name, dosage, or times, there will be an error
+            // if the relative tries to edit a medication's name, dosage, or times, there will be an error
             // (comparing current values to the incoming DTO values)
             if (!existing.getMedicationName().equals(dto.getMedicationName()) ||
                     !existing.getDosage().equals(dto.getDosage()) ||
@@ -116,7 +109,7 @@ public class MedicationScheduleService {
             existing.setIsActive(dto.getIsActive());
 
         } else {
-            // if there are no medication logs (patient hasn't taken the medicine) doctor can change anything
+            // if there are no medication logs (patient hasn't taken the medicine) relative can change anything
 
             existing.setMedicationName(dto.getMedicationName());
             existing.setDosage(dto.getDosage());
@@ -163,7 +156,7 @@ public class MedicationScheduleService {
         }
     }
 
-    // manual deactivation of a schedule, in case the doctor wants to end it earlier than planned
+    // manual deactivation of a schedule, in case the relative wants to end it earlier than planned
     public void deactivateSchedule(Integer scheduleId) {
         MedicationSchedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND: " + scheduleId));

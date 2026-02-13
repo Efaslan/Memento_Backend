@@ -3,7 +3,6 @@ package com.emiraslan.memento.security;
 import com.emiraslan.memento.dto.GeneralReminderDto;
 import com.emiraslan.memento.dto.MedicationScheduleDto;
 import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -35,7 +34,7 @@ public class SecurityService {
         if (patientId.equals(user.getUserId())) return true;
 
         if (!hasActiveRelationship(patientId, user.getUserId())) {
-            throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
+            throw new AccessDeniedException("NO_RELATIONSHIP_WITH_PATIENT");
         }
         return true;
     }
@@ -54,10 +53,12 @@ public class SecurityService {
                         throw new AccessDeniedException("YOU_ARE_NOT_PART_OF_THIS_RELATIONSHIP");
                     }
 
-                    // only doctor users can update type.doctor relationships
-                    if (rel.getRelationshipType() == RelationshipType.DOCTOR && !isCaregiver) {
-                        throw new AccessDeniedException("ONLY_DOCTORS_CAN_UPDATE_DOCTOR_RELATIONSHIPS");
+                    // only relative users can update relationships
+                    //rel.getRelationshipType() == RelationshipType.DOCTOR &&
+                    if (!isCaregiver) {
+                        throw new AccessDeniedException("ONLY_RELATIVES_CAN_UPDATE_RELATIONSHIPS");
                     }
+                    // todo TEST THIS
 
                     return true;
                 })
@@ -89,7 +90,7 @@ public class SecurityService {
             return true;
         }
 
-        // this will throw 400 error if doctors or relatives did not include patient's id. Does not block patients because of method order
+        // this will throw 400 error if relatives did not include patient's id. Does not block patients because of method order
         if (dto.getPatientUserId() == null) {
             throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
         }
@@ -174,16 +175,13 @@ public class SecurityService {
                 }).orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
     }
 
-    public boolean canCreateSchedule(MedicationScheduleDto dto, User doctor){
+    public boolean canCreateSchedule(MedicationScheduleDto dto, User relative){
         if (dto.getPatientUserId() == null) throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
 
-        return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(dto.getPatientUserId(), doctor.getUserId())
+        return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(dto.getPatientUserId(), relative.getUserId())
                 .map(rel -> {
                     if (!Boolean.TRUE.equals(rel.getIsActive())) {
                         throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
-                    }
-                    if (rel.getRelationshipType() != RelationshipType.DOCTOR) {
-                        throw new AccessDeniedException("ONLY_ASSIGNED_DOCTORS_CAN_CREATE_PRESCRIPTIONS");
                     }
                     return true;
                 })
@@ -193,8 +191,8 @@ public class SecurityService {
     public boolean canModifySchedule(Integer scheduleId, User user) {
         return medicationScheduleRepository.findById(scheduleId)
                 .map(schedule -> {
-                    if (schedule.getDoctor() == null || !schedule.getDoctor().getUserId().equals(user.getUserId())) {
-                        throw new AccessDeniedException("ONLY_THE_PRESCRIBING_DOCTOR_CAN_MODIFY_THIS_SCHEDULE");
+                    if (schedule.getRelative() == null || !schedule.getRelative().getUserId().equals(user.getUserId())) {
+                        throw new AccessDeniedException("ONLY_THE_PRESCRIBING_RELATIVE_CAN_MODIFY_THIS_SCHEDULE");
                     }
                     return true;
                 })

@@ -13,4 +13,5 @@ public class MementoApplication {
 
         System.out.println("Hello and welcome!");
     }
+    //-Dspring.profiles.active=dev
 }

@@ -25,10 +25,10 @@ public class MedicationSchedule {
     @JoinColumn(name = "patient_user_id", nullable = false)
     private User patient;
 
-    // If the doctor gets removed from the database, this field will become null to protect the patient's medical history.
+    // If the relative gets removed from the database, this field will become null to protect the patient's medical history.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_user_id")
-    private User doctor;
+    private User relative;
 
     @Column(name = "medication_name", nullable = false, length = 200)
     private String medicationName;

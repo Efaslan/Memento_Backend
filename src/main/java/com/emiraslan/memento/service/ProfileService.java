@@ -1,11 +1,8 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.DoctorProfileDto;
 import com.emiraslan.memento.dto.PatientProfileDto;
-import com.emiraslan.memento.entity.DoctorProfile;
 import com.emiraslan.memento.entity.PatientProfile;
 import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.repository.DoctorProfileRepository;
 import com.emiraslan.memento.repository.PatientProfileRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
@@ -20,7 +17,6 @@ import org.springframework.stereotype.Service;
 public class ProfileService {
 
     private final PatientProfileRepository patientProfileRepository;
-    private final DoctorProfileRepository doctorProfileRepository;
     private final UserRepository userRepository;
 
     // PATIENT PROFILE OPERATIONS
@@ -65,44 +61,5 @@ public class ProfileService {
         PatientProfile updatedProfile = patientProfileRepository.save(profile);
 
         return MapperUtil.toPatientProfileDto(updatedProfile);
-    }
-
-    // DOCTOR PROFILE OPERATIONS
-
-    public DoctorProfileDto getDoctorProfile(Integer doctorId) {
-        DoctorProfile profile = doctorProfileRepository.findById(doctorId)
-                .orElseThrow(() -> new EntityNotFoundException("DOCTOR_PROFILE_NOT_FOUND: " + doctorId));
-
-        return MapperUtil.toDoctorProfileDto(profile);
-    }
-
-    @Transactional
-    public DoctorProfileDto updateDoctorProfile(Integer doctorId, DoctorProfileDto dto) {
-        DoctorProfile profile = doctorProfileRepository.findById(doctorId)
-                .orElseThrow(() -> new EntityNotFoundException("DOCTOR_PROFILE_NOT_FOUND: " + doctorId));
-
-        User user = profile.getDoctor();
-
-        // profile data
-        profile.setSpecialization(dto.getSpecialization());
-        profile.setHospitalName(dto.getHospitalName());
-        profile.setTitle(dto.getTitle());
-
-        // user data
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setPhoneNumber(dto.getPhoneNumber());
-
-        if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
-            if (!dto.getEmail().equals(user.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
-                throw new EntityExistsException("EMAIL_ALREADY_EXISTS");
-            }
-            user.setEmail(dto.getEmail());
-        }
-
-        userRepository.save(user);
-        DoctorProfile updatedProfile = doctorProfileRepository.save(profile);
-
-        return MapperUtil.toDoctorProfileDto(updatedProfile);
     }
 }

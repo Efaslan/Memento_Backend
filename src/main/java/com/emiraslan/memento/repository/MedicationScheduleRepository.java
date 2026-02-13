@@ -19,9 +19,6 @@ public interface MedicationScheduleRepository extends JpaRepository<MedicationSc
     // All PRN(as needed) medication a patient is taking
     List<MedicationSchedule> findByPatient_UserIdAndIsActiveTrueAndIsPrnTrue(Integer patientId);
 
-    // All medication a specific doctor has prescribed
-    List<MedicationSchedule> findByDoctor_UserId(Integer doctorId);
-
     // For automatic deactivation of a schedule upon endDate
     List<MedicationSchedule> findByIsActiveTrueAndEndDateBefore(LocalDate date);
 }

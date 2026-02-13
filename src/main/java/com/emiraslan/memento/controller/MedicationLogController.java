@@ -51,4 +51,6 @@ public class MedicationLogController {
     ) {
         return ResponseEntity.ok(logService.logMedicationTaken(user.getUserId(), timeId));
     }
+
+    //todo view methods for relatives
 }

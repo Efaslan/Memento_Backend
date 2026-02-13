@@ -47,7 +47,7 @@ public class GeneralReminderService {
             patient = creator;
             dto.setPatientUserId(creator.getUserId());
         }
-        // if the creator is a doctor or relative
+        // if the creator is a relative
         else {
             patient = userRepository.findById(dto.getPatientUserId())
                     .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));

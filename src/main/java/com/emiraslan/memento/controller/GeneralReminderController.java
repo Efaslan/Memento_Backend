@@ -37,20 +37,20 @@ public class GeneralReminderController {
         return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(user.getUserId()));
     }
 
-    // doctor / relative operations
+    // relative operations
     @Operation(
-            description = "For doctors and relatives. Accessible only if you have an active relationship with the patient."
+            description = "For relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
     public ResponseEntity<List<GeneralReminderDto>> getPatientActiveReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getAllOngoingRemindersByPatient(patientId));
     }
 
     @Operation(
-            description = "For doctors and relatives. Accessible only if you have an active relationship with the patient."
+            description = "For relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/history/patient/{patientId}")
     public ResponseEntity<List<GeneralReminderDto>> getPatientCompletedReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(patientId));
@@ -58,15 +58,15 @@ public class GeneralReminderController {
 
     // mutual operations (Create, Update, Delete)
     @Operation(
-            description = "For all users. Id is automatically set if the user is a patient. Accessible for doctors and relatives only if they have an active relationship with the patient."
+            description = "For all users. Id is automatically set if the user is a patient. Accessible for relatives only if they have an active relationship with the patient."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canCreateReminder(#dto, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canCreateReminder(#dto, principal)")
     @PostMapping
     public ResponseEntity<GeneralReminderDto> createReminder(@RequestBody GeneralReminderDto dto, @AuthenticationPrincipal User creator) {
         return ResponseEntity.ok(reminderService.createReminder(dto, creator));
     }
 
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
     @PutMapping("/{reminderId}")
     public ResponseEntity<GeneralReminderDto> updateReminder(
             @PathVariable Integer reminderId,
@@ -76,13 +76,13 @@ public class GeneralReminderController {
     }
 
     @Operation(summary = "Set reminder as completed.")
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
     @PatchMapping("/{reminderId}/complete")
     public ResponseEntity<GeneralReminderDto> markAsCompleted(@PathVariable Integer reminderId) {
         return ResponseEntity.ok(reminderService.markAsCompleted(reminderId));
     }
 
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
     @DeleteMapping("/{reminderId}")
     public ResponseEntity<Void> deleteReminder(@PathVariable Integer reminderId) {
         reminderService.deleteReminder(reminderId);

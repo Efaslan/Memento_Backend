@@ -4,11 +4,9 @@ import com.emiraslan.memento.dto.LoginRequest;
 import com.emiraslan.memento.dto.LoginResponse;
 import com.emiraslan.memento.dto.RegisterRequest;
 import com.emiraslan.memento.dto.UserDto;
-import com.emiraslan.memento.entity.DoctorProfile;
 import com.emiraslan.memento.entity.PatientProfile;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.UserRole;
-import com.emiraslan.memento.repository.DoctorProfileRepository;
 import com.emiraslan.memento.repository.PatientProfileRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
@@ -29,7 +27,6 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PatientProfileRepository patientProfileRepository;
-    private final DoctorProfileRepository doctorProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -89,12 +86,5 @@ public class AuthService {
                     .build();
             patientProfileRepository.save(profile);
         }
-        else if (user.getRole() == UserRole.DOCTOR) {
-            DoctorProfile profile = DoctorProfile.builder()
-                    .doctor(user)
-                    .build();
-            doctorProfileRepository.save(profile);
-        }
-        // no profile for relatives
     }
 }

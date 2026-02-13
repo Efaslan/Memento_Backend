@@ -1,10 +1,7 @@
--- USERS (IDs: 1=Patient, 2=Doctor, 3=Relative1, 4=Relative2)
+-- USERS (IDs: 1=Patient, 2=RELATIVE, 3=Relative1, 4=Relative2)
 -- Password for all: 123456
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, role, created_at)
 VALUES ('demo.patient@test.com', '$2a$10$2pa//C6VUsTQo1kd1djt7OEFqg5DZ7eoZvy7qlbStFDeWk823cmL6', 'Ahmet', 'Yilmaz', '05551112233', 'PATIENT', CURRENT_TIMESTAMP);
-
-INSERT INTO users (email, password_hash, first_name, last_name, phone_number, role, created_at)
-VALUES ('demo.doctor@test.com', '$2a$10$2pa//C6VUsTQo1kd1djt7OEFqg5DZ7eoZvy7qlbStFDeWk823cmL6', 'Zeynep', 'Kaya', '05554445566', 'DOCTOR', CURRENT_TIMESTAMP);
 
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, role, created_at)
 VALUES ('demo.son@test.com', '$2a$10$2pa//C6VUsTQo1kd1djt7OEFqg5DZ7eoZvy7qlbStFDeWk823cmL6', 'Mehmet', 'Yilmaz', '05557778899', 'RELATIVE', CURRENT_TIMESTAMP);
@@ -17,12 +14,6 @@ INSERT INTO patient_profiles (patient_user_id, date_of_birth, height_cm, weight_
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
     '1950-05-20', 175, 80, 'A_POSITIVE', 'Allergic to Penicillin. Hypertension.'
-);
-
-INSERT INTO doctor_profiles (doctor_user_id, specialization, hospital_name, title)
-VALUES (
-    (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com'),
-    'Geriatrics', 'City Research Hospital', 'Prof. Dr.'
 );
 
 -- RELATIONSHIPS
@@ -42,20 +33,12 @@ VALUES (
     'DAUGHTER', false, true
 );
 
--- Patient (1) <-> Doctor (2)
-INSERT INTO patient_relationships (patient_user_id, caregiver_user_id, relationship_type, is_primary_contact, is_active)
-VALUES (
-    (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
-    (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com'),
-    'DOCTOR', false, true
-);
-
 -- MEDICATIONS
 -- Coraspin
 INSERT INTO medication_schedules (patient_user_id, doctor_user_id, medication_name, dosage, notes, start_date, end_date, is_prn, is_active)
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
-    (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com'),
+    (SELECT user_id FROM users WHERE email = 'demo.son@test.com'),
     'Coraspin', '100 mg', 'Take after food.', '2024-01-01', '2025-12-31', false, true
 );
 
@@ -63,7 +46,7 @@ VALUES (
 INSERT INTO medication_schedules (patient_user_id, doctor_user_id, medication_name, dosage, notes, start_date, end_date, is_prn, is_active)
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
-    (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com'),
+    (SELECT user_id FROM users WHERE email = 'demo.son@test.com'),
     'Lantus Insulin', '1 Unit', 'Before meals.', '2024-01-01', '2025-12-31', false, true
 );
 
@@ -71,7 +54,7 @@ VALUES (
 INSERT INTO medication_schedules (patient_user_id, doctor_user_id, medication_name, dosage, notes, start_date, end_date, is_prn, is_active)
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
-    (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com'),
+    (SELECT user_id FROM users WHERE email = 'demo.son@test.com'),
     'Parol', '500 mg', 'If pain occurs.', '2024-01-01', '2025-12-31', true, true
 );
 
@@ -153,6 +136,6 @@ VALUES (
 INSERT INTO general_reminders (patient_user_id, creator_user_id, title, reminder_time, is_recurring, is_completed)
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
-    (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com'),
+    (SELECT user_id FROM users WHERE email = 'demo.son@test.com'),
     'Cardiology Appointment', DATEADD('DAY', 7, CURRENT_DATE), false, false
 );

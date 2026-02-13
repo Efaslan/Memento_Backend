@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         String message = "Malformed JSON request. Please check your input fields.";
 
         if (ex.getMessage() != null && ex.getMessage().contains("memento.enums.UserRole")) {
-            message = "Invalid User Role. Accepted values: PATIENT, DOCTOR, RELATIVE";
+            message = "Invalid User Role. Accepted values: PATIENT, RELATIVE";
         }
 
         ErrorResponse response = ErrorResponse.builder()
