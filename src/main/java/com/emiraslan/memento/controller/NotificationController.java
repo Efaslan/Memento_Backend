@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
-@Tag(name = "10 - Notifications")
+@Tag(name = "11 - Notifications")
 public class NotificationController {
 
     private final FcmService fcmService;

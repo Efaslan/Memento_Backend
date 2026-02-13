@@ -2,6 +2,8 @@ package com.emiraslan.memento.util;
 
 import com.emiraslan.memento.dto.*;
 import com.emiraslan.memento.entity.*;
+import com.emiraslan.memento.entity.relationship.Family;
+import com.emiraslan.memento.entity.relationship.Relationship;
 
 import java.time.LocalTime;
 import java.util.Collections;
@@ -124,12 +126,12 @@ public class MapperUtil {
     }
 
     // PatientRelationship Mapping
-    public static PatientRelationshipDto toPatientRelationshipDto(PatientRelationship entity) {
+    public static RelationshipDto toPatientRelationshipDto(Relationship entity) {
         if (entity == null) return null;
 
-        User caregiver = entity.getCaregiver(); // caregiver(relative or doctor) cannot be null
+        User caregiver = entity.getCaregiver(); // caregiver(relative) cannot be null
 
-        return PatientRelationshipDto.builder()
+        return RelationshipDto.builder()
                 .relationshipId(entity.getRelationshipId())
                 .patientUserId(entity.getPatient().getUserId())
                 .caregiverUserId(caregiver.getUserId())
@@ -138,7 +140,7 @@ public class MapperUtil {
                 .caregiverEmail(caregiver.getEmail())
                 .relationshipType(entity.getRelationshipType())
                 .isPrimaryContact(entity.getIsPrimaryContact())
-                .isActive(entity.getIsActive())
+                .familyId(entity.getFamily().getFamilyId())
                 .build();
     }
 
@@ -170,12 +172,12 @@ public class MapperUtil {
     public static MedicationScheduleDto toMedicationScheduleDto(MedicationSchedule entity, List<MedicationScheduleTime> times) {
         if (entity == null) return null;
 
-        String doctorName = "Unknown"; // default in case of null
-        Integer doctorId = null;
+        String relativeName = "Unknown"; // default in case of null
+        Integer relativeId = null;
 
-        if (entity.getDoctor() != null) {
-            doctorId = entity.getDoctor().getUserId();
-            doctorName = entity.getDoctor().getFirstName() + " " + entity.getDoctor().getLastName();
+        if (entity.getRelative() != null) {
+            relativeId = entity.getRelative().getUserId();
+            relativeName = entity.getRelative().getFirstName() + " " + entity.getRelative().getLastName();
         }
 
         // create a LocalTime list from times
@@ -188,8 +190,8 @@ public class MapperUtil {
         return MedicationScheduleDto.builder()
                 .scheduleId(entity.getScheduleId())
                 .patientUserId(entity.getPatient().getUserId())
-                .doctorUserId(doctorId)
-                .doctorName(doctorName)
+                .relativeUserId(relativeId)
+                .relativeName(relativeName)
                 .medicationName(entity.getMedicationName())
                 .dosage(entity.getDosage())
                 .notes(entity.getNotes())
@@ -202,11 +204,11 @@ public class MapperUtil {
     }
 
     // No ScheduleTimes here, Service saves them through a loop
-    public static MedicationSchedule toMedicationScheduleEntity(MedicationScheduleDto dto, User patient, User doctor) {
+    public static MedicationSchedule toMedicationScheduleEntity(MedicationScheduleDto dto, User patient, User relative) {
         if (dto == null) return null;
         return MedicationSchedule.builder()
                 .patient(patient)
-                .doctor(doctor) // can be null
+                .relative(relative) // can be null
                 .medicationName(dto.getMedicationName())
                 .dosage(dto.getDosage())
                 .notes(dto.getNotes())
@@ -237,24 +239,6 @@ public class MapperUtil {
                 .build();
     }
 
-    // DoctorProfile Mapping (entity->dto only, no dto->entity because profiles are auto created on register)
-    public static DoctorProfileDto toDoctorProfileDto(DoctorProfile entity) {
-        if (entity == null) return null;
-
-        User doctor = entity.getDoctor();
-
-        return DoctorProfileDto.builder()
-                .doctorUserId(entity.getDoctorUserId())
-                .firstName(doctor.getFirstName())
-                .lastName(doctor.getLastName())
-                .email(doctor.getEmail())
-                .phoneNumber(doctor.getPhoneNumber())
-                .specialization(entity.getSpecialization())
-                .hospitalName(entity.getHospitalName())
-                .title(entity.getTitle())
-                .build();
-    }
-
     // PatientProfile Mapping (entity->dto only)
     public static PatientProfileDto toPatientProfileDto(PatientProfile entity) {
         if (entity == null) return null;
@@ -272,6 +256,16 @@ public class MapperUtil {
                 .weightKg(entity.getWeightKg())
                 .bloodType(entity.getBloodType())
                 .emergencyNotes(entity.getEmergencyNotes())
+                .build();
+    }
+
+    // Family mapping
+    public static FamilyDto toFamilyDto(Family entity) {
+        if (entity == null) return null;
+        return FamilyDto.builder()
+                .familyId(entity.getFamilyId())
+                .familyName(entity.getFamilyName())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 }

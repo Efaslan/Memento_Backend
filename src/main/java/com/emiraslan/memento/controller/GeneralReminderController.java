@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reminders")
 @RequiredArgsConstructor
-@Tag(name = "05 - General Reminders")
+@Tag(name = "06 - General Reminders")
 @SecurityRequirement(name = "bearerAuth")
 public class GeneralReminderController {
 
@@ -41,7 +41,7 @@ public class GeneralReminderController {
     @Operation(
             description = "For relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isRelatedToPatient(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
     public ResponseEntity<List<GeneralReminderDto>> getPatientActiveReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getAllOngoingRemindersByPatient(patientId));
@@ -50,7 +50,7 @@ public class GeneralReminderController {
     @Operation(
             description = "For relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isRelatedToPatient(#patientId, principal)")
     @GetMapping("/history/patient/{patientId}")
     public ResponseEntity<List<GeneralReminderDto>> getPatientCompletedReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(patientId));

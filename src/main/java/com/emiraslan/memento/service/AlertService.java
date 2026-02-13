@@ -3,12 +3,12 @@ package com.emiraslan.memento.service;
 import com.emiraslan.memento.dto.AlertDto;
 import com.emiraslan.memento.entity.Alert;
 import com.emiraslan.memento.entity.DeviceToken;
-import com.emiraslan.memento.entity.PatientRelationship;
+import com.emiraslan.memento.entity.relationship.Relationship;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.AlertStatus;
 import com.emiraslan.memento.repository.AlertRepository;
 import com.emiraslan.memento.repository.DeviceTokenRepository;
-import com.emiraslan.memento.repository.PatientRelationshipRepository;
+import com.emiraslan.memento.repository.relationship.RelationshipRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -27,7 +27,7 @@ public class AlertService {
 
     private final AlertRepository alertRepository;
     private final UserRepository userRepository;
-    private final PatientRelationshipRepository relationshipRepository;
+    private final RelationshipRepository relationshipRepository;
     private final DeviceTokenRepository deviceTokenRepository;
     private final FcmService fcmService;
 
@@ -121,8 +121,8 @@ public class AlertService {
     // Helper method to find active primary contacts and send notifications
     private void notifyPrimaryContacts(Alert alert) {
         // find the patient's primary contacts
-        List<PatientRelationship> contacts = relationshipRepository
-                .findByPatient_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(alert.getPatient().getUserId());
+        List<Relationship> contacts = relationshipRepository
+                .findByPatient_UserIdAndIsPrimaryContactTrue(alert.getPatient().getUserId());
 
         if (contacts.isEmpty()) {
             log.warn("NO PRIMARY CONTACT FOUND for PatientID={}. No one was notified for the Alert.", alert.getPatient().getUserId());
@@ -134,7 +134,7 @@ public class AlertService {
         String notificationBody = patientName + " düştü! Konumu görmek ve müdahale etmek için tıklayın.";
 
         // for every primary contact
-        for (PatientRelationship rel : contacts) {
+        for (Relationship rel : contacts) {
             User caregiver = rel.getCaregiver();
             sendPushToUser(caregiver, notificationTitle, notificationBody);
             log.info("Fall Notification sent to Caregiver: {}", caregiver.getEmail());
@@ -143,14 +143,14 @@ public class AlertService {
 
     // notifying OTHER relatives when someone takes responsibility
     private void notifyOthersOfAcknowledgment(Alert alert, User acknowledger) {
-        List<PatientRelationship> contacts = relationshipRepository
-                .findByPatient_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(alert.getPatient().getUserId());
+        List<Relationship> contacts = relationshipRepository
+                .findByPatient_UserIdAndIsPrimaryContactTrue(alert.getPatient().getUserId());
 
         String acknowledgerName = acknowledger.getFirstName() + " " + acknowledger.getLastName();
         String title = "Durum Güncellemesi: Müdahale Ediliyor";
         String body = acknowledgerName + " olayla ilgileniyor.";
 
-        for (PatientRelationship rel : contacts) {
+        for (Relationship rel : contacts) {
             User relative = rel.getCaregiver();
 
             // Do not send notification to the person who just clicked the button

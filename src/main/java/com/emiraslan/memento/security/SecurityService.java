@@ -1,10 +1,11 @@
 package com.emiraslan.memento.security;
 
 import com.emiraslan.memento.dto.GeneralReminderDto;
-import com.emiraslan.memento.dto.MedicationScheduleDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.*;
+import com.emiraslan.memento.repository.relationship.FamilyMemberRepository;
+import com.emiraslan.memento.repository.relationship.RelationshipRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,26 +15,26 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SecurityService {
 
-    private final PatientRelationshipRepository relationshipRepository;
+    private final RelationshipRepository relationshipRepository;
     private final SavedLocationRepository locationRepository;
     private final GeneralReminderRepository reminderRepository;
     private final DailyLogRepository dailyLogRepository;
     private final AlertRepository alertRepository;
     private final MedicationScheduleRepository medicationScheduleRepository;
     private final MedicationScheduleTimeRepository timesRepository;
+    private final FamilyMemberRepository familyMemberRepository;
 
     // --- helper method ----
-    private boolean hasActiveRelationship(Integer patientId, Integer caregiverId){
+    private boolean hasRelationship(Integer patientId, Integer caregiverId){
         return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(patientId, caregiverId)
-                .map(rel -> Boolean.TRUE.equals(rel.getIsActive()))
-                .orElse(false);
+                .isPresent(); // returns 1 if there is relationship, 0 if not
     }
 
     // mutual method to check for relationships
-    public boolean canViewPatientData(Integer patientId, User user) {
+    public boolean isRelatedToPatient(Integer patientId, User user) {
         if (patientId.equals(user.getUserId())) return true;
 
-        if (!hasActiveRelationship(patientId, user.getUserId())) {
+        if (!hasRelationship(patientId, user.getUserId())) {
             throw new AccessDeniedException("NO_RELATIONSHIP_WITH_PATIENT");
         }
         return true;
@@ -65,6 +66,14 @@ public class SecurityService {
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
     }
 
+    public boolean isFamilyMember(Integer familyId, User user){
+        if (!familyMemberRepository.existsById_FamilyIdAndId_UserId(familyId, user.getUserId())) {
+            throw new AccessDeniedException("YOU_ARE_NOT_A_MEMBER_OF_THIS_FAMILY");
+        }
+        return true;
+    }
+
+
     // ========================================================================
     // SAVED LOCATION SECURITY
     // ========================================================================
@@ -95,7 +104,7 @@ public class SecurityService {
             throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
         }
 
-        if (!hasActiveRelationship(dto.getPatientUserId(), user.getUserId())) {
+        if (!hasRelationship(dto.getPatientUserId(), user.getUserId())) {
             throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
         }
         return true;
@@ -154,7 +163,7 @@ public class SecurityService {
 
         // check if the user is a primary contact of the patient
         boolean isPrimaryContact = relationshipRepository
-                .existsByPatient_UserIdAndCaregiver_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(patientId, user.getUserId());
+                .existsByPatient_UserIdAndCaregiver_UserIdAndIsPrimaryContactTrue(patientId, user.getUserId());
 
         if (!isPrimaryContact) {
             throw new AccessDeniedException("ONLY_PRIMARY_CONTACTS_CAN_ACKNOWLEDGE_ALERTS");
@@ -173,19 +182,6 @@ public class SecurityService {
                     }
                     return true;
                 }).orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
-    }
-
-    public boolean canCreateSchedule(MedicationScheduleDto dto, User relative){
-        if (dto.getPatientUserId() == null) throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
-
-        return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(dto.getPatientUserId(), relative.getUserId())
-                .map(rel -> {
-                    if (!Boolean.TRUE.equals(rel.getIsActive())) {
-                        throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
-                    }
-                    return true;
-                })
-                .orElseThrow(() -> new AccessDeniedException("NO_RELATIONSHIP_FOUND"));
     }
 
     public boolean canModifySchedule(Integer scheduleId, User user) {

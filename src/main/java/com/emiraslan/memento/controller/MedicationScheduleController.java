@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/medications/schedules")
 @RequiredArgsConstructor
-@Tag(name = "08 - Medication Schedules")
+@Tag(name = "09 - Medication Schedules")
 @SecurityRequirement(name = "bearerAuth")
 public class MedicationScheduleController {
 
@@ -54,7 +54,7 @@ public class MedicationScheduleController {
 
     // -----------------RELATIVE OPERATIONS-------------------
 
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canCreateSchedule(#dto, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isRelatedToPatient(#dto.getPatientUserId(), principal)")
     @PostMapping
     public ResponseEntity<MedicationScheduleDto> createSchedule(
             @RequestBody MedicationScheduleDto dto,
@@ -92,7 +92,7 @@ public class MedicationScheduleController {
     @Operation(
             summary = "A patient's active schedules for a relative."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isRelatedToPatient(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<MedicationScheduleDto>> getPatientActiveSchedules(
             @PathVariable Integer patientId
@@ -103,7 +103,7 @@ public class MedicationScheduleController {
     @Operation(
             summary = "A patient's entire medical history for a relative."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isRelatedToPatient(#patientId, principal)")
     @GetMapping("/patient/{patientId}/history")
     public ResponseEntity<List<MedicationScheduleDto>> getPatientScheduleHistory(
             @PathVariable Integer patientId

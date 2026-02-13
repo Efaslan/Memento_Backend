@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/locations")
 @RequiredArgsConstructor
-@Tag(name = "04 - Saved Locations")
+@Tag(name = "05 - Saved Locations")
 @SecurityRequirement(name = "bearerAuth")
 public class SavedLocationController {
 

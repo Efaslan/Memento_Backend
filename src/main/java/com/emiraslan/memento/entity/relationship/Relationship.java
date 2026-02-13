@@ -1,5 +1,6 @@
-package com.emiraslan.memento.entity;
+package com.emiraslan.memento.entity.relationship;
 
+import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.RelationshipType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "PatientRelationships", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"patient_user_id", "caregiver_user_id"})
 })
-public class PatientRelationship {
+public class Relationship {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +28,7 @@ public class PatientRelationship {
     @JoinColumn(name = "patient_user_id", nullable = false) // FK
     private User patient;
 
-    // Relationship's Caregiver(Doctor/Relative) side
+    // Relationship's Caregiver(Relative) side
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "caregiver_user_id", nullable = false) // FK
     private User caregiver;
@@ -40,7 +41,7 @@ public class PatientRelationship {
     @Builder.Default
     private Boolean isPrimaryContact = false; // By default, the other side will not be contacted during Alerts
 
-    @Column(name = "is_active")
-    @Builder.Default
-    private Boolean isActive = true; // By default, the relationship is active
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "family_id") // FK
+    private Family family;
 }

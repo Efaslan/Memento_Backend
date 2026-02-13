@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/alerts")
 @RequiredArgsConstructor
-@Tag(name = "07 - Alerts")
+@Tag(name = "08 - Alerts")
 @SecurityRequirement(name = "bearerAuth")
 public class AlertController {
 
@@ -76,7 +76,7 @@ public class AlertController {
     @Operation(
             description = "A patient's history of critical situations. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAnyAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE') and @guard.isRelatedToPatient(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<AlertDto>> getPatientAlerts(
             @PathVariable Integer patientId

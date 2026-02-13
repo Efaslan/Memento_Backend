@@ -2,7 +2,6 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.PatientProfileDto;
 import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -47,7 +46,7 @@ public class ProfileController {
     @Operation(
             summary = "View a patient's profile for Relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isRelatedToPatient(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<PatientProfileDto> getPatientProfileById(
             @PathVariable Integer patientId
