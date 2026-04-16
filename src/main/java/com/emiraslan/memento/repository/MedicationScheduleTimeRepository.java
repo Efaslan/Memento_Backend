@@ -4,6 +4,7 @@ import com.emiraslan.memento.entity.MedicationScheduleTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Repository
@@ -14,4 +15,7 @@ public interface MedicationScheduleTimeRepository extends JpaRepository<Medicati
 
     // brings the times of active schedules, for automatic medication skip cron job(medication log service)
     List<MedicationScheduleTime> findBySchedule_IsActiveTrue();
+
+    // brings "now" from all times in active schedules
+    List<MedicationScheduleTime> findBySchedule_IsActiveTrueAndScheduledTime(LocalTime scheduledTime);
 }

@@ -92,7 +92,7 @@ public class MedicationLogService {
     }
 
     // Scheduled Task operating to check schedule times and automatically log old ones as SKIPPED if the next medication time of the schedule has come
-    @Scheduled(cron = "30 57 17 * * *") // each hour at any date
+    @Scheduled(cron = "0 0 * * * *") // each hour at any date
     @Transactional
     public void markMissedMedicationsAsSkipped() {
         log.info("Scheduled Task started: Checking for skipped medication...");

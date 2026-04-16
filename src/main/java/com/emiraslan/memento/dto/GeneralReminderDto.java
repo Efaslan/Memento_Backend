@@ -1,5 +1,6 @@
 package com.emiraslan.memento.dto;
 
+import com.emiraslan.memento.enums.RecurrenceRule;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,6 @@ public class GeneralReminderDto {
     private String title;
     private LocalDateTime reminderTime;
     private Boolean isRecurring;
-    private String recurrenceRule;
+    private RecurrenceRule recurrenceRule;
     private Boolean isCompleted;
 }

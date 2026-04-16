@@ -1,5 +1,6 @@
 package com.emiraslan.memento.entity;
 
+import com.emiraslan.memento.enums.RecurrenceRule;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,8 +40,9 @@ public class GeneralReminder {
     @Builder.Default
     private Boolean isRecurring = false;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "recurrence_rule", length = 100)
-    private String recurrenceRule;
+    private RecurrenceRule recurrenceRule;
 
     @Column(name = "is_completed")
     @Builder.Default

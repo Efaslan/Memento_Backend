@@ -59,17 +59,3 @@ The system starts with a populated database. You can use these credentials in th
 The system uses a normalized relational database model designed to handle complex relationships between patients, caregivers, and medical logs.
 
 <img width="796" height="871" alt="erd" src="https://github.com/user-attachments/assets/102eddd7-6ff0-48ff-9a4a-8b3b484a9daf" />
-
----
-
-## Authors & Contact
-
-This project is a collaborative thesis work.
-
-**Emir Faik Aslan** (Backend Developer)
-* LinkedIn: [https://www.linkedin.com/in/emir-faik-aslan]
-* Email: [efaslan11@gmail.com]
-
-**Yusuf Kaya** (Mobile & AI Developer)
-* *Responsible for Flutter Frontend and NLU Integration.*
-* LinkedIn: [https://www.linkedin.com/in/yusuf-kaya-07a237283]

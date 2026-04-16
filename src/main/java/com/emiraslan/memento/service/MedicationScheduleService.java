@@ -1,13 +1,11 @@
 package com.emiraslan.memento.service;
 
 import com.emiraslan.memento.dto.MedicationScheduleDto;
+import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.MedicationSchedule;
 import com.emiraslan.memento.entity.MedicationScheduleTime;
 import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.repository.MedicationLogRepository;
-import com.emiraslan.memento.repository.MedicationScheduleRepository;
-import com.emiraslan.memento.repository.MedicationScheduleTimeRepository;
-import com.emiraslan.memento.repository.UserRepository;
+import com.emiraslan.memento.repository.*;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -18,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +29,8 @@ public class MedicationScheduleService {
     private final MedicationScheduleTimeRepository timeRepository;
     private final UserRepository userRepository;
     private final MedicationLogRepository logRepository;
+    private final FcmService fcmService;
+    private final DeviceTokenRepository deviceTokenRepository;
 
     // helper method: Entity -> DTO conversion (with times)
     private MedicationScheduleDto convertToDtoWithTimes(MedicationSchedule schedule) {
@@ -193,6 +194,36 @@ public class MedicationScheduleService {
             log.info("Deactivated {} expired medication schedules.", expiredSchedules.size());
         } else {
             log.info("No expired medication schedule was found.");
+        }
+    }
+
+    // works each minute to notify due medications
+    @Scheduled(cron = "0 * * * * *")
+    @Transactional
+    public void notifyMedications(){
+        // truncates seconds and milliseconds eg. 14:30:00:000
+        LocalTime now = LocalTime.now().truncatedTo(ChronoUnit.MINUTES);
+
+        List<MedicationScheduleTime> currentTimes = timeRepository.findBySchedule_IsActiveTrueAndScheduledTime(now);
+
+        log.info("Notify Medications CRON Began:");
+
+        for(MedicationScheduleTime time : currentTimes){
+            List<DeviceToken> deviceTokens = deviceTokenRepository.findByUser_UserId(time.getSchedule().getPatient().getUserId());
+            log.info("{} devices found.", deviceTokens.size());
+
+            String title = "İlaç Vakti!";
+            String body = time.getSchedule().getMedicationName() + " İlacından " + time.getSchedule().getDosage() + " Alınız.";
+
+            int counter = 0;
+            for(DeviceToken token : deviceTokens){
+                if(token.getFcmToken() != null && !token.getFcmToken().isEmpty()){
+                    fcmService.sendNotificationToToken(token.getFcmToken(), title, body);
+                    counter++;
+                }
+            }
+            int failedNotifications = deviceTokens.size() - counter;
+            log.info("{} notifications sent. {} failed.", counter, failedNotifications);
         }
     }
 }
