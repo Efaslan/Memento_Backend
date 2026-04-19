@@ -1,8 +1,8 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.LoginRequest;
-import com.emiraslan.memento.dto.LoginResponse;
-import com.emiraslan.memento.dto.RegisterRequest;
+import com.emiraslan.memento.dto.auth.LoginRequest;
+import com.emiraslan.memento.dto.auth.LoginResponse;
+import com.emiraslan.memento.dto.auth.RegisterRequest;
 import com.emiraslan.memento.dto.UserDto;
 import com.emiraslan.memento.entity.DoctorProfile;
 import com.emiraslan.memento.entity.PatientProfile;

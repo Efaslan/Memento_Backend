@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.auth;
 
 import com.emiraslan.memento.enums.UserRole;
 import jakarta.validation.constraints.*;

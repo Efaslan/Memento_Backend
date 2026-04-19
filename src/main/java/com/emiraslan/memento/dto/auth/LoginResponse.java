@@ -1,5 +1,6 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.auth;
 
+import com.emiraslan.memento.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
