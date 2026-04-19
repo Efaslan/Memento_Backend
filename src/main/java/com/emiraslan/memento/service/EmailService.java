@@ -17,6 +17,11 @@ public class EmailService{
     private String fromEmail;
 
     public void sendSimpleEmail(String to, String subject, String body) {
+
+        if(fromEmail == null || fromEmail.trim().isEmpty()){
+            log.error("Unable to send email! Please check application.properties file and fill 'spring.mail.username' and 'spring.mail.password'.");
+            throw new IllegalStateException("EMAIL_NOT_CONFIGURED");
+        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
