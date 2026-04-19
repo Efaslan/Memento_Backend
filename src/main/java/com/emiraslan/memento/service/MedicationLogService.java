@@ -39,8 +39,16 @@ public class MedicationLogService {
     public List<MedicationLogDto> getLogsByDate(Integer patientId, LocalDate date) {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+        log.info("" + endOfDay);
 
-        return logRepository.findByPatient_UserIdAndTakenAtBetween(patientId, startOfDay, endOfDay)
+        return logRepository.findByPatient_UserIdAndTakenAtGreaterThanEqualAndTakenAtLessThan(patientId, startOfDay, endOfDay)
+                .stream()
+                .map(MapperUtil::toMedicationLogDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<MedicationLogDto> getAllLogs(Integer patientId){
+        return logRepository.findByPatient_UserId(patientId)
                 .stream()
                 .map(MapperUtil::toMedicationLogDto)
                 .collect(Collectors.toList());

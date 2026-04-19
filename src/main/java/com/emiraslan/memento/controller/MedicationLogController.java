@@ -30,13 +30,24 @@ public class MedicationLogController {
             description = "Today's logs will be returned if no date is given."
     )
     @PreAuthorize("hasAuthority('PATIENT')")
-    @GetMapping("/me")
-    public ResponseEntity<List<MedicationLogDto>> getMyLogs(
+    @GetMapping("/me/date")
+    public ResponseEntity<List<MedicationLogDto>> getMyLogsByDate(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         LocalDate targetDate = (date != null) ? date : LocalDate.now();
         return ResponseEntity.ok(logService.getLogsByDate(user.getUserId(), targetDate));
+    }
+
+    @Operation(
+            summary = "All of a patient's medication logs."
+    )
+    @PreAuthorize("hasAuthority('PATIENT')")
+    @GetMapping("/me")
+    public ResponseEntity<List<MedicationLogDto>> getAllOfMyLogs(
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(logService.getAllLogs(user.getUserId()));
     }
 
     @Operation(
@@ -50,5 +61,30 @@ public class MedicationLogController {
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(logService.logMedicationTaken(user.getUserId(), timeId));
+    }
+
+    @Operation(
+            summary = "All of a patient's medication logs for relatives and doctors."
+    )
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canViewPatientData(#patientId, principal)")
+    @GetMapping("/{patientId}")
+    public ResponseEntity<List<MedicationLogDto>> getAllPatientLogs(
+            @PathVariable Integer patientId
+    ) {
+        return ResponseEntity.ok(logService.getAllLogs(patientId));
+    }
+
+    @Operation(
+            summary = "Patient's medication logs of a specific date for relatives and doctors.",
+            description = "Today's logs will be returned if no date is given."
+    )
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canViewPatientData(#patientId, principal)")
+    @GetMapping("/{patientId}/date")
+    public ResponseEntity<List<MedicationLogDto>> getPatientLogsByDate(
+            @PathVariable Integer patientId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        return ResponseEntity.ok(logService.getLogsByDate(patientId, targetDate));
     }
 }
