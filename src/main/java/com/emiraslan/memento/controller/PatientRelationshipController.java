@@ -1,6 +1,8 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.PatientRelationshipDto;
+import com.emiraslan.memento.dto.RelationshipInitiationDto;
+import com.emiraslan.memento.dto.auth.EmailDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.PatientRelationshipService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,11 +44,22 @@ public class PatientRelationshipController {
         return ResponseEntity.ok(relationshipService.getInactiveRelationships(user));
     }
 
-    @Operation(description = "Doctors can add patients, and patients can add their relatives through their emails (targetEmail). Relatives cannot initiate relationships. Type can be: DOCTOR, WIFE, HUSBAND, SON, DAUGHTER, OTHER.")
+    @Operation(
+            summary = "Patients need to request OTP for relationship invitations.",
+            description = "Sends a 6-digit OTP to the target email. Valid for 10 minutes."
+    )
+    @PreAuthorize("hasAuthority('PATIENT')")
+    @PostMapping("/request")
+    public ResponseEntity<String> requestRelationship(@RequestBody @Valid EmailDto dto) {
+        relationshipService.relationshipRequestByPatient(dto.getEmail());
+        return ResponseEntity.ok("6-digit OTP successfully sent to the target email.");
+    }
+
+    @Operation(description = "Doctors can add patients directly. Patients can add anyone except doctors if they provide the 6-digit OTP sent to their relative's email. Relatives cannot initiate relationships. Type can be: DOCTOR, WIFE, HUSBAND, SON, DAUGHTER, OTHER.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR')")
     @PostMapping
     public ResponseEntity<PatientRelationshipDto> addRelationship(
-            @Valid @RequestBody PatientRelationshipDto dto,
+            @Valid @RequestBody RelationshipInitiationDto dto,
             @AuthenticationPrincipal User initiator) {
         return ResponseEntity.ok(relationshipService.addRelationship(dto, initiator));
     }

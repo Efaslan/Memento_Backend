@@ -1,8 +1,10 @@
 package com.emiraslan.memento.service;
 
 import com.emiraslan.memento.dto.PatientRelationshipDto;
+import com.emiraslan.memento.dto.RelationshipInitiationDto;
 import com.emiraslan.memento.entity.PatientRelationship;
 import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.enums.OtpAction;
 import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.PatientRelationshipRepository;
@@ -23,6 +25,7 @@ public class PatientRelationshipService {
 
     private final PatientRelationshipRepository relationshipRepository;
     private final UserRepository userRepository;
+    private final OtpService otpService;
 
     public List<PatientRelationshipDto> getActiveRelationships(User user, boolean excludeDoctors) {
         if (user.getRole() == UserRole.PATIENT) {
@@ -57,7 +60,12 @@ public class PatientRelationshipService {
     }
 
     @Transactional
-    public PatientRelationshipDto addRelationship(PatientRelationshipDto dto, User initiator) {
+    public void relationshipRequestByPatient(String email){
+        otpService.generateAndSendOtp(email, OtpAction.RELATIONSHIP_INVITE);
+    }
+
+    @Transactional
+    public PatientRelationshipDto addRelationship(RelationshipInitiationDto dto, User initiator) {
         if(initiator.getRole() == UserRole.PATIENT){
             return addRelativeByPatient(dto, initiator);
         }
@@ -65,21 +73,30 @@ public class PatientRelationshipService {
         return addPatientByDoctor(dto, initiator);
     }
 
-    // case 1: patients can only add a relative
-    private PatientRelationshipDto addRelativeByPatient(PatientRelationshipDto dto, User patient) {
+    // case 1: patients can only add other patients or relatives
+    private PatientRelationshipDto addRelativeByPatient(RelationshipInitiationDto dto, User patient) {
+
         User caregiver = userRepository.findByEmail(dto.getTargetEmail())
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_CAREGIVER_NOT_FOUND"));
 
+        // checking the relationship role first to prevent OTP from being deleted early
         if (caregiver.getRole() == UserRole.DOCTOR || dto.getRelationshipType() == RelationshipType.DOCTOR) {
             throw new IllegalArgumentException("PATIENTS_CANNOT_ADD_DOCTORS");
         }
+
+        // OTP is needed for when patients add relationships
+        if (dto.getOtpCode() == null || dto.getOtpCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("OTP_CODE_IS_REQUIRED_FOR_PATIENTS");
+        }
+        otpService.validateOtp(dto.getTargetEmail(), dto.getOtpCode(), OtpAction.RELATIONSHIP_INVITE);
+
         Boolean isPrimary = dto.getIsPrimaryContact() != null ? dto.getIsPrimaryContact() : false;
 
         return createRelationship(patient, caregiver, dto.getRelationshipType(), isPrimary);
     }
 
     // case 2: doctors adding patients
-    private PatientRelationshipDto addPatientByDoctor(PatientRelationshipDto dto, User doctor) {
+    private PatientRelationshipDto addPatientByDoctor(RelationshipInitiationDto dto, User doctor) {
         User patient = userRepository.findByEmail(dto.getTargetEmail())
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_PATIENT_NOT_FOUND"));
 

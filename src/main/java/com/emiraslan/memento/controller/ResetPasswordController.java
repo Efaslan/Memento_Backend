@@ -27,7 +27,7 @@ public class ResetPasswordController {
     )
     @PostMapping("/request")
     public ResponseEntity<String> requestPasswordReset(@RequestBody @Valid EmailDto dto){
-        resetPasswordService.generateAndSendOtp(dto.getEmail());
+        resetPasswordService.requestPasswordReset(dto.getEmail());
         return ResponseEntity.ok("We have sent you a 6-digit code you can use to reset your password. Please check your inbox.");
     }
 
