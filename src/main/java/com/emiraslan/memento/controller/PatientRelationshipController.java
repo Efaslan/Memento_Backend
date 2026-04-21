@@ -50,8 +50,11 @@ public class PatientRelationshipController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping("/request")
-    public ResponseEntity<String> requestRelationship(@RequestBody @Valid EmailDto dto) {
-        relationshipService.relationshipRequestByPatient(dto.getEmail());
+    public ResponseEntity<String> requestRelationship(
+            @RequestBody @Valid EmailDto dto,
+            @AuthenticationPrincipal User initiator
+    ) {
+        relationshipService.relationshipRequestByPatient(dto.getEmail(), initiator);
         return ResponseEntity.ok("6-digit OTP successfully sent to the target email.");
     }
 

@@ -4,7 +4,6 @@ import com.emiraslan.memento.dto.PatientRelationshipDto;
 import com.emiraslan.memento.dto.RelationshipInitiationDto;
 import com.emiraslan.memento.entity.PatientRelationship;
 import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.enums.OtpAction;
 import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.PatientRelationshipRepository;
@@ -60,8 +59,8 @@ public class PatientRelationshipService {
     }
 
     @Transactional
-    public void relationshipRequestByPatient(String email){
-        otpService.generateAndSendOtp(email, OtpAction.RELATIONSHIP_INVITE);
+    public void relationshipRequestByPatient(String email, User initiator){
+        otpService.generateAndSendOtpForRelationshipInvitation(email, initiator);
     }
 
     @Transactional
@@ -74,7 +73,7 @@ public class PatientRelationshipService {
     }
 
     // case 1: patients can only add other patients or relatives
-    private PatientRelationshipDto addRelativeByPatient(RelationshipInitiationDto dto, User patient) {
+    private PatientRelationshipDto addRelativeByPatient(RelationshipInitiationDto dto, User initiatorPatient) {
 
         User caregiver = userRepository.findByEmail(dto.getTargetEmail())
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_CAREGIVER_NOT_FOUND"));
@@ -88,11 +87,11 @@ public class PatientRelationshipService {
         if (dto.getOtpCode() == null || dto.getOtpCode().trim().isEmpty()) {
             throw new IllegalArgumentException("OTP_CODE_IS_REQUIRED_FOR_PATIENTS");
         }
-        otpService.validateOtp(dto.getTargetEmail(), dto.getOtpCode(), OtpAction.RELATIONSHIP_INVITE);
+        otpService.validateOtpForRelationshipInvitation(dto.getTargetEmail(), initiatorPatient, dto.getOtpCode());
 
         Boolean isPrimary = dto.getIsPrimaryContact() != null ? dto.getIsPrimaryContact() : false;
 
-        return createRelationship(patient, caregiver, dto.getRelationshipType(), isPrimary);
+        return createRelationship(initiatorPatient, caregiver, dto.getRelationshipType(), isPrimary);
     }
 
     // case 2: doctors adding patients
