@@ -34,7 +34,7 @@ public class Alert {
     private User acknowledgedBy;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "alert_type", nullable = false, length = 50)
+    @Column(name = "alert_type", nullable = false, length = 20)
     private AlertType alertType;
 
     @Column(name = "alert_timestamp", columnDefinition = "DATETIME2 DEFAULT GETDATE()")
@@ -50,10 +50,10 @@ public class Alert {
 
     // PENDING -> CANCELLED/SENT -> ACKNOWLEDGED
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 50)
+    @Column(name = "status", length = 20)
     @Builder.Default
     private AlertStatus status = AlertStatus.PENDING; // Default value is "PENDING" whenever an Alert is created
 
-    @Column(name = "details", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "details", columnDefinition = "NVARCHAR(100)")
     private String details;
 }

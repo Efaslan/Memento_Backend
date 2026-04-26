@@ -34,6 +34,6 @@ public class SavedLocation {
     @Column(name = "longitude", nullable = false, precision = 9, scale = 6)
     private BigDecimal longitude;
 
-    @Column(name = "address_details", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "address_details", columnDefinition = "NVARCHAR(255)")
     private String addressDetails;
 }

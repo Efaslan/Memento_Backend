@@ -26,7 +26,7 @@ public class DoctorProfile {
     @Column(name = "specialization", length = 100)
     private String specialization;
 
-    @Column(name = "hospital_name", length = 200)
+    @Column(name = "hospital_name", length = 100)
     private String hospitalName;
 
     @Column(name = "title", length = 50)

@@ -30,7 +30,7 @@ public class DailyLog {
     private DailyLogType dailyLogType;
 
     // For food
-    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "description", columnDefinition = "NVARCHAR(255)")
     private String description;
 
     // For water

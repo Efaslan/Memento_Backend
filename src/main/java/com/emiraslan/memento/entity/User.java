@@ -30,13 +30,13 @@ public class User implements UserDetails {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "password_hash", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String passwordHash;
 
-    @Column(name = "first_name", nullable = false, length = 100)
+    @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
 
-    @Column(name = "last_name", nullable = false, length = 100)
+    @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
 
     @Column(name = "phone_number", length = 20)
@@ -44,7 +44,7 @@ public class User implements UserDetails {
 
     // PATIENT, DOCTOR, RELATIVE
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 50)
+    @Column(name = "role", nullable = false, length = 10)
     private UserRole role;
 
     @Column(name = "created_at", columnDefinition = "DATETIME2 DEFAULT GETDATE()")

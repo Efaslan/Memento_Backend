@@ -37,6 +37,6 @@ public class MedicationLog {
     private LocalDateTime takenAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING) // TAKEN, LATE_DOSE, SKIPPED
-    @Column(name = "status", length = 50)
+    @Column(name = "status", length = 10)
     private MedicationStatus status;
 }

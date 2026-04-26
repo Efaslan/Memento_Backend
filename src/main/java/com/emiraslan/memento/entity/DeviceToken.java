@@ -26,7 +26,7 @@ public class DeviceToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "fcm_token", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "fcm_token", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String fcmToken;
 
     @Enumerated(EnumType.STRING)

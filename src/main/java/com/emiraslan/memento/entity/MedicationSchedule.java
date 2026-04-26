@@ -30,13 +30,13 @@ public class MedicationSchedule {
     @JoinColumn(name = "doctor_user_id")
     private User doctor;
 
-    @Column(name = "medication_name", nullable = false, length = 200)
+    @Column(name = "medication_name", nullable = false, length = 100)
     private String medicationName;
 
-    @Column(name = "dosage", length = 100)
+    @Column(name = "dosage", length = 50)
     private String dosage;
 
-    @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "notes", columnDefinition = "NVARCHAR(255)")
     private String notes;
 
     @Column(name = "start_date")

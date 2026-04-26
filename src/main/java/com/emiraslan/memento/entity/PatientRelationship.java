@@ -33,7 +33,7 @@ public class PatientRelationship {
     private User caregiver;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "relationship_type", length = 50)
+    @Column(name = "relationship_type", length = 10)
     private RelationshipType relationshipType;
 
     @Column(name = "is_primary_contact")

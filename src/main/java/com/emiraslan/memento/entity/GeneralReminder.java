@@ -30,7 +30,7 @@ public class GeneralReminder {
     @JoinColumn(name = "creator_user_id")
     private User creator;
 
-    @Column(name = "title", nullable = false, length = 200)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
     @Column(name = "reminder_time", nullable = false)
@@ -41,7 +41,7 @@ public class GeneralReminder {
     private Boolean isRecurring = false;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "recurrence_rule", length = 100)
+    @Column(name = "recurrence_rule", length = 10)
     private RecurrenceRule recurrenceRule;
 
     @Column(name = "is_completed")
