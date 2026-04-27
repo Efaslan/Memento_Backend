@@ -59,13 +59,6 @@ public class MedicationScheduleService {
                 .collect(Collectors.toList());
     }
 
-    // brings all schedules prescribed by a specific doctor
-    public List<MedicationScheduleDto> getSchedulesByDoctor(Integer doctorId) {
-        return scheduleRepository.findByDoctor_UserId(doctorId).stream()
-                .map(this::convertToDtoWithTimes)
-                .collect(Collectors.toList());
-    }
-
     @Transactional
     public MedicationScheduleDto createSchedule(MedicationScheduleDto dto) {
         User patient = userRepository.findById(dto.getPatientUserId())

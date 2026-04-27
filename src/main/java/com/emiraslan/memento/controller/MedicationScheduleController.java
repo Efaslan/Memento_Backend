@@ -53,14 +53,6 @@ public class MedicationScheduleController {
     }
 
     // -----------------DOCTOR OPERATIONS-------------------
-    @Operation(
-            summary = "Medications you(a doctor) prescribed."
-    )
-    @PreAuthorize("hasAuthority('DOCTOR')")
-    @GetMapping("/doctor/me")
-    public ResponseEntity<List<MedicationScheduleDto>> getMyPrescriptions(@AuthenticationPrincipal User doctorUser) {
-        return ResponseEntity.ok(scheduleService.getSchedulesByDoctor(doctorUser.getUserId()));
-    }
 
     @PreAuthorize("hasAuthority('DOCTOR') and @guard.canCreateSchedule(#dto, principal)")
     @PostMapping

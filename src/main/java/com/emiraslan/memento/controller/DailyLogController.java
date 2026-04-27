@@ -81,7 +81,7 @@ public class DailyLogController {
 
     @Operation(summary = "A patient's daily logs for doctors and relatives")
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
-    @GetMapping("/patient/{patientId}/recent/{days}")
+    @GetMapping("/{patientId}/recent/{days}")
     public ResponseEntity<List<DailyLogDto>> getPatientRecentLogs(
             @PathVariable Integer patientId,
             @PathVariable Integer days
