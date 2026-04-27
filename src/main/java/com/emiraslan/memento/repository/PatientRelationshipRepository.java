@@ -2,7 +2,11 @@ package com.emiraslan.memento.repository;
 
 import com.emiraslan.memento.entity.PatientRelationship;
 import com.emiraslan.memento.enums.RelationshipType;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,4 +40,14 @@ public interface PatientRelationshipRepository extends JpaRepository<PatientRela
 
     // checks if a user is primary contact and active. Used for alert acknowledgements
     boolean existsByPatient_UserIdAndCaregiver_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(Integer patientId, Integer caregiverId);
+
+    @Query("SELECT r FROM PatientRelationship r " +
+            "WHERE r.caregiver.userId = :doctorId AND r.isActive = true " +
+            "AND (:searchTerm IS NULL OR " +
+            "LOWER(r.patient.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(r.patient.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+    Slice<PatientRelationship> findActivePatientsForDoctor(
+            @Param("doctorId") Integer doctorId,
+            @Param("searchTerm") String searchTerm,
+            Pageable pageable);
 }

@@ -1,5 +1,6 @@
 package com.emiraslan.memento.controller;
 
+import com.emiraslan.memento.dto.PatientCardDto;
 import com.emiraslan.memento.dto.PatientRelationshipDto;
 import com.emiraslan.memento.dto.RelationshipInitiationDto;
 import com.emiraslan.memento.dto.auth.EmailDto;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -93,5 +95,19 @@ public class PatientRelationshipController {
     @PatchMapping("/{relationshipId}/toggle-primary")
     public ResponseEntity<PatientRelationshipDto> togglePrimaryStatus(@PathVariable Integer relationshipId) {
         return ResponseEntity.ok(relationshipService.togglePrimaryContactStatus(relationshipId));
+    }
+
+    @Operation(summary = "Get paginated and searchable list of patients for a doctor")
+    @PreAuthorize("hasAuthority('DOCTOR')")
+    @GetMapping("/my-patients")
+    public ResponseEntity<Slice<PatientCardDto>> getMyPatients(
+            @AuthenticationPrincipal User doctor,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("patient.firstName").ascending());
+
+        return ResponseEntity.ok(relationshipService.getDoctorPatients(doctor, search, pageable));
     }
 }

@@ -1,20 +1,26 @@
 package com.emiraslan.memento.service;
 
+import com.emiraslan.memento.dto.PatientCardDto;
 import com.emiraslan.memento.dto.PatientRelationshipDto;
 import com.emiraslan.memento.dto.RelationshipInitiationDto;
+import com.emiraslan.memento.entity.PatientProfile;
 import com.emiraslan.memento.entity.PatientRelationship;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
+import com.emiraslan.memento.repository.PatientProfileRepository;
 import com.emiraslan.memento.repository.PatientRelationshipRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,6 +31,31 @@ public class PatientRelationshipService {
     private final PatientRelationshipRepository relationshipRepository;
     private final UserRepository userRepository;
     private final OtpService otpService;
+    private final PatientProfileRepository patientProfileRepository;
+
+    @Transactional
+    public Slice<PatientCardDto> getDoctorPatients(User doctor, String searchTerm, Pageable pageable){
+        Slice<PatientRelationship> relationshipSlice = relationshipRepository
+                .findActivePatientsForDoctor(doctor.getUserId(), searchTerm, pageable);
+
+        List<Integer> patientIds = relationshipSlice.getContent().stream()
+                .map(rel -> rel.getPatient().getUserId())
+                .toList(); // toList() returns an immutable list, only allowing reading
+
+        Map<Integer, PatientProfile> profileMap = patientProfileRepository.findByPatient_UserIdIn(patientIds)
+                .stream().
+                collect(Collectors.toMap(
+                        profile -> profile.getPatient().getUserId(),
+                        profile -> profile
+                ));
+
+        return relationshipSlice.map(rel -> {
+            Integer patientId = rel.getPatient().getUserId();
+            PatientProfile profile = profileMap.get(patientId);
+
+            return MapperUtil.toPatientCardDto(rel, profile);
+        });
+    }
 
     public List<PatientRelationshipDto> getActiveRelationships(User user, boolean excludeDoctors) {
         if (user.getRole() == UserRole.PATIENT) {

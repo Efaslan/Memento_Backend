@@ -2,7 +2,6 @@ package com.emiraslan.memento.util;
 
 import com.emiraslan.memento.dto.*;
 import com.emiraslan.memento.entity.*;
-
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
@@ -272,6 +271,25 @@ public class MapperUtil {
                 .weightKg(entity.getWeightKg())
                 .bloodType(entity.getBloodType())
                 .emergencyNotes(entity.getEmergencyNotes())
+                .build();
+    }
+
+    // for doctor webpage
+    public static PatientCardDto toPatientCardDto(PatientRelationship relationship, PatientProfile profile){
+        if (relationship == null) return null;
+        User patient = relationship.getPatient();
+
+        return PatientCardDto.builder()
+                .relationshipId(relationship.getRelationshipId())
+                .patientId(patient.getUserId())
+                .firstName(patient.getFirstName())
+                .lastName(patient.getLastName())
+                .email(patient.getEmail())
+                .dateOfBirth(profile != null ? profile.getDateOfBirth() : null)
+                .heightCm(profile != null ? profile.getHeightCm() : null)
+                .weightKg(profile != null ? profile.getWeightKg() : null)
+                .bloodType(profile != null && profile.getBloodType() != null ? profile.getBloodType() : null)
+                .emergencyNotes(profile != null ? profile.getEmergencyNotes() : null)
                 .build();
     }
 }
