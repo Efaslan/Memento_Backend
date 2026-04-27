@@ -1,11 +1,13 @@
 package com.emiraslan.memento.controller;
 
+import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
 import com.emiraslan.memento.dto.response.MedicationScheduleResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.MedicationScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,12 +59,11 @@ public class MedicationScheduleController {
     @PreAuthorize("hasAuthority('DOCTOR') and @guard.canCreateSchedule(#dto, principal)")
     @PostMapping
     public ResponseEntity<MedicationScheduleResponseDto> createSchedule(
-            @RequestBody MedicationScheduleResponseDto dto,
-            @AuthenticationPrincipal User doctorUser
+            @Valid @RequestBody MedicationScheduleRequestDto dto,
+            @AuthenticationPrincipal User doctor
     ) {
         // we force the doctor's id from jwt instead of taking it from the dto
-        dto.setDoctorUserId(doctorUser.getUserId());
-        return ResponseEntity.ok(scheduleService.createSchedule(dto));
+        return ResponseEntity.ok(scheduleService.createSchedule(dto, doctor));
     }
 
     @Operation(
@@ -73,7 +74,7 @@ public class MedicationScheduleController {
     @PutMapping("/{scheduleId}")
     public ResponseEntity<MedicationScheduleResponseDto> updateSchedule(
             @PathVariable Integer scheduleId,
-            @RequestBody MedicationScheduleResponseDto dto
+            @Valid @RequestBody MedicationScheduleRequestDto dto
     ) {
         return ResponseEntity.ok(scheduleService.updateSchedule(scheduleId, dto));
     }

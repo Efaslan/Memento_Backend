@@ -7,7 +7,6 @@ import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.MedicationStatus;
 import com.emiraslan.memento.repository.MedicationLogRepository;
 import com.emiraslan.memento.repository.MedicationScheduleTimeRepository;
-import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -30,7 +29,6 @@ public class MedicationLogService {
 
     private final MedicationLogRepository logRepository;
     private final MedicationScheduleTimeRepository timeRepository;
-    private final UserRepository userRepository;
 
     // timespan for "TAKEN" status
     private static final int ON_TIME_TOLERANCE_MINUTES = 30;
@@ -43,24 +41,20 @@ public class MedicationLogService {
 
         return logRepository.findByPatient_UserIdAndTakenAtGreaterThanEqualAndTakenAtLessThan(patientId, startOfDay, endOfDay)
                 .stream()
-                .map(MapperUtil::toMedicationLogDto)
+                .map(MapperUtil::toMedicationLogResponseDto)
                 .collect(Collectors.toList());
     }
 
     public List<MedicationLogResponseDto> getAllLogs(Integer patientId){
         return logRepository.findByPatient_UserId(patientId)
                 .stream()
-                .map(MapperUtil::toMedicationLogDto)
+                .map(MapperUtil::toMedicationLogResponseDto)
                 .collect(Collectors.toList());
     }
 
     // creates a new log
     @Transactional
-    public MedicationLogResponseDto logMedicationTaken(Integer patientId, Integer scheduleTimeId) {
-        // find user and the time
-        User patient = userRepository.findById(patientId)
-                .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND"));
-
+    public MedicationLogResponseDto logMedicationTaken(User patient, Integer scheduleTimeId) {
         MedicationScheduleTime scheduleTime = timeRepository.findById(scheduleTimeId)
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
 
@@ -76,7 +70,7 @@ public class MedicationLogService {
                 .status(status)
                 .build();
 
-        return MapperUtil.toMedicationLogDto(logRepository.save(log));
+        return MapperUtil.toMedicationLogResponseDto(logRepository.save(log));
     }
 
     // helper method to calculate what the status of a log should be

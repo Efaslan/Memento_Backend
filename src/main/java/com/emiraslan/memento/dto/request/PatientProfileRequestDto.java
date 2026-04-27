@@ -2,8 +2,6 @@ package com.emiraslan.memento.dto.request;
 
 import com.emiraslan.memento.enums.BloodType;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;

@@ -30,7 +30,7 @@ public class MedicationLogController {
             description = "Today's logs will be returned if no date is given."
     )
     @PreAuthorize("hasAuthority('PATIENT')")
-    @GetMapping("/me/date")
+    @GetMapping("/me/date") // todo bunu da recent logs yapalim gun vererek
     public ResponseEntity<List<MedicationLogResponseDto>> getMyLogsByDate(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
@@ -58,9 +58,9 @@ public class MedicationLogController {
     @PostMapping("/{timeId}/take")
     public ResponseEntity<MedicationLogResponseDto> takeMedication(
             @PathVariable Integer timeId,
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal User patient
     ) {
-        return ResponseEntity.ok(logService.logMedicationTaken(user.getUserId(), timeId));
+        return ResponseEntity.ok(logService.logMedicationTaken(patient, timeId));
     }
 
     @Operation(

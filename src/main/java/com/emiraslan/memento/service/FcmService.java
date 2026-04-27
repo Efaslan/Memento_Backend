@@ -4,11 +4,9 @@ import com.emiraslan.memento.dto.request.TokenRegisterRequestDto;
 import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.repository.DeviceTokenRepository;
-import com.emiraslan.memento.repository.UserRepository;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +21,9 @@ import java.util.Optional;
 public class FcmService {
 
     private final DeviceTokenRepository deviceTokenRepository;
-    private final UserRepository userRepository;
 
     @Transactional
-    public void saveToken(TokenRegisterRequestDto request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("USER_NOT_FOUND: " + request.getUserId()));
+    public void saveToken(TokenRegisterRequestDto request, User user) {
 
         // checks if the token already exists
         Optional<DeviceToken> existingToken = deviceTokenRepository.findByFcmToken(request.getFcmToken());

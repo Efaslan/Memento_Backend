@@ -1,11 +1,13 @@
 package com.emiraslan.memento.controller;
 
+import com.emiraslan.memento.dto.request.DailyLogRequestDto;
 import com.emiraslan.memento.dto.response.DailyLogResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.DailyLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,11 +44,10 @@ public class DailyLogController {
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping
     public ResponseEntity<DailyLogResponseDto> createLog(
-            @RequestBody DailyLogResponseDto dto,
-            @AuthenticationPrincipal User user
+            @Valid @RequestBody DailyLogRequestDto dto,
+            @AuthenticationPrincipal User patient
     ) {
-        dto.setPatientUserId(user.getUserId());
-        return ResponseEntity.ok(dailyLogService.createLog(dto));
+        return ResponseEntity.ok(dailyLogService.createLog(dto, patient));
     }
 
     @Operation(
@@ -56,7 +57,7 @@ public class DailyLogController {
     @PutMapping("/{logId}")
     public ResponseEntity<DailyLogResponseDto> updateLog(
             @PathVariable Integer logId,
-            @RequestBody DailyLogResponseDto dto
+            @Valid @RequestBody DailyLogRequestDto dto
     ) {
         return ResponseEntity.ok(dailyLogService.updateLog(logId, dto));
     }
@@ -68,7 +69,7 @@ public class DailyLogController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(
+    @Operation( // todo silinecek bu her gun icin 1 log oldugunda, zaten su dahil olucak yemeklerle beraber
             description = "The amount of water the patient has drunk today."
     )
     @PreAuthorize("hasAuthority('PATIENT')")

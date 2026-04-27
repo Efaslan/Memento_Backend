@@ -1,5 +1,6 @@
 package com.emiraslan.memento.service;
 
+import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
 import com.emiraslan.memento.dto.response.MedicationScheduleResponseDto;
 import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.MedicationSchedule;
@@ -35,7 +36,7 @@ public class MedicationScheduleService {
     // helper method: Entity -> DTO conversion (with times)
     private MedicationScheduleResponseDto convertToDtoWithTimes(MedicationSchedule schedule) {
         List<MedicationScheduleTime> times = timeRepository.findBySchedule_ScheduleId(schedule.getScheduleId());
-        return MapperUtil.toMedicationScheduleDto(schedule, times);
+        return MapperUtil.toMedicationScheduleResponseDto(schedule, times);
     }
 
     // brings active medication schedules and times
@@ -60,15 +61,9 @@ public class MedicationScheduleService {
     }
 
     @Transactional
-    public MedicationScheduleResponseDto createSchedule(MedicationScheduleResponseDto dto) {
+    public MedicationScheduleResponseDto createSchedule(MedicationScheduleRequestDto dto, User doctor) {
         User patient = userRepository.findById(dto.getPatientUserId())
                 .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
-
-        User doctor = null;
-        if (dto.getDoctorUserId() != null) {
-            doctor = userRepository.findById(dto.getDoctorUserId())
-                    .orElseThrow(() -> new EntityNotFoundException("USER_DOCTOR_NOT_FOUND: " + dto.getDoctorUserId()));
-        }
 
         MedicationSchedule schedule = MapperUtil.toMedicationScheduleEntity(dto, patient, doctor);
         MedicationSchedule savedSchedule = scheduleRepository.save(schedule);
@@ -76,12 +71,12 @@ public class MedicationScheduleService {
         saveScheduleTimes(savedSchedule, dto);
 
         List<MedicationScheduleTime> savedTimes = timeRepository.findBySchedule_ScheduleId(savedSchedule.getScheduleId());
-        return MapperUtil.toMedicationScheduleDto(savedSchedule, savedTimes);
+        return MapperUtil.toMedicationScheduleResponseDto(savedSchedule, savedTimes);
     }
 
     // special update method. The doctor cannot edit parts of a schedule if the patient has taken the medicine according to that schedule before.
     @Transactional
-    public MedicationScheduleResponseDto updateSchedule(Integer scheduleId, MedicationScheduleResponseDto dto) {
+    public MedicationScheduleResponseDto updateSchedule(Integer scheduleId, MedicationScheduleRequestDto dto) {
         MedicationSchedule existing = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND: " + scheduleId));
 
@@ -107,7 +102,6 @@ public class MedicationScheduleService {
             // update permitted fields, except the start date
             existing.setNotes(dto.getNotes());
             existing.setEndDate(dto.getEndDate());
-            existing.setIsActive(dto.getIsActive());
 
         } else {
             // if there are no medication logs (patient hasn't taken the medicine) doctor can change anything
@@ -118,7 +112,6 @@ public class MedicationScheduleService {
             existing.setStartDate(dto.getStartDate());
             existing.setEndDate(dto.getEndDate());
             existing.setIsPrn(dto.getIsPrn());
-            existing.setIsActive(dto.getIsActive());
 
             // delete and recreate the times
             if (dto.getTimes() != null) {
@@ -131,11 +124,11 @@ public class MedicationScheduleService {
 
         MedicationSchedule updatedSchedule = scheduleRepository.save(existing);
         List<MedicationScheduleTime> currentTimes = timeRepository.findBySchedule_ScheduleId(scheduleId);
-        return MapperUtil.toMedicationScheduleDto(updatedSchedule, currentTimes);
+        return MapperUtil.toMedicationScheduleResponseDto(updatedSchedule, currentTimes);
     }
 
     // saving medication times
-    private void saveScheduleTimes(MedicationSchedule schedule, MedicationScheduleResponseDto dto) {
+    private void saveScheduleTimes(MedicationSchedule schedule, MedicationScheduleRequestDto dto) {
         if (Boolean.TRUE.equals(dto.getIsPrn())) {
             // if isPrn = true, time will be null
             MedicationScheduleTime time = MedicationScheduleTime.builder()

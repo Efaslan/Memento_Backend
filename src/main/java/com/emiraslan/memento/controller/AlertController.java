@@ -1,8 +1,9 @@
 package com.emiraslan.memento.controller;
 
+import com.emiraslan.memento.dto.request.AlertRequestDto;
 import com.emiraslan.memento.dto.response.AlertResponseDto;
 import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.enums.AlertStatus;
+import com.emiraslan.memento.enums.AlertType;
 import com.emiraslan.memento.service.AlertService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,12 +33,11 @@ public class AlertController {
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping("/fall")
     public ResponseEntity<AlertResponseDto> createFallAlert( // patients create alerts for themselves
-                                                             @Valid @RequestBody AlertResponseDto dto,
-                                                             @AuthenticationPrincipal User user
+            @Valid @RequestBody AlertRequestDto dto,
+            @AuthenticationPrincipal User user
     ) {
-        dto.setPatientUserId(user.getUserId()); // manually assign id to the dto
-        dto.setStatus(AlertStatus.PENDING);
-        return ResponseEntity.ok(alertService.createAlert(dto));
+        dto.setAlertType(AlertType.FALL_DETECTED);
+        return ResponseEntity.ok(alertService.createFallAlert(dto, user));
     }
 
     @Operation(
@@ -50,15 +50,7 @@ public class AlertController {
         return ResponseEntity.ok(alertService.cancelAlert(alertId));
     }
 
-    @Operation(
-            summary = "Send notifications about the alert.",
-            description = "If the user remains unresponsive for 30 seconds, notifications are sent to primary contacts."
-    )
-    @PreAuthorize("hasAuthority('PATIENT') and @guard.isAlertOwner(#alertId, principal)")
-    @PostMapping("/{alertId}/send")
-    public ResponseEntity<AlertResponseDto> confirmAndSendAlert(@PathVariable Integer alertId) {
-        return ResponseEntity.ok(alertService.confirmFallAlert(alertId));
-    }
+    // todo, frontend will no longer confirm the fall alert, the backend will have a 30 second timer
 
     @Operation(
             summary = "A relative is checking the situation.",
@@ -70,7 +62,7 @@ public class AlertController {
             @PathVariable Integer alertId,
             @AuthenticationPrincipal User caregiver
     ) {
-        return ResponseEntity.ok(alertService.acknowledgeAlert(alertId, caregiver.getUserId()));
+        return ResponseEntity.ok(alertService.acknowledgeAlert(alertId, caregiver));
     }
 
     @Operation(

@@ -53,7 +53,7 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         createEmptyProfileForRole(savedUser);
 
-        return MapperUtil.toUserDto(savedUser);
+        return MapperUtil.toUserResponseDto(savedUser);
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -77,7 +77,7 @@ public class AuthService {
 
         return LoginResponse.builder()
                 .token(token)
-                .user(MapperUtil.toUserDto(user))
+                .user(MapperUtil.toUserResponseDto(user))
                 .build();
     }
 

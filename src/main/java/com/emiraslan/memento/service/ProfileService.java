@@ -1,5 +1,7 @@
 package com.emiraslan.memento.service;
 
+import com.emiraslan.memento.dto.request.DoctorProfileRequestDto;
+import com.emiraslan.memento.dto.request.PatientProfileRequestDto;
 import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
 import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
 import com.emiraslan.memento.entity.DoctorProfile;
@@ -29,12 +31,12 @@ public class ProfileService {
         PatientProfile profile = patientProfileRepository.findById(patientId)
                 .orElseThrow(() -> new EntityNotFoundException("PATIENT_PROFILE_NOT_FOUND: " + patientId));
 
-        return MapperUtil.toPatientProfileDto(profile);
+        return MapperUtil.toPatientProfileResponseDto(profile);
     }
 
     // profiles are created blank on register, so we only update them here
     @Transactional
-    public PatientProfileResponseDto updatePatientProfile(Integer patientId, PatientProfileResponseDto dto) {
+    public PatientProfileResponseDto updatePatientProfile(Integer patientId, PatientProfileRequestDto dto) {
         PatientProfile profile = patientProfileRepository.findById(patientId)
                 .orElseThrow(() -> new EntityNotFoundException("PATIENT_PROFILE_NOT_FOUND: " + patientId));
 
@@ -64,7 +66,7 @@ public class ProfileService {
         userRepository.save(user);
         PatientProfile updatedProfile = patientProfileRepository.save(profile);
 
-        return MapperUtil.toPatientProfileDto(updatedProfile);
+        return MapperUtil.toPatientProfileResponseDto(updatedProfile);
     }
 
     // DOCTOR PROFILE OPERATIONS
@@ -73,11 +75,11 @@ public class ProfileService {
         DoctorProfile profile = doctorProfileRepository.findById(doctorId)
                 .orElseThrow(() -> new EntityNotFoundException("DOCTOR_PROFILE_NOT_FOUND: " + doctorId));
 
-        return MapperUtil.toDoctorProfileDto(profile);
+        return MapperUtil.toDoctorProfileResponseDto(profile);
     }
 
     @Transactional
-    public DoctorProfileResponseDto updateDoctorProfile(Integer doctorId, DoctorProfileResponseDto dto) {
+    public DoctorProfileResponseDto updateDoctorProfile(Integer doctorId, DoctorProfileRequestDto dto) {
         DoctorProfile profile = doctorProfileRepository.findById(doctorId)
                 .orElseThrow(() -> new EntityNotFoundException("DOCTOR_PROFILE_NOT_FOUND: " + doctorId));
 
@@ -103,6 +105,6 @@ public class ProfileService {
         userRepository.save(user);
         DoctorProfile updatedProfile = doctorProfileRepository.save(profile);
 
-        return MapperUtil.toDoctorProfileDto(updatedProfile);
+        return MapperUtil.toDoctorProfileResponseDto(updatedProfile);
     }
 }

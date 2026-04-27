@@ -1,5 +1,6 @@
 package com.emiraslan.memento.service;
 
+import com.emiraslan.memento.dto.request.GeneralReminderRequestDto;
 import com.emiraslan.memento.dto.response.GeneralReminderResponseDto;
 import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.GeneralReminder;
@@ -35,7 +36,7 @@ public class GeneralReminderService {
     public List<GeneralReminderResponseDto> getAllOngoingRemindersByPatient(Integer patientId) {
         return reminderRepository.findByPatient_UserIdAndIsCompletedFalseOrderByReminderTimeAsc(patientId)
                 .stream()
-                .map(MapperUtil::toGeneralReminderDto)
+                .map(MapperUtil::toGeneralReminderResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -43,12 +44,12 @@ public class GeneralReminderService {
     public List<GeneralReminderResponseDto> getCompletedRemindersByPatient(Integer patientId) {
         return reminderRepository.findByPatient_UserIdAndIsCompletedTrueOrderByReminderTimeAsc(patientId)
                 .stream()
-                .map(MapperUtil::toGeneralReminderDto)
+                .map(MapperUtil::toGeneralReminderResponseDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public GeneralReminderResponseDto createReminder(GeneralReminderResponseDto dto, User creator) {
+    public GeneralReminderResponseDto createReminder(GeneralReminderRequestDto dto, User creator) {
         User patient;
 
         // if the creator is patient, patientId in dto is set automatically
@@ -63,11 +64,11 @@ public class GeneralReminderService {
         }
 
         GeneralReminder reminder = MapperUtil.toGeneralReminderEntity(dto, patient, creator);
-        return MapperUtil.toGeneralReminderDto(reminderRepository.save(reminder));
+        return MapperUtil.toGeneralReminderResponseDto(reminderRepository.save(reminder));
     }
 
     @Transactional
-    public GeneralReminderResponseDto updateReminder(Integer reminderId, GeneralReminderResponseDto dto) {
+    public GeneralReminderResponseDto updateReminder(Integer reminderId, GeneralReminderRequestDto dto) {
         GeneralReminder existingReminder = reminderRepository.findById(reminderId)
                 .orElseThrow(() -> new EntityNotFoundException("GENERAL_REMINDER_NOT_FOUND: " + reminderId));
 
@@ -77,9 +78,8 @@ public class GeneralReminderService {
         existingReminder.setReminderTime(dto.getReminderTime());
         existingReminder.setIsRecurring(dto.getIsRecurring());
         existingReminder.setRecurrenceRule(dto.getRecurrenceRule());
-        existingReminder.setIsCompleted(dto.getIsCompleted());
 
-        return MapperUtil.toGeneralReminderDto(reminderRepository.save(existingReminder));
+        return MapperUtil.toGeneralReminderResponseDto(reminderRepository.save(existingReminder));
     }
 
     @Transactional
@@ -89,12 +89,12 @@ public class GeneralReminderService {
 
         if (Boolean.TRUE.equals(reminder.getIsCompleted())) {
             // if its already completed, return it as it is
-            return MapperUtil.toGeneralReminderDto(reminder);
+            return MapperUtil.toGeneralReminderResponseDto(reminder);
         }
 
         reminder.setIsCompleted(true);
 
-        return MapperUtil.toGeneralReminderDto(reminderRepository.save(reminder));
+        return MapperUtil.toGeneralReminderResponseDto(reminderRepository.save(reminder));
     }
 
     public void deleteReminder(Integer reminderId) {

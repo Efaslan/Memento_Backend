@@ -1,5 +1,6 @@
 package com.emiraslan.memento.service;
 
+import com.emiraslan.memento.dto.request.AlertRequestDto;
 import com.emiraslan.memento.dto.response.AlertResponseDto;
 import com.emiraslan.memento.entity.Alert;
 import com.emiraslan.memento.entity.DeviceToken;
@@ -9,7 +10,6 @@ import com.emiraslan.memento.enums.AlertStatus;
 import com.emiraslan.memento.repository.AlertRepository;
 import com.emiraslan.memento.repository.DeviceTokenRepository;
 import com.emiraslan.memento.repository.PatientRelationshipRepository;
-import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 public class AlertService {
 
     private final AlertRepository alertRepository;
-    private final UserRepository userRepository;
     private final PatientRelationshipRepository relationshipRepository;
     private final DeviceTokenRepository deviceTokenRepository;
     private final FcmService fcmService;
@@ -35,22 +34,20 @@ public class AlertService {
     public List<AlertResponseDto> getPatientAlerts(Integer patientId) {
         return alertRepository.findByPatient_UserIdOrderByAlertTimestampDesc(patientId)
                 .stream()
-                .map(MapperUtil::toAlertDto)
+                .map(MapperUtil::toAlertResponseDto)
                 .collect(Collectors.toList());
     }
 
     // immediately creates a PENDING alert when a fall is detected
     @Transactional
-    public AlertResponseDto createAlert(AlertResponseDto dto) {
-        User patient = userRepository.findById(dto.getPatientUserId())
-                .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
+    public AlertResponseDto createFallAlert(AlertRequestDto dto, User patient) {
 
         // Alert is created with PENDING status by default
         Alert alert = MapperUtil.toAlertEntity(dto, patient);
 
         log.info("Fall Detected (PENDING): PatientID={}, Waiting for mobile confirmation...", patient.getUserId());
 
-        return MapperUtil.toAlertDto(alertRepository.save(alert));
+        return MapperUtil.toAlertResponseDto(alertRepository.save(alert));
     }
 
     // if the patient responds within 30 seconds, alert is CANCELLED
@@ -66,40 +63,14 @@ public class AlertService {
         alert.setStatus(AlertStatus.CANCELLED);
         log.info("Alert Cancelled by Patient: AlertID={}", alertId);
 
-        return MapperUtil.toAlertDto(alertRepository.save(alert));
-    }
-
-    // if 30 seconds pass without a response, notifications are sent to primary contacts and status is set to SENT
-    @Transactional
-    public AlertResponseDto confirmFallAlert(Integer alertId) {
-        Alert alert = alertRepository.findById(alertId)
-                .orElseThrow(() -> new EntityNotFoundException("ALERT_NOT_FOUND: " + alertId));
-
-        // We can only confirm pending alerts
-        if (alert.getStatus() != AlertStatus.PENDING) {
-            throw new IllegalStateException("Alert is not in PENDING state, cannot send.");
-        }
-
-        // Update status to SENT
-        alert.setStatus(AlertStatus.SENT);
-        Alert savedAlert = alertRepository.save(alert);
-
-        log.info("Alert Confirmed by Mobile (Timeout): AlertID={} -> Status: SENT", alertId);
-
-        // Send notifications to primary contacts
-        notifyPrimaryContacts(savedAlert);
-
-        return MapperUtil.toAlertDto(savedAlert);
+        return MapperUtil.toAlertResponseDto(alertRepository.save(alert));
     }
 
     // a relative acknowledges the alert via push notification action
     @Transactional
-    public AlertResponseDto acknowledgeAlert(Integer alertId, Integer caregiverId) {
+    public AlertResponseDto acknowledgeAlert(Integer alertId, User caregiver) {
         Alert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new EntityNotFoundException("ALERT_NOT_FOUND: " + alertId));
-
-        User caregiver = userRepository.findById(caregiverId)
-                .orElseThrow(() -> new EntityNotFoundException("USER_CAREGIVER_NOT_FOUND: " + caregiverId));
 
         // Only SENT alerts can be acknowledged
         if (alert.getStatus() != AlertStatus.SENT) {
@@ -115,7 +86,7 @@ public class AlertService {
         // Notify OTHER relatives that someone has acknowledged the alert
         notifyOthersOfAcknowledgment(savedAlert, caregiver);
 
-        return MapperUtil.toAlertDto(savedAlert);
+        return MapperUtil.toAlertResponseDto(savedAlert);
     }
 
     // Helper method to find active primary contacts and send notifications
@@ -163,7 +134,7 @@ public class AlertService {
         }
     }
 
-    // helper method to push notifications
+    // helper method to push notifications todo neden bunu kullaniyoruz fcmService'te var zaten push notif
     private void sendPushToUser(User user, String title, String body) {
         // find every token of caregivers
         List<DeviceToken> tokens = deviceTokenRepository.findByUser_UserId(user.getUserId());

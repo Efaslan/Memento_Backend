@@ -1,6 +1,7 @@
 package com.emiraslan.memento.util;
 
 import com.emiraslan.memento.dto.*;
+import com.emiraslan.memento.dto.request.*;
 import com.emiraslan.memento.dto.response.*;
 import com.emiraslan.memento.entity.*;
 import java.time.LocalTime;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 public class MapperUtil {
 
     // User Mapping
-    public static UserResponseDto toUserDto(User user) {
+    public static UserResponseDto toUserResponseDto(User user) {
         if (user == null) return null;
         return UserResponseDto.builder()
                 .userId(user.getUserId())
@@ -24,7 +25,7 @@ public class MapperUtil {
     } // see AuthService for dto->entity
 
     // SavedLocation Mapping
-    public static SavedLocationResponseDto toSavedLocationDto(SavedLocation entity) {
+    public static SavedLocationResponseDto toSavedLocationResponseDto(SavedLocation entity) {
         if (entity == null) return null;
         return SavedLocationResponseDto.builder()
                 .locationId(entity.getLocationId())
@@ -36,7 +37,7 @@ public class MapperUtil {
                 .build();
     }
 
-    public static SavedLocation toSavedLocationEntity(SavedLocationResponseDto dto, User patient) {
+    public static SavedLocation toSavedLocationEntity(SavedLocationRequestDto dto, User patient) {
         if (dto == null) return null;
         return SavedLocation.builder()
                 .patient(patient) // JPA accepts the object as FK, not just ID(see entity package FKs)
@@ -48,7 +49,7 @@ public class MapperUtil {
     }
 
     // Alert Mapping
-    public static AlertResponseDto toAlertDto(Alert entity) {
+    public static AlertResponseDto toAlertResponseDto(Alert entity) {
         if (entity == null) return null;
 
         Integer ackUserId = null;
@@ -73,20 +74,19 @@ public class MapperUtil {
                 .build();
     }
 
-    public static Alert toAlertEntity(AlertResponseDto dto, User patient) {
+    public static Alert toAlertEntity(AlertRequestDto dto, User patient) {
         if (dto == null) return null;
         return Alert.builder()
                 .patient(patient)
                 .alertType(dto.getAlertType())
                 .latitude(dto.getLatitude())
                 .longitude(dto.getLongitude())
-                .details(dto.getDetails())
                 // Builder.default sets Status and Timestamp, service might @Override
                 .build();
     }
 
     // GeneralReminder Mapping
-    public static GeneralReminderResponseDto toGeneralReminderDto(GeneralReminder entity) {
+    public static GeneralReminderResponseDto toGeneralReminderResponseDto(GeneralReminder entity) {
         if (entity == null) return null;
 
         String creatorName = "System"; // default in case creator is null
@@ -110,7 +110,7 @@ public class MapperUtil {
                 .build();
     }
 
-    public static GeneralReminder toGeneralReminderEntity(GeneralReminderResponseDto dto, User patient, User creator) {
+    public static GeneralReminder toGeneralReminderEntity(GeneralReminderRequestDto dto, User patient, User creator) {
         if (dto == null) return null;
         return GeneralReminder.builder()
                 .patient(patient)
@@ -119,12 +119,11 @@ public class MapperUtil {
                 .reminderTime(dto.getReminderTime())
                 .isRecurring(dto.getIsRecurring() != null ? dto.getIsRecurring() : false)
                 .recurrenceRule(dto.getRecurrenceRule())
-                .isCompleted(dto.getIsCompleted() != null ? dto.getIsCompleted() : false)
                 .build();
     }
 
     // PatientRelationship Mapping
-    public static RelationshipResponseDto toPatientRelationshipDto(PatientRelationship entity) {
+    public static RelationshipResponseDto toRelationshipResponseDto(PatientRelationship entity) {
         if (entity == null) return null;
 
         User caregiver = entity.getCaregiver(); // caregiver(relative or doctor) cannot be null
@@ -143,7 +142,7 @@ public class MapperUtil {
     }
 
     // DailyLog Mapping
-    public static DailyLogResponseDto toDailyLogDto(DailyLog entity) {
+    public static DailyLogResponseDto toDailyLogResponseDto(DailyLog entity) {
         if (entity == null) return null;
         return DailyLogResponseDto.builder()
                 .dailyLogId(entity.getDailyLogId())
@@ -155,7 +154,7 @@ public class MapperUtil {
                 .build();
     }
 
-    public static DailyLog toDailyLogEntity(DailyLogResponseDto dto, User patient) {
+    public static DailyLog toDailyLogEntity(DailyLogRequestDto dto, User patient) {
         if (dto == null) return null;
         return DailyLog.builder()
                 .patient(patient)
@@ -167,7 +166,7 @@ public class MapperUtil {
     }
 
     // MedicationSchedule Mapping, combines schedule with its times into method
-    public static MedicationScheduleResponseDto toMedicationScheduleDto(MedicationSchedule entity, List<MedicationScheduleTime> times) {
+    public static MedicationScheduleResponseDto toMedicationScheduleResponseDto(MedicationSchedule entity, List<MedicationScheduleTime> times) {
         if (entity == null) return null;
 
         String doctorName = "Unknown"; // default in case of null
@@ -202,7 +201,7 @@ public class MapperUtil {
     }
 
     // No ScheduleTimes here, Service saves them through a loop
-    public static MedicationSchedule toMedicationScheduleEntity(MedicationScheduleResponseDto dto, User patient, User doctor) {
+    public static MedicationSchedule toMedicationScheduleEntity(MedicationScheduleRequestDto dto, User patient, User doctor) {
         if (dto == null) return null;
         return MedicationSchedule.builder()
                 .patient(patient)
@@ -213,12 +212,11 @@ public class MapperUtil {
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .isPrn(dto.getIsPrn() != null ? dto.getIsPrn() : false)
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .build();
     }
 
     // MedicationLog Mapping (entity->dto only, service handles dto->entity)
-    public static MedicationLogResponseDto toMedicationLogDto(MedicationLog entity) {
+    public static MedicationLogResponseDto toMedicationLogResponseDto(MedicationLog entity) {
         if (entity == null) return null;
 
         // get medicationName through relations
@@ -238,7 +236,7 @@ public class MapperUtil {
     }
 
     // DoctorProfile Mapping (entity->dto only, no dto->entity because profiles are auto created on register)
-    public static DoctorProfileResponseDto toDoctorProfileDto(DoctorProfile entity) {
+    public static DoctorProfileResponseDto toDoctorProfileResponseDto(DoctorProfile entity) {
         if (entity == null) return null;
 
         User doctor = entity.getDoctor();
@@ -256,7 +254,7 @@ public class MapperUtil {
     }
 
     // PatientProfile Mapping (entity->dto only)
-    public static PatientProfileResponseDto toPatientProfileDto(PatientProfile entity) {
+    public static PatientProfileResponseDto toPatientProfileResponseDto(PatientProfile entity) {
         if (entity == null) return null;
 
         User patient = entity.getPatient();

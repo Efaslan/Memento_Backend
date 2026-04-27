@@ -1,5 +1,7 @@
 package com.emiraslan.memento.controller;
 
+import com.emiraslan.memento.dto.request.DoctorProfileRequestDto;
+import com.emiraslan.memento.dto.request.PatientProfileRequestDto;
 import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
 import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
 import com.emiraslan.memento.entity.User;
@@ -8,6 +10,7 @@ import com.emiraslan.memento.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,10 +48,10 @@ public class ProfileController {
     @PreAuthorize("hasAuthority('PATIENT')")
     @PutMapping("/patient/me")
     public ResponseEntity<PatientProfileResponseDto> updateMyPatientProfile(
-            @RequestBody PatientProfileResponseDto dto,
-            @AuthenticationPrincipal User user
+            @Valid @RequestBody PatientProfileRequestDto dto,
+            @AuthenticationPrincipal User patient
     ) {
-        return ResponseEntity.ok(profileService.updatePatientProfile(user.getUserId(), dto));
+        return ResponseEntity.ok(profileService.updatePatientProfile(patient.getUserId(), dto));
     }
 
     @Operation(
@@ -57,10 +60,10 @@ public class ProfileController {
     @PreAuthorize("hasAuthority('DOCTOR')")
     @PutMapping("/doctor/me")
     public ResponseEntity<DoctorProfileResponseDto> updateMyDoctorProfile(
-            @RequestBody DoctorProfileResponseDto dto,
-            @AuthenticationPrincipal User user
+            @Valid @RequestBody DoctorProfileRequestDto dto,
+            @AuthenticationPrincipal User doctor
     ) {
-        return ResponseEntity.ok(profileService.updateDoctorProfile(user.getUserId(), dto));
+        return ResponseEntity.ok(profileService.updateDoctorProfile(doctor.getUserId(), dto));
     }
 
     @Operation(

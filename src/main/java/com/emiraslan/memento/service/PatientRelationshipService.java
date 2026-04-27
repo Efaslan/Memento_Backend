@@ -62,16 +62,16 @@ public class PatientRelationshipService {
             if (excludeDoctors) {
                 return relationshipRepository.findByPatient_UserIdAndRelationshipTypeNotAndIsActiveTrue(
                                 user.getUserId(), RelationshipType.DOCTOR).stream()
-                        .map(MapperUtil::toPatientRelationshipDto).collect(Collectors.toList());
+                        .map(MapperUtil::toRelationshipResponseDto).collect(Collectors.toList());
             }
             return relationshipRepository.findByPatient_UserIdAndIsActiveTrue(user.getUserId()).stream()
-                    .map(MapperUtil::toPatientRelationshipDto).collect(Collectors.toList());
+                    .map(MapperUtil::toRelationshipResponseDto).collect(Collectors.toList());
         }
         // if the user is a relative or doctor
         else {
             return relationshipRepository.findByCaregiver_UserIdAndIsActiveTrue(user.getUserId())
                     .stream()
-                    .map(MapperUtil::toPatientRelationshipDto)
+                    .map(MapperUtil::toRelationshipResponseDto)
                     .collect(Collectors.toList());
         }
     }
@@ -79,12 +79,12 @@ public class PatientRelationshipService {
     public List<RelationshipResponseDto> getInactiveRelationships(User user) {
         if (user.getRole() == UserRole.PATIENT) {
             return relationshipRepository.findByPatient_UserIdAndIsActiveFalse(user.getUserId()).stream()
-                    .map(MapperUtil::toPatientRelationshipDto)
+                    .map(MapperUtil::toRelationshipResponseDto)
                     .collect(Collectors.toList());
         }
         else {
             return relationshipRepository.findByCaregiver_UserIdAndIsActiveFalse(user.getUserId()).stream()
-                    .map(MapperUtil::toPatientRelationshipDto)
+                    .map(MapperUtil::toRelationshipResponseDto)
                     .collect(Collectors.toList());
         }
     }
@@ -167,7 +167,7 @@ public class PatientRelationshipService {
                 .isActive(true)
                 .build();
 
-        return MapperUtil.toPatientRelationshipDto(relationshipRepository.save(relationship));
+        return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
     }
 
     @Transactional
@@ -190,7 +190,7 @@ public class PatientRelationshipService {
         if (dto.getRelationshipType() != null) relationship.setRelationshipType(dto.getRelationshipType());
         if (dto.getIsPrimaryContact() != null) relationship.setIsPrimaryContact(dto.getIsPrimaryContact());
 
-        return MapperUtil.toPatientRelationshipDto(relationshipRepository.save(relationship));
+        return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
     }
 
     // toggle to deactivate or reactivate relationships
@@ -200,7 +200,7 @@ public class PatientRelationshipService {
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
 
         relationship.setIsActive(!relationship.getIsActive());
-        return MapperUtil.toPatientRelationshipDto(relationshipRepository.save(relationship));
+        return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
     }
 
     // toggle to change primary contacts
@@ -213,6 +213,6 @@ public class PatientRelationshipService {
         boolean currentStatus = Boolean.TRUE.equals(relationship.getIsPrimaryContact());
         relationship.setIsPrimaryContact(!currentStatus); // reversing primary contact status
 
-        return MapperUtil.toPatientRelationshipDto(relationshipRepository.save(relationship));
+        return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
     }
 }

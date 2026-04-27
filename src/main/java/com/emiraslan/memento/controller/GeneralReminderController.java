@@ -1,11 +1,13 @@
 package com.emiraslan.memento.controller;
 
+import com.emiraslan.memento.dto.request.GeneralReminderRequestDto;
 import com.emiraslan.memento.dto.response.GeneralReminderResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.GeneralReminderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,7 +64,10 @@ public class GeneralReminderController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canCreateReminder(#dto, principal)")
     @PostMapping
-    public ResponseEntity<GeneralReminderResponseDto> createReminder(@RequestBody GeneralReminderResponseDto dto, @AuthenticationPrincipal User creator) {
+    public ResponseEntity<GeneralReminderResponseDto> createReminder(
+            @Valid @RequestBody GeneralReminderRequestDto dto,
+            @AuthenticationPrincipal User creator
+    ) {
         return ResponseEntity.ok(reminderService.createReminder(dto, creator));
     }
 
@@ -70,12 +75,12 @@ public class GeneralReminderController {
     @PutMapping("/{reminderId}")
     public ResponseEntity<GeneralReminderResponseDto> updateReminder(
             @PathVariable Integer reminderId,
-            @RequestBody GeneralReminderResponseDto dto
+            @Valid @RequestBody GeneralReminderRequestDto dto
     ) {
         return ResponseEntity.ok(reminderService.updateReminder(reminderId, dto));
     }
 
-    @Operation(summary = "Set reminder as completed.")
+    @Operation(summary = "Set reminder as completed.") // todo gereksiz, direkt delete yapsin
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
     @PatchMapping("/{reminderId}/complete")
     public ResponseEntity<GeneralReminderResponseDto> markAsCompleted(@PathVariable Integer reminderId) {
