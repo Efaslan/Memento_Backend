@@ -1,7 +1,8 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.response;
 
 import com.emiraslan.memento.enums.AlertStatus;
 import com.emiraslan.memento.enums.AlertType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AlertDto {
+public class AlertResponseDto { // alert dto'nun aynisi
 
     private Integer alertId;
     private Integer patientUserId;
@@ -38,8 +39,10 @@ public class AlertDto {
     private String details;
 
     // alert acknowledged by:
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Integer acknowledgedByUserId;
 
     @Size(max = 100, message = "ACKNOWLEDGED_BY_NAME_TOO_LONG")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String acknowledgedByName; // for display
 }
