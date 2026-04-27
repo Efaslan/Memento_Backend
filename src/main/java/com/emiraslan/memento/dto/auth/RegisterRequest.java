@@ -33,8 +33,8 @@ public class RegisterRequest {
     )
     private String password;
 
-    @Size(max = 20, message = "PHONE_NUMBER_TOO_LONG")
-    @Pattern(regexp = "^\\d+$", message = "PHONE_NUMBER_ONLY_DIGITS")
+    @NotBlank(message = "PHONE_NUMBER_REQUIRED")
+    @Pattern(regexp = "^[1-9]\\d{9}$", message = "PHONE_NUMBER_ONLY_DIGITS_DO_NOT_START_WITH_0")
     private String phoneNumber;
 
     @NotNull(message = "ROLE_REQUIRED")

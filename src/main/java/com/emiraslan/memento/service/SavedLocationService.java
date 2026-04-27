@@ -1,6 +1,6 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.SavedLocationDto;
+import com.emiraslan.memento.dto.response.SavedLocationResponseDto;
 import com.emiraslan.memento.entity.SavedLocation;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.repository.SavedLocationRepository;
@@ -19,7 +19,7 @@ public class SavedLocationService {
 
     private final SavedLocationRepository locationRepository;
 
-    public List<SavedLocationDto> getLocationsByPatient(Integer patientId) {
+    public List<SavedLocationResponseDto> getLocationsByPatient(Integer patientId) {
         return locationRepository.findByPatient_UserId(patientId)
                 .stream()
                 .map(MapperUtil::toSavedLocationDto)
@@ -27,7 +27,7 @@ public class SavedLocationService {
     }
 
     @Transactional
-    public SavedLocationDto createLocation(SavedLocationDto dto, User patient) {
+    public SavedLocationResponseDto createLocation(SavedLocationResponseDto dto, User patient) {
         SavedLocation location = MapperUtil.toSavedLocationEntity(dto, patient); // object with nulls
 
         SavedLocation savedLocation = locationRepository.save(location); // obj after it receives an id from the db
@@ -36,7 +36,7 @@ public class SavedLocationService {
     }
 
     @Transactional
-    public SavedLocationDto updateLocation(Integer locationId, SavedLocationDto dto) {
+    public SavedLocationResponseDto updateLocation(Integer locationId, SavedLocationResponseDto dto) {
 
         SavedLocation existingLocation = locationRepository.findById(locationId)
                 .orElseThrow(() -> new EntityNotFoundException("LOCATION_NOT_FOUND: " + locationId));

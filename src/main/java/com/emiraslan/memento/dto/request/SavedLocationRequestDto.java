@@ -1,8 +1,9 @@
 package com.emiraslan.memento.dto.request;
 
-import com.emiraslan.memento.enums.AlertType;
 import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,16 +15,21 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AlertCreateDto {
+public class SavedLocationRequestDto {
 
-    // private Integer patientUserId; bunu direkt servise principal ile controller gonderecek
+    @NotBlank(message = "LOCATION_NAME_REQUIRED")
+    @Size(max = 100, message = "LOCATION_NAME_TOO_LONG")
+    private String locationName;
 
-    @NotNull(message = "ALERT_TYPE_REQUIRED")
-    private AlertType alertType;
-
+    @NotNull(message = "LATITUDE_REQUIRED")
     @Digits(integer = 3, fraction = 6, message = "INVALID_LATITUDE_FORMAT")
     private BigDecimal latitude;
 
+    @NotNull(message = "LONGITUDE_REQUIRED")
     @Digits(integer = 3, fraction = 6, message = "INVALID_LONGITUDE_FORMAT")
     private BigDecimal longitude;
+
+    // optional
+    @Size(max = 255, message = "ADDRESS_DETAILS_TOO_LONG")
+    private String addressDetails;
 }

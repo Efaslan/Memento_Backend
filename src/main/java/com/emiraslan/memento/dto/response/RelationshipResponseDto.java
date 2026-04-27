@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.response;
 
 import com.emiraslan.memento.enums.RelationshipType;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PatientRelationshipDto {
+public class RelationshipResponseDto {
     private Integer relationshipId;
     private Integer patientUserId;
     private Integer caregiverUserId;

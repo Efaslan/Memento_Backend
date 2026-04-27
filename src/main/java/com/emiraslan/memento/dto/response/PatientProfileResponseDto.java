@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.response;
 
 import com.emiraslan.memento.enums.BloodType;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PatientProfileDto {
+public class PatientProfileResponseDto {
     private Integer patientUserId;
     // additional info from User
     private String firstName;

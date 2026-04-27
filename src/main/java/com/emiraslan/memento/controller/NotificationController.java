@@ -1,6 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.TokenRegisterRequest;
+import com.emiraslan.memento.dto.request.TokenRegisterRequestDto;
 import com.emiraslan.memento.service.FcmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +21,7 @@ public class NotificationController {
             description = "Push notifications are used for Alerts, Medication reminders, General Reminders, and Daily Logs. The aim is to motivate, while not bothering, the users into keeping track of their medication and daily consumptions."
     )
     @PostMapping("/token")
-    public ResponseEntity<Void> registerToken(@RequestBody TokenRegisterRequest request) {
+    public ResponseEntity<Void> registerToken(@RequestBody TokenRegisterRequestDto request) {
         fcmService.saveToken(request);
         return ResponseEntity.ok().build();
     }

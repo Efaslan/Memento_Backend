@@ -1,8 +1,8 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.PatientCardDto;
-import com.emiraslan.memento.dto.PatientRelationshipDto;
-import com.emiraslan.memento.dto.RelationshipInitiationDto;
+import com.emiraslan.memento.dto.response.RelationshipResponseDto;
+import com.emiraslan.memento.dto.request.RelationshipRequestDto;
 import com.emiraslan.memento.dto.auth.EmailDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.PatientRelationshipService;
@@ -32,7 +32,7 @@ public class PatientRelationshipController {
     @Operation(description = "All relationships of a user. You can filter doctors out by setting the boolean as true.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
     @GetMapping("/me")
-    public ResponseEntity<List<PatientRelationshipDto>> getMyRelationships(
+    public ResponseEntity<List<RelationshipResponseDto>> getMyRelationships(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "false") boolean excludeDoctors
     ) {
@@ -42,7 +42,7 @@ public class PatientRelationshipController {
     @Operation(description = "Deactivated relationships of a user.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
     @GetMapping("/me/inactive")
-    public ResponseEntity<List<PatientRelationshipDto>> getMyInactiveRelationships(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<RelationshipResponseDto>> getMyInactiveRelationships(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(relationshipService.getInactiveRelationships(user));
     }
 
@@ -63,8 +63,8 @@ public class PatientRelationshipController {
     @Operation(description = "Doctors can add patients directly. Patients can add anyone except doctors if they provide the 6-digit OTP sent to their relative's email. Relatives cannot initiate relationships. Type can be: DOCTOR, WIFE, HUSBAND, SON, DAUGHTER, OTHER.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR')")
     @PostMapping
-    public ResponseEntity<PatientRelationshipDto> addRelationship(
-            @Valid @RequestBody RelationshipInitiationDto dto,
+    public ResponseEntity<RelationshipResponseDto> addRelationship(
+            @Valid @RequestBody RelationshipRequestDto dto,
             @AuthenticationPrincipal User initiator) {
         return ResponseEntity.ok(relationshipService.addRelationship(dto, initiator));
     }
@@ -72,9 +72,9 @@ public class PatientRelationshipController {
     @Operation(description = "Updates relationship type and/or primary contact status. Doctor relationships can only be edited by doctors.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE') and @guard.canUpdateRelationship(#relationshipId, principal)")
     @PutMapping("/{relationshipId}")
-    public ResponseEntity<PatientRelationshipDto> updateRelationship(
+    public ResponseEntity<RelationshipResponseDto> updateRelationship(
             @PathVariable Integer relationshipId,
-            @Valid @RequestBody PatientRelationshipDto dto,
+            @Valid @RequestBody RelationshipResponseDto dto,
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(relationshipService.updateRelationship(relationshipId, dto, user));
@@ -83,7 +83,7 @@ public class PatientRelationshipController {
     @Operation(description = "Activate or deactivate a relationship.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE') and @guard.canUpdateRelationship(#relationshipId, principal)")
     @PatchMapping("/{relationshipId}/toggle-active")
-    public ResponseEntity<PatientRelationshipDto> toggleActivation(@PathVariable Integer relationshipId) {
+    public ResponseEntity<RelationshipResponseDto> toggleActivation(@PathVariable Integer relationshipId) {
         return ResponseEntity.ok(relationshipService.toggleActivation(relationshipId));
     }
 
@@ -93,7 +93,7 @@ public class PatientRelationshipController {
     )
     @PreAuthorize("hasAnyAuthority('PATIENT') and @guard.canUpdateRelationship(#relationshipId, principal)")
     @PatchMapping("/{relationshipId}/toggle-primary")
-    public ResponseEntity<PatientRelationshipDto> togglePrimaryStatus(@PathVariable Integer relationshipId) {
+    public ResponseEntity<RelationshipResponseDto> togglePrimaryStatus(@PathVariable Integer relationshipId) {
         return ResponseEntity.ok(relationshipService.togglePrimaryContactStatus(relationshipId));
     }
 

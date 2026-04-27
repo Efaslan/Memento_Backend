@@ -1,6 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.AlertDto;
+import com.emiraslan.memento.dto.response.AlertResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.AlertStatus;
 import com.emiraslan.memento.service.AlertService;
@@ -31,9 +31,9 @@ public class AlertController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping("/fall")
-    public ResponseEntity<AlertDto> createFallAlert( // patients create alerts for themselves
-            @Valid @RequestBody AlertDto dto,
-            @AuthenticationPrincipal User user
+    public ResponseEntity<AlertResponseDto> createFallAlert( // patients create alerts for themselves
+                                                             @Valid @RequestBody AlertResponseDto dto,
+                                                             @AuthenticationPrincipal User user
     ) {
         dto.setPatientUserId(user.getUserId()); // manually assign id to the dto
         dto.setStatus(AlertStatus.PENDING);
@@ -46,7 +46,7 @@ public class AlertController {
     )
     @PreAuthorize("hasAuthority('PATIENT') and @guard.isAlertOwner(#alertId, principal)")
     @PostMapping("/{alertId}/cancel")
-    public ResponseEntity<AlertDto> cancelAlert(@PathVariable Integer alertId) {
+    public ResponseEntity<AlertResponseDto> cancelAlert(@PathVariable Integer alertId) {
         return ResponseEntity.ok(alertService.cancelAlert(alertId));
     }
 
@@ -56,7 +56,7 @@ public class AlertController {
     )
     @PreAuthorize("hasAuthority('PATIENT') and @guard.isAlertOwner(#alertId, principal)")
     @PostMapping("/{alertId}/send")
-    public ResponseEntity<AlertDto> confirmAndSendAlert(@PathVariable Integer alertId) {
+    public ResponseEntity<AlertResponseDto> confirmAndSendAlert(@PathVariable Integer alertId) {
         return ResponseEntity.ok(alertService.confirmFallAlert(alertId));
     }
 
@@ -66,7 +66,7 @@ public class AlertController {
     )
     @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canAcknowledgeAlert(#alertId, principal)")
     @PostMapping("/{alertId}/acknowledge")
-    public ResponseEntity<AlertDto> acknowledgeAlert(
+    public ResponseEntity<AlertResponseDto> acknowledgeAlert(
             @PathVariable Integer alertId,
             @AuthenticationPrincipal User caregiver
     ) {
@@ -78,7 +78,7 @@ public class AlertController {
     )
     @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<AlertDto>> getPatientAlerts(
+    public ResponseEntity<List<AlertResponseDto>> getPatientAlerts(
             @PathVariable Integer patientId
     ) {
         return ResponseEntity.ok(alertService.getPatientAlerts(patientId));

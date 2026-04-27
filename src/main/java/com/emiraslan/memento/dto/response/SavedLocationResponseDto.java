@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SavedLocationDto {
+public class SavedLocationResponseDto {
     private Integer locationId;
     private Integer patientUserId;
     private String locationName;

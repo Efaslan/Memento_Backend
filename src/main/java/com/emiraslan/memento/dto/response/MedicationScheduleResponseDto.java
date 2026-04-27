@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MedicationScheduleDto {
+public class MedicationScheduleResponseDto {
     private Integer scheduleId;
     private Integer patientUserId;
     private Integer doctorUserId;

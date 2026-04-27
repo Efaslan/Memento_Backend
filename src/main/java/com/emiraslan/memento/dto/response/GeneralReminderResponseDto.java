@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.response;
 
 import com.emiraslan.memento.enums.RecurrenceRule;
 import lombok.AllArgsConstructor;
@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeneralReminderDto {
+public class GeneralReminderResponseDto {
     private Integer reminderId;
     private Integer patientUserId;
     private Integer creatorUserId;
-    private String creatorName; // For showing the creator's name
+    private String creatorName;
     private String title;
     private LocalDateTime reminderTime;
     private Boolean isRecurring;

@@ -1,7 +1,7 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.DoctorProfileDto;
-import com.emiraslan.memento.dto.PatientProfileDto;
+import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
+import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.service.ProfileService;
@@ -44,8 +44,8 @@ public class ProfileController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @PutMapping("/patient/me")
-    public ResponseEntity<PatientProfileDto> updateMyPatientProfile(
-            @RequestBody PatientProfileDto dto,
+    public ResponseEntity<PatientProfileResponseDto> updateMyPatientProfile(
+            @RequestBody PatientProfileResponseDto dto,
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(profileService.updatePatientProfile(user.getUserId(), dto));
@@ -56,8 +56,8 @@ public class ProfileController {
     )
     @PreAuthorize("hasAuthority('DOCTOR')")
     @PutMapping("/doctor/me")
-    public ResponseEntity<DoctorProfileDto> updateMyDoctorProfile(
-            @RequestBody DoctorProfileDto dto,
+    public ResponseEntity<DoctorProfileResponseDto> updateMyDoctorProfile(
+            @RequestBody DoctorProfileResponseDto dto,
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(profileService.updateDoctorProfile(user.getUserId(), dto));
@@ -68,7 +68,7 @@ public class ProfileController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<PatientProfileDto> getPatientProfileById(
+    public ResponseEntity<PatientProfileResponseDto> getPatientProfileById(
             @PathVariable Integer patientId
     ) {
         return ResponseEntity.ok(profileService.getPatientProfile(patientId));

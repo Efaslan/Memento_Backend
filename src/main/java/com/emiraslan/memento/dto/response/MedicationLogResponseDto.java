@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto;
+package com.emiraslan.memento.dto.response;
 
 import com.emiraslan.memento.enums.MedicationStatus;
 import lombok.AllArgsConstructor;
@@ -12,11 +12,12 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MedicationLogDto {
+public class MedicationLogResponseDto {
     private Integer medicationLogId;
     private Integer scheduleTimeId;
     private Integer patientUserId;
     private LocalDateTime takenAt;
     private MedicationStatus status;
-    private String medicationName; // for display
+    private String medicationName;
+    private String dosage;
 }

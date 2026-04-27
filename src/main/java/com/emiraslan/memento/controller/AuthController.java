@@ -3,7 +3,7 @@ package com.emiraslan.memento.controller;
 import com.emiraslan.memento.dto.auth.LoginRequest;
 import com.emiraslan.memento.dto.auth.LoginResponse;
 import com.emiraslan.memento.dto.auth.RegisterRequest;
-import com.emiraslan.memento.dto.UserDto;
+import com.emiraslan.memento.dto.response.UserResponseDto;
 import com.emiraslan.memento.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +27,7 @@ public class AuthController {
             description = "Password must be 6 characters at least. Role can be: PATIENT, DOCTOR, or RELATIVE."
     )
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterRequest request){
+    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody RegisterRequest request){
         return ResponseEntity.ok(authService.register(request));
     }
 

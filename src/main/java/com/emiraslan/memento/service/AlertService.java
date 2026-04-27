@@ -1,6 +1,6 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.AlertDto;
+import com.emiraslan.memento.dto.response.AlertResponseDto;
 import com.emiraslan.memento.entity.Alert;
 import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.PatientRelationship;
@@ -32,7 +32,7 @@ public class AlertService {
     private final FcmService fcmService;
 
     // returns all alerts of a patient
-    public List<AlertDto> getPatientAlerts(Integer patientId) {
+    public List<AlertResponseDto> getPatientAlerts(Integer patientId) {
         return alertRepository.findByPatient_UserIdOrderByAlertTimestampDesc(patientId)
                 .stream()
                 .map(MapperUtil::toAlertDto)
@@ -41,7 +41,7 @@ public class AlertService {
 
     // immediately creates a PENDING alert when a fall is detected
     @Transactional
-    public AlertDto createAlert(AlertDto dto) {
+    public AlertResponseDto createAlert(AlertResponseDto dto) {
         User patient = userRepository.findById(dto.getPatientUserId())
                 .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
 
@@ -55,7 +55,7 @@ public class AlertService {
 
     // if the patient responds within 30 seconds, alert is CANCELLED
     @Transactional
-    public AlertDto cancelAlert(Integer alertId) {
+    public AlertResponseDto cancelAlert(Integer alertId) {
         Alert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new EntityNotFoundException("ALERT_NOT_FOUND: " + alertId));
 
@@ -71,7 +71,7 @@ public class AlertService {
 
     // if 30 seconds pass without a response, notifications are sent to primary contacts and status is set to SENT
     @Transactional
-    public AlertDto confirmFallAlert(Integer alertId) {
+    public AlertResponseDto confirmFallAlert(Integer alertId) {
         Alert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new EntityNotFoundException("ALERT_NOT_FOUND: " + alertId));
 
@@ -94,7 +94,7 @@ public class AlertService {
 
     // a relative acknowledges the alert via push notification action
     @Transactional
-    public AlertDto acknowledgeAlert(Integer alertId, Integer caregiverId) {
+    public AlertResponseDto acknowledgeAlert(Integer alertId, Integer caregiverId) {
         Alert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new EntityNotFoundException("ALERT_NOT_FOUND: " + alertId));
 

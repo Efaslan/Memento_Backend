@@ -1,7 +1,7 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.DoctorProfileDto;
-import com.emiraslan.memento.dto.PatientProfileDto;
+import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
+import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
 import com.emiraslan.memento.entity.DoctorProfile;
 import com.emiraslan.memento.entity.PatientProfile;
 import com.emiraslan.memento.entity.User;
@@ -25,7 +25,7 @@ public class ProfileService {
 
     // PATIENT PROFILE OPERATIONS
 
-    public PatientProfileDto getPatientProfile(Integer patientId) {
+    public PatientProfileResponseDto getPatientProfile(Integer patientId) {
         PatientProfile profile = patientProfileRepository.findById(patientId)
                 .orElseThrow(() -> new EntityNotFoundException("PATIENT_PROFILE_NOT_FOUND: " + patientId));
 
@@ -34,7 +34,7 @@ public class ProfileService {
 
     // profiles are created blank on register, so we only update them here
     @Transactional
-    public PatientProfileDto updatePatientProfile(Integer patientId, PatientProfileDto dto) {
+    public PatientProfileResponseDto updatePatientProfile(Integer patientId, PatientProfileResponseDto dto) {
         PatientProfile profile = patientProfileRepository.findById(patientId)
                 .orElseThrow(() -> new EntityNotFoundException("PATIENT_PROFILE_NOT_FOUND: " + patientId));
 
@@ -69,7 +69,7 @@ public class ProfileService {
 
     // DOCTOR PROFILE OPERATIONS
 
-    public DoctorProfileDto getDoctorProfile(Integer doctorId) {
+    public DoctorProfileResponseDto getDoctorProfile(Integer doctorId) {
         DoctorProfile profile = doctorProfileRepository.findById(doctorId)
                 .orElseThrow(() -> new EntityNotFoundException("DOCTOR_PROFILE_NOT_FOUND: " + doctorId));
 
@@ -77,7 +77,7 @@ public class ProfileService {
     }
 
     @Transactional
-    public DoctorProfileDto updateDoctorProfile(Integer doctorId, DoctorProfileDto dto) {
+    public DoctorProfileResponseDto updateDoctorProfile(Integer doctorId, DoctorProfileResponseDto dto) {
         DoctorProfile profile = doctorProfileRepository.findById(doctorId)
                 .orElseThrow(() -> new EntityNotFoundException("DOCTOR_PROFILE_NOT_FOUND: " + doctorId));
 

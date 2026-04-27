@@ -1,6 +1,6 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.MedicationLogDto;
+import com.emiraslan.memento.dto.response.MedicationLogResponseDto;
 import com.emiraslan.memento.entity.MedicationLog;
 import com.emiraslan.memento.entity.MedicationScheduleTime;
 import com.emiraslan.memento.entity.User;
@@ -36,7 +36,7 @@ public class MedicationLogService {
     private static final int ON_TIME_TOLERANCE_MINUTES = 30;
 
     // brings patient logs of a specific date
-    public List<MedicationLogDto> getLogsByDate(Integer patientId, LocalDate date) {
+    public List<MedicationLogResponseDto> getLogsByDate(Integer patientId, LocalDate date) {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
         log.info("" + endOfDay);
@@ -47,7 +47,7 @@ public class MedicationLogService {
                 .collect(Collectors.toList());
     }
 
-    public List<MedicationLogDto> getAllLogs(Integer patientId){
+    public List<MedicationLogResponseDto> getAllLogs(Integer patientId){
         return logRepository.findByPatient_UserId(patientId)
                 .stream()
                 .map(MapperUtil::toMedicationLogDto)
@@ -56,7 +56,7 @@ public class MedicationLogService {
 
     // creates a new log
     @Transactional
-    public MedicationLogDto logMedicationTaken(Integer patientId, Integer scheduleTimeId) {
+    public MedicationLogResponseDto logMedicationTaken(Integer patientId, Integer scheduleTimeId) {
         // find user and the time
         User patient = userRepository.findById(patientId)
                 .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND"));

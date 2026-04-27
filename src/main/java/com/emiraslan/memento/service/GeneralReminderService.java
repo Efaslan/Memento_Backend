@@ -1,6 +1,6 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.GeneralReminderDto;
+import com.emiraslan.memento.dto.response.GeneralReminderResponseDto;
 import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.GeneralReminder;
 import com.emiraslan.memento.entity.User;
@@ -32,7 +32,7 @@ public class GeneralReminderService {
     private final FcmService fcmService;
 
     // brings all active reminders
-    public List<GeneralReminderDto> getAllOngoingRemindersByPatient(Integer patientId) {
+    public List<GeneralReminderResponseDto> getAllOngoingRemindersByPatient(Integer patientId) {
         return reminderRepository.findByPatient_UserIdAndIsCompletedFalseOrderByReminderTimeAsc(patientId)
                 .stream()
                 .map(MapperUtil::toGeneralReminderDto)
@@ -40,7 +40,7 @@ public class GeneralReminderService {
     }
 
     // brings all past reminders
-    public List<GeneralReminderDto> getCompletedRemindersByPatient(Integer patientId) {
+    public List<GeneralReminderResponseDto> getCompletedRemindersByPatient(Integer patientId) {
         return reminderRepository.findByPatient_UserIdAndIsCompletedTrueOrderByReminderTimeAsc(patientId)
                 .stream()
                 .map(MapperUtil::toGeneralReminderDto)
@@ -48,7 +48,7 @@ public class GeneralReminderService {
     }
 
     @Transactional
-    public GeneralReminderDto createReminder(GeneralReminderDto dto, User creator) {
+    public GeneralReminderResponseDto createReminder(GeneralReminderResponseDto dto, User creator) {
         User patient;
 
         // if the creator is patient, patientId in dto is set automatically
@@ -67,7 +67,7 @@ public class GeneralReminderService {
     }
 
     @Transactional
-    public GeneralReminderDto updateReminder(Integer reminderId, GeneralReminderDto dto) {
+    public GeneralReminderResponseDto updateReminder(Integer reminderId, GeneralReminderResponseDto dto) {
         GeneralReminder existingReminder = reminderRepository.findById(reminderId)
                 .orElseThrow(() -> new EntityNotFoundException("GENERAL_REMINDER_NOT_FOUND: " + reminderId));
 
@@ -83,7 +83,7 @@ public class GeneralReminderService {
     }
 
     @Transactional
-    public GeneralReminderDto markAsCompleted(Integer reminderId) {
+    public GeneralReminderResponseDto markAsCompleted(Integer reminderId) {
         GeneralReminder reminder = reminderRepository.findById(reminderId)
                 .orElseThrow(() -> new EntityNotFoundException("GENERAL_REMINDER_NOT_FOUND: " + reminderId));
 

@@ -1,6 +1,6 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.TokenRegisterRequest;
+import com.emiraslan.memento.dto.request.TokenRegisterRequestDto;
 import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.repository.DeviceTokenRepository;
@@ -26,7 +26,7 @@ public class FcmService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void saveToken(TokenRegisterRequest request) {
+    public void saveToken(TokenRegisterRequestDto request) {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("USER_NOT_FOUND: " + request.getUserId()));
 

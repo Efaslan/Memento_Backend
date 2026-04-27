@@ -1,6 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.GeneralReminderDto;
+import com.emiraslan.memento.dto.response.GeneralReminderResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.GeneralReminderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,13 +27,13 @@ public class GeneralReminderController {
     @Operation(summary = "For patient users.")
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/active/me")
-    public ResponseEntity<List<GeneralReminderDto>> getMyActiveReminders(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<GeneralReminderResponseDto>> getMyActiveReminders(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(reminderService.getAllOngoingRemindersByPatient(user.getUserId()));
     }
 
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/history/me")
-    public ResponseEntity<List<GeneralReminderDto>> getMyCompletedReminders(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<GeneralReminderResponseDto>> getMyCompletedReminders(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(user.getUserId()));
     }
 
@@ -43,7 +43,7 @@ public class GeneralReminderController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
-    public ResponseEntity<List<GeneralReminderDto>> getPatientActiveReminders(@PathVariable Integer patientId) {
+    public ResponseEntity<List<GeneralReminderResponseDto>> getPatientActiveReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getAllOngoingRemindersByPatient(patientId));
     }
 
@@ -52,7 +52,7 @@ public class GeneralReminderController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/history/patient/{patientId}")
-    public ResponseEntity<List<GeneralReminderDto>> getPatientCompletedReminders(@PathVariable Integer patientId) {
+    public ResponseEntity<List<GeneralReminderResponseDto>> getPatientCompletedReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(patientId));
     }
 
@@ -62,15 +62,15 @@ public class GeneralReminderController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canCreateReminder(#dto, principal)")
     @PostMapping
-    public ResponseEntity<GeneralReminderDto> createReminder(@RequestBody GeneralReminderDto dto, @AuthenticationPrincipal User creator) {
+    public ResponseEntity<GeneralReminderResponseDto> createReminder(@RequestBody GeneralReminderResponseDto dto, @AuthenticationPrincipal User creator) {
         return ResponseEntity.ok(reminderService.createReminder(dto, creator));
     }
 
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
     @PutMapping("/{reminderId}")
-    public ResponseEntity<GeneralReminderDto> updateReminder(
+    public ResponseEntity<GeneralReminderResponseDto> updateReminder(
             @PathVariable Integer reminderId,
-            @RequestBody GeneralReminderDto dto
+            @RequestBody GeneralReminderResponseDto dto
     ) {
         return ResponseEntity.ok(reminderService.updateReminder(reminderId, dto));
     }
@@ -78,7 +78,7 @@ public class GeneralReminderController {
     @Operation(summary = "Set reminder as completed.")
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
     @PatchMapping("/{reminderId}/complete")
-    public ResponseEntity<GeneralReminderDto> markAsCompleted(@PathVariable Integer reminderId) {
+    public ResponseEntity<GeneralReminderResponseDto> markAsCompleted(@PathVariable Integer reminderId) {
         return ResponseEntity.ok(reminderService.markAsCompleted(reminderId));
     }
 

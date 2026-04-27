@@ -1,8 +1,8 @@
 package com.emiraslan.memento.service;
 
 import com.emiraslan.memento.dto.PatientCardDto;
-import com.emiraslan.memento.dto.PatientRelationshipDto;
-import com.emiraslan.memento.dto.RelationshipInitiationDto;
+import com.emiraslan.memento.dto.response.RelationshipResponseDto;
+import com.emiraslan.memento.dto.request.RelationshipRequestDto;
 import com.emiraslan.memento.entity.PatientProfile;
 import com.emiraslan.memento.entity.PatientRelationship;
 import com.emiraslan.memento.entity.User;
@@ -57,7 +57,7 @@ public class PatientRelationshipService {
         });
     }
 
-    public List<PatientRelationshipDto> getActiveRelationships(User user, boolean excludeDoctors) {
+    public List<RelationshipResponseDto> getActiveRelationships(User user, boolean excludeDoctors) {
         if (user.getRole() == UserRole.PATIENT) {
             if (excludeDoctors) {
                 return relationshipRepository.findByPatient_UserIdAndRelationshipTypeNotAndIsActiveTrue(
@@ -76,7 +76,7 @@ public class PatientRelationshipService {
         }
     }
 
-    public List<PatientRelationshipDto> getInactiveRelationships(User user) {
+    public List<RelationshipResponseDto> getInactiveRelationships(User user) {
         if (user.getRole() == UserRole.PATIENT) {
             return relationshipRepository.findByPatient_UserIdAndIsActiveFalse(user.getUserId()).stream()
                     .map(MapperUtil::toPatientRelationshipDto)
@@ -95,7 +95,7 @@ public class PatientRelationshipService {
     }
 
     @Transactional
-    public PatientRelationshipDto addRelationship(RelationshipInitiationDto dto, User initiator) {
+    public RelationshipResponseDto addRelationship(RelationshipRequestDto dto, User initiator) {
         if(initiator.getRole() == UserRole.PATIENT){
             return addRelativeByPatient(dto, initiator);
         }
@@ -104,7 +104,7 @@ public class PatientRelationshipService {
     }
 
     // case 1: patients can only add other patients or relatives
-    private PatientRelationshipDto addRelativeByPatient(RelationshipInitiationDto dto, User initiatorPatient) {
+    private RelationshipResponseDto addRelativeByPatient(RelationshipRequestDto dto, User initiatorPatient) {
 
         User caregiver = userRepository.findByEmail(dto.getTargetEmail())
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_CAREGIVER_NOT_FOUND"));
@@ -126,7 +126,7 @@ public class PatientRelationshipService {
     }
 
     // case 2: doctors adding patients
-    private PatientRelationshipDto addPatientByDoctor(RelationshipInitiationDto dto, User doctor) {
+    private RelationshipResponseDto addPatientByDoctor(RelationshipRequestDto dto, User doctor) {
         User patient = userRepository.findByEmail(dto.getTargetEmail())
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_PATIENT_NOT_FOUND"));
 
@@ -142,7 +142,7 @@ public class PatientRelationshipService {
     }
 
     // common logic for saving/updating relationships
-    private PatientRelationshipDto createRelationship(User patient, User caregiver, RelationshipType type, Boolean isPrimaryContact) {
+    private RelationshipResponseDto createRelationship(User patient, User caregiver, RelationshipType type, Boolean isPrimaryContact) {
 
         if (patient.getUserId().equals(caregiver.getUserId())) {
             throw new IllegalArgumentException("SELF_RELATION_NOT_ALLOWED");
@@ -171,7 +171,7 @@ public class PatientRelationshipService {
     }
 
     @Transactional
-    public PatientRelationshipDto updateRelationship(Integer relationshipId, PatientRelationshipDto dto, User initiator) {
+    public RelationshipResponseDto updateRelationship(Integer relationshipId, RelationshipResponseDto dto, User initiator) {
         PatientRelationship relationship = relationshipRepository.findById(relationshipId)
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
 
@@ -195,7 +195,7 @@ public class PatientRelationshipService {
 
     // toggle to deactivate or reactivate relationships
     @Transactional
-    public PatientRelationshipDto toggleActivation(Integer relationshipId) {
+    public RelationshipResponseDto toggleActivation(Integer relationshipId) {
         PatientRelationship relationship = relationshipRepository.findById(relationshipId)
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
 
@@ -205,7 +205,7 @@ public class PatientRelationshipService {
 
     // toggle to change primary contacts
     @Transactional
-    public PatientRelationshipDto togglePrimaryContactStatus(Integer relationshipId) {
+    public RelationshipResponseDto togglePrimaryContactStatus(Integer relationshipId) {
         PatientRelationship relationship = relationshipRepository.findById(relationshipId)
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
 

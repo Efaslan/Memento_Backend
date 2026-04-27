@@ -1,6 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.MedicationLogDto;
+import com.emiraslan.memento.dto.response.MedicationLogResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.MedicationLogService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +31,7 @@ public class MedicationLogController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me/date")
-    public ResponseEntity<List<MedicationLogDto>> getMyLogsByDate(
+    public ResponseEntity<List<MedicationLogResponseDto>> getMyLogsByDate(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
@@ -44,7 +44,7 @@ public class MedicationLogController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me")
-    public ResponseEntity<List<MedicationLogDto>> getAllOfMyLogs(
+    public ResponseEntity<List<MedicationLogResponseDto>> getAllOfMyLogs(
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(logService.getAllLogs(user.getUserId()));
@@ -56,7 +56,7 @@ public class MedicationLogController {
     )
     @PreAuthorize("hasAuthority('PATIENT') and @guard.isScheduleTimeOwner(#timeId, principal)")
     @PostMapping("/{timeId}/take")
-    public ResponseEntity<MedicationLogDto> takeMedication(
+    public ResponseEntity<MedicationLogResponseDto> takeMedication(
             @PathVariable Integer timeId,
             @AuthenticationPrincipal User user
     ) {
@@ -68,7 +68,7 @@ public class MedicationLogController {
     )
     @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/{patientId}")
-    public ResponseEntity<List<MedicationLogDto>> getAllPatientLogs(
+    public ResponseEntity<List<MedicationLogResponseDto>> getAllPatientLogs(
             @PathVariable Integer patientId
     ) {
         return ResponseEntity.ok(logService.getAllLogs(patientId));
@@ -80,7 +80,7 @@ public class MedicationLogController {
     )
     @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/{patientId}/date")
-    public ResponseEntity<List<MedicationLogDto>> getPatientLogsByDate(
+    public ResponseEntity<List<MedicationLogResponseDto>> getPatientLogsByDate(
             @PathVariable Integer patientId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {

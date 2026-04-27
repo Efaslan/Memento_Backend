@@ -1,6 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.MedicationScheduleDto;
+import com.emiraslan.memento.dto.response.MedicationScheduleResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.MedicationScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +30,7 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me")
-    public ResponseEntity<List<MedicationScheduleDto>> getMyActiveSchedules(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<MedicationScheduleResponseDto>> getMyActiveSchedules(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(scheduleService.getActiveSchedulesByPatient(user.getUserId()));
     }
 
@@ -39,7 +39,7 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me/history")
-    public ResponseEntity<List<MedicationScheduleDto>> getMyScheduleHistory(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<MedicationScheduleResponseDto>> getMyScheduleHistory(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(scheduleService.getAllSchedulesByPatient(user.getUserId()));
     }
 
@@ -48,7 +48,7 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me/prn")
-    public ResponseEntity<List<MedicationScheduleDto>> getMyPrnSchedules(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<MedicationScheduleResponseDto>> getMyPrnSchedules(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(scheduleService.getPrnSchedulesByPatient(user.getUserId()));
     }
 
@@ -56,8 +56,8 @@ public class MedicationScheduleController {
 
     @PreAuthorize("hasAuthority('DOCTOR') and @guard.canCreateSchedule(#dto, principal)")
     @PostMapping
-    public ResponseEntity<MedicationScheduleDto> createSchedule(
-            @RequestBody MedicationScheduleDto dto,
+    public ResponseEntity<MedicationScheduleResponseDto> createSchedule(
+            @RequestBody MedicationScheduleResponseDto dto,
             @AuthenticationPrincipal User doctorUser
     ) {
         // we force the doctor's id from jwt instead of taking it from the dto
@@ -71,9 +71,9 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAuthority('DOCTOR') and @guard.canModifySchedule(#scheduleId, principal)")
     @PutMapping("/{scheduleId}")
-    public ResponseEntity<MedicationScheduleDto> updateSchedule(
+    public ResponseEntity<MedicationScheduleResponseDto> updateSchedule(
             @PathVariable Integer scheduleId,
-            @RequestBody MedicationScheduleDto dto
+            @RequestBody MedicationScheduleResponseDto dto
     ) {
         return ResponseEntity.ok(scheduleService.updateSchedule(scheduleId, dto));
     }
@@ -96,7 +96,7 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<MedicationScheduleDto>> getPatientActiveSchedules(
+    public ResponseEntity<List<MedicationScheduleResponseDto>> getPatientActiveSchedules(
             @PathVariable Integer patientId
     ) {
         return ResponseEntity.ok(scheduleService.getActiveSchedulesByPatient(patientId));
@@ -107,7 +107,7 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}/history")
-    public ResponseEntity<List<MedicationScheduleDto>> getPatientScheduleHistory(
+    public ResponseEntity<List<MedicationScheduleResponseDto>> getPatientScheduleHistory(
             @PathVariable Integer patientId
     ) {
         return ResponseEntity.ok(scheduleService.getAllSchedulesByPatient(patientId));

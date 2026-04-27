@@ -1,16 +1,16 @@
 -- USERS (IDs: 1=Patient, 2=Doctor, 3=Relative1, 4=Relative2)
--- Password for all: 123456
+-- Password for all: 1234567Ab+
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, role, created_at)
-VALUES ('demo.patient@test.com', '$2a$10$2pa//C6VUsTQo1kd1djt7OEFqg5DZ7eoZvy7qlbStFDeWk823cmL6', 'Ahmet', 'Yilmaz', '05551112233', 'PATIENT', CURRENT_TIMESTAMP);
+VALUES ('demo.patient@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Ahmet', 'Yilmaz', '05551112233', 'PATIENT', CURRENT_TIMESTAMP);
 
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, role, created_at)
-VALUES ('demo.doctor@test.com', '$2a$10$2pa//C6VUsTQo1kd1djt7OEFqg5DZ7eoZvy7qlbStFDeWk823cmL6', 'Zeynep', 'Kaya', '05554445566', 'DOCTOR', CURRENT_TIMESTAMP);
+VALUES ('demo.doctor@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Zeynep', 'Kaya', '05554445566', 'DOCTOR', CURRENT_TIMESTAMP);
 
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, role, created_at)
-VALUES ('demo.son@test.com', '$2a$10$2pa//C6VUsTQo1kd1djt7OEFqg5DZ7eoZvy7qlbStFDeWk823cmL6', 'Mehmet', 'Yilmaz', '05557778899', 'RELATIVE', CURRENT_TIMESTAMP);
+VALUES ('demo.son@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Mehmet', 'Yilmaz', '05557778899', 'RELATIVE', CURRENT_TIMESTAMP);
 
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, role, created_at)
-VALUES ('demo.daughter@test.com', '$2a$10$2pa//C6VUsTQo1kd1djt7OEFqg5DZ7eoZvy7qlbStFDeWk823cmL6', 'Ayse', 'Demir', '05550001122', 'RELATIVE', CURRENT_TIMESTAMP);
+VALUES ('demo.daughter@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Ayse', 'Demir', '05550001122', 'RELATIVE', CURRENT_TIMESTAMP);
 
 -- PROFILES, getting user id's from emails
 INSERT INTO patient_profiles (patient_user_id, date_of_birth, height_cm, weight_kg, blood_type, emergency_notes)

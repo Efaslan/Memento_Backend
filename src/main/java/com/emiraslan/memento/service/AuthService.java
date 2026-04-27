@@ -3,7 +3,7 @@ package com.emiraslan.memento.service;
 import com.emiraslan.memento.dto.auth.LoginRequest;
 import com.emiraslan.memento.dto.auth.LoginResponse;
 import com.emiraslan.memento.dto.auth.RegisterRequest;
-import com.emiraslan.memento.dto.UserDto;
+import com.emiraslan.memento.dto.response.UserResponseDto;
 import com.emiraslan.memento.entity.DoctorProfile;
 import com.emiraslan.memento.entity.PatientProfile;
 import com.emiraslan.memento.entity.User;
@@ -35,7 +35,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     @Transactional // rollback all changes if the method fails somewhere
-    public UserDto register(RegisterRequest request) {
+    public UserResponseDto register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EntityExistsException("EMAIL_ALREADY_EXISTS");

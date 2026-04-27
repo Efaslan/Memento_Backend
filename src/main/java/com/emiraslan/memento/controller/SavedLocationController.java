@@ -1,6 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.SavedLocationDto;
+import com.emiraslan.memento.dto.response.SavedLocationResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.SavedLocationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,22 +27,22 @@ public class SavedLocationController {
     @Operation(description = "Only Patient users can have locations.")
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me")
-    public ResponseEntity<List<SavedLocationDto>> getMyLocations(@AuthenticationPrincipal User patient) {
+    public ResponseEntity<List<SavedLocationResponseDto>> getMyLocations(@AuthenticationPrincipal User patient) {
         return ResponseEntity.ok(locationService.getLocationsByPatient(patient.getUserId()));
     }
 
     @Operation(description = "Only Patient users can create locations.")
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping
-    public ResponseEntity<SavedLocationDto> createLocation(@RequestBody SavedLocationDto dto, @AuthenticationPrincipal User patient) {
+    public ResponseEntity<SavedLocationResponseDto> createLocation(@RequestBody SavedLocationResponseDto dto, @AuthenticationPrincipal User patient) {
         return ResponseEntity.ok(locationService.createLocation(dto, patient));
     }
 
     @PreAuthorize("hasAuthority('PATIENT') and @guard.isLocationOwner(#locationId, principal)")
     @PutMapping("/{locationId}")
-    public ResponseEntity<SavedLocationDto> updateLocation(
+    public ResponseEntity<SavedLocationResponseDto> updateLocation(
             @PathVariable Integer locationId,
-            @RequestBody SavedLocationDto dto
+            @RequestBody SavedLocationResponseDto dto
     ) {
         return ResponseEntity.ok(locationService.updateLocation(locationId, dto));
     }

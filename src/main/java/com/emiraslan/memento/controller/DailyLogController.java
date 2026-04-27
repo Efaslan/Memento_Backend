@@ -1,6 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.DailyLogDto;
+import com.emiraslan.memento.dto.response.DailyLogResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.DailyLogService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +29,7 @@ public class DailyLogController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/my/recent/{days}")
-    public ResponseEntity<List<DailyLogDto>> getMyRecentLogs(
+    public ResponseEntity<List<DailyLogResponseDto>> getMyRecentLogs(
             @PathVariable Integer days,
             @AuthenticationPrincipal User user
     ) {
@@ -41,8 +41,8 @@ public class DailyLogController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping
-    public ResponseEntity<DailyLogDto> createLog(
-            @RequestBody DailyLogDto dto,
+    public ResponseEntity<DailyLogResponseDto> createLog(
+            @RequestBody DailyLogResponseDto dto,
             @AuthenticationPrincipal User user
     ) {
         dto.setPatientUserId(user.getUserId());
@@ -54,9 +54,9 @@ public class DailyLogController {
     )
     @PreAuthorize("hasAuthority('PATIENT') and @guard.isDailyLogOwner(#logId, principal)")
     @PutMapping("/{logId}")
-    public ResponseEntity<DailyLogDto> updateLog(
+    public ResponseEntity<DailyLogResponseDto> updateLog(
             @PathVariable Integer logId,
-            @RequestBody DailyLogDto dto
+            @RequestBody DailyLogResponseDto dto
     ) {
         return ResponseEntity.ok(dailyLogService.updateLog(logId, dto));
     }
@@ -82,7 +82,7 @@ public class DailyLogController {
     @Operation(summary = "A patient's daily logs for doctors and relatives")
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/{patientId}/recent/{days}")
-    public ResponseEntity<List<DailyLogDto>> getPatientRecentLogs(
+    public ResponseEntity<List<DailyLogResponseDto>> getPatientRecentLogs(
             @PathVariable Integer patientId,
             @PathVariable Integer days
     ) {

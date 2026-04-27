@@ -1,6 +1,6 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.DailyLogDto;
+import com.emiraslan.memento.dto.response.DailyLogResponseDto;
 import com.emiraslan.memento.entity.DailyLog;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.DailyLogType;
@@ -26,7 +26,7 @@ public class DailyLogService {
     private final UserRepository userRepository;
 
     // brings last x days' reports. For example, if given 7, it will return this week's reports. 0 returns today
-    public List<DailyLogDto> getRecentLogs(Integer patientId, Integer daysBack) {
+    public List<DailyLogResponseDto> getRecentLogs(Integer patientId, Integer daysBack) {
         LocalDate today = LocalDate.now();
 
         // end time is today 23:59
@@ -43,7 +43,7 @@ public class DailyLogService {
 
     // adds a new log (water or food)
     @Transactional
-    public DailyLogDto createLog(DailyLogDto dto){
+    public DailyLogResponseDto createLog(DailyLogResponseDto dto){
         User patient = userRepository.findById(dto.getPatientUserId())
                 .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
 
@@ -52,7 +52,7 @@ public class DailyLogService {
     }
 
     @Transactional
-    public DailyLogDto updateLog(Integer logId, DailyLogDto dto) {
+    public DailyLogResponseDto updateLog(Integer logId, DailyLogResponseDto dto) {
         DailyLog existingLog = dailyLogRepository.findById(logId)
                 .orElseThrow(() -> new EntityNotFoundException("DAILY_LOG_NOT_FOUND: " + logId));
 

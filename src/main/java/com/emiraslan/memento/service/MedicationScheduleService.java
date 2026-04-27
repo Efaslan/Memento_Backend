@@ -1,6 +1,6 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.MedicationScheduleDto;
+import com.emiraslan.memento.dto.response.MedicationScheduleResponseDto;
 import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.MedicationSchedule;
 import com.emiraslan.memento.entity.MedicationScheduleTime;
@@ -33,34 +33,34 @@ public class MedicationScheduleService {
     private final DeviceTokenRepository deviceTokenRepository;
 
     // helper method: Entity -> DTO conversion (with times)
-    private MedicationScheduleDto convertToDtoWithTimes(MedicationSchedule schedule) {
+    private MedicationScheduleResponseDto convertToDtoWithTimes(MedicationSchedule schedule) {
         List<MedicationScheduleTime> times = timeRepository.findBySchedule_ScheduleId(schedule.getScheduleId());
         return MapperUtil.toMedicationScheduleDto(schedule, times);
     }
 
     // brings active medication schedules and times
-    public List<MedicationScheduleDto> getActiveSchedulesByPatient(Integer patientId) {
+    public List<MedicationScheduleResponseDto> getActiveSchedulesByPatient(Integer patientId) {
         return scheduleRepository.findByPatient_UserIdAndIsActiveTrue(patientId).stream()
                 .map(this::convertToDtoWithTimes)
                 .collect(Collectors.toList());
     }
 
     // brings all schedules (including deactivated)
-    public List<MedicationScheduleDto> getAllSchedulesByPatient(Integer patientId) {
+    public List<MedicationScheduleResponseDto> getAllSchedulesByPatient(Integer patientId) {
         return scheduleRepository.findByPatient_UserId(patientId).stream()
                 .map(this::convertToDtoWithTimes)
                 .collect(Collectors.toList());
     }
 
     // brings all active PRN schedules
-    public List<MedicationScheduleDto> getPrnSchedulesByPatient(Integer patientId) {
+    public List<MedicationScheduleResponseDto> getPrnSchedulesByPatient(Integer patientId) {
         return scheduleRepository.findByPatient_UserIdAndIsActiveTrueAndIsPrnTrue(patientId).stream()
                 .map(this::convertToDtoWithTimes)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public MedicationScheduleDto createSchedule(MedicationScheduleDto dto) {
+    public MedicationScheduleResponseDto createSchedule(MedicationScheduleResponseDto dto) {
         User patient = userRepository.findById(dto.getPatientUserId())
                 .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
 
@@ -81,7 +81,7 @@ public class MedicationScheduleService {
 
     // special update method. The doctor cannot edit parts of a schedule if the patient has taken the medicine according to that schedule before.
     @Transactional
-    public MedicationScheduleDto updateSchedule(Integer scheduleId, MedicationScheduleDto dto) {
+    public MedicationScheduleResponseDto updateSchedule(Integer scheduleId, MedicationScheduleResponseDto dto) {
         MedicationSchedule existing = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND: " + scheduleId));
 
@@ -135,7 +135,7 @@ public class MedicationScheduleService {
     }
 
     // saving medication times
-    private void saveScheduleTimes(MedicationSchedule schedule, MedicationScheduleDto dto) {
+    private void saveScheduleTimes(MedicationSchedule schedule, MedicationScheduleResponseDto dto) {
         if (Boolean.TRUE.equals(dto.getIsPrn())) {
             // if isPrn = true, time will be null
             MedicationScheduleTime time = MedicationScheduleTime.builder()
