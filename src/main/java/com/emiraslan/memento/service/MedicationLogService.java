@@ -12,13 +12,13 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +37,7 @@ public class MedicationLogService {
     public List<MedicationLogResponseDto> getLogsByDate(Integer patientId, LocalDate date) {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-        log.info("" + endOfDay);
+        log.info("{}", endOfDay);
 
         return logRepository.findByPatient_UserIdAndTakenAtGreaterThanEqualAndTakenAtLessThan(patientId, startOfDay, endOfDay)
                 .stream()
@@ -93,52 +93,37 @@ public class MedicationLogService {
         }
     }
 
-    // Scheduled Task operating to check schedule times and automatically log old ones as SKIPPED if the next medication time of the schedule has come
-    @Scheduled(cron = "0 0 * * * *") // each hour at any date
+    // cron job works every hour to check schedule times and automatically log old ones as SKIPPED if 2 hours past
     @Transactional
     public void markMissedMedicationsAsSkipped() {
         log.info("Scheduled Task started: Checking for skipped medication...");
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
+        LocalTime thresholdTime = now.toLocalTime().minusHours(2); // 2 hours before now()
 
-        // Get active times and their ids
-        List<MedicationScheduleTime> activeTimes = timeRepository.findBySchedule_IsActiveTrue();
+        // bring all unlogged and 2 hours past medications of today
+        List<MedicationScheduleTime> unloggedOverdueTimes = timeRepository
+                .findOverdueTimesWithoutLogsToday(thresholdTime, startOfDay, now);
 
-        boolean anySkipped = false; // to confirm the cron job does not include inactive schedules
-
-        for (MedicationScheduleTime time : activeTimes) {
-            // skipping PRN medication, they don't have times
-            if (time.getScheduledTime() == null) continue;
-
-            // getting the exact timestamp of when the medication should be taken (today + time)
-            LocalDateTime scheduledDateTime = LocalDateTime.of(LocalDate.now(), time.getScheduledTime());
-
-            // if it has been more than 2 hours since the timestamp
-            if (scheduledDateTime.isBefore(now.minusHours(2))) { // note: we do not need schedule data here because we are simply doing a 2-hour time check
-
-                // check if there is a log of that specific timeId in log repository
-                boolean exists = logRepository.existsByScheduleTime_TimeIdAndTakenAtBetween(
-                        time.getTimeId(), startOfDay, now
-                );
-                // if there isn't a log, automatically create one and set its status to SKIPPED
-                if (!exists) {
-                    MedicationLog skippedLog = MedicationLog.builder()
-                            .scheduleTime(time)
-                            .patient(time.getSchedule().getPatient()) // finding user through time -> schedule -> patient relation
-                            .takenAt(now)
-                            .status(MedicationStatus.SKIPPED)
-                            .build();
-
-                    anySkipped = true;
-                    logRepository.save(skippedLog);
-                    log.info("Medication Automatically Skipped: UserID={}, Medication={}",
-                            skippedLog.getPatient().getUserId(), time.getSchedule().getMedicationName());
-                }
-            }
+        if (unloggedOverdueTimes.isEmpty()) {
+            log.info("No unlogged overdue medications found.");
+            return;
         }
-        if(!anySkipped){
-            log.info("No skipped medication found.");
+
+        // all unlogged medication will be saved as SKIPPED
+        List<MedicationLog> logsToSave = new ArrayList<>();
+
+        for (MedicationScheduleTime time : unloggedOverdueTimes) {
+            MedicationLog skippedLog = MedicationLog.builder()
+                    .scheduleTime(time)
+                    .patient(time.getSchedule().getPatient())
+                    .takenAt(now)
+                    .status(MedicationStatus.SKIPPED)
+                    .build();
+            logsToSave.add(skippedLog); // add them to the list to avoid n+1 query
         }
+        logRepository.saveAll(logsToSave); // batch save the list
+        log.info("Automatically Skipped {} medications.", logsToSave.size());
     }
 }

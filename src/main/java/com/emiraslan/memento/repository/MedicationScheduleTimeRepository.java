@@ -1,9 +1,12 @@
 package com.emiraslan.memento.repository;
 
 import com.emiraslan.memento.entity.MedicationScheduleTime;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -13,9 +16,21 @@ public interface MedicationScheduleTimeRepository extends JpaRepository<Medicati
     // Brings all times assigned to a prescription
     List<MedicationScheduleTime> findBySchedule_ScheduleId(Integer scheduleId);
 
-    // brings the times of active schedules, for automatic medication skip cron job(medication log service)
-    List<MedicationScheduleTime> findBySchedule_IsActiveTrue();
-
     // brings "now" from all times in active schedules
     List<MedicationScheduleTime> findBySchedule_IsActiveTrueAndScheduledTime(LocalTime scheduledTime);
+
+    @Query("SELECT mst FROM MedicationScheduleTime mst " +
+            "WHERE mst.schedule.isActive = true " +
+            "AND mst.scheduledTime <= :threshold " +
+            "AND NOT EXISTS (" +
+            "   SELECT 1 FROM MedicationLog ml " +
+            "   WHERE ml.scheduleTime = mst " +
+            "   AND ml.takenAt >= :startOfDay " +
+            "   AND ml.takenAt <= :now" +
+            ")")
+    List<MedicationScheduleTime> findOverdueTimesWithoutLogsToday(
+            @Param("threshold") LocalTime threshold,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("now") LocalDateTime now
+    );
 }

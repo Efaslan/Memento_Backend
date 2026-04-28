@@ -2,7 +2,6 @@ package com.emiraslan.memento.service;
 
 import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
 import com.emiraslan.memento.dto.response.MedicationScheduleResponseDto;
-import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.MedicationSchedule;
 import com.emiraslan.memento.entity.MedicationScheduleTime;
 import com.emiraslan.memento.entity.User;
@@ -12,12 +11,10 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,8 +27,7 @@ public class MedicationScheduleService {
     private final MedicationScheduleTimeRepository timeRepository;
     private final UserRepository userRepository;
     private final MedicationLogRepository logRepository;
-    private final FcmService fcmService;
-    private final DeviceTokenRepository deviceTokenRepository;
+    private final NotificationService notificationService;
 
     // helper method: Entity -> DTO conversion (with times)
     private MedicationScheduleResponseDto convertToDtoWithTimes(MedicationSchedule schedule) {
@@ -159,13 +155,9 @@ public class MedicationScheduleService {
         scheduleRepository.save(schedule);
     }
 
-    // automatic deactivation of expired medication schedules
-    // operates each day at 00:05
-    @Scheduled(cron = "0 5 0 * * *")
+    // cron job method, each night 00:05
     @Transactional
     public void autoDeactivateExpiredSchedules() {
-        log.info("Scheduled Task started: Checking for expired medication schedules...");
-
         LocalDate today = LocalDate.now();
 
         // find all schedules with an endDate before today
@@ -183,33 +175,17 @@ public class MedicationScheduleService {
         }
     }
 
-    // works each minute to notify due medications
-    @Scheduled(cron = "0 * * * * *")
-    @Transactional
-    public void notifyMedications(){
-        // truncates seconds and milliseconds eg. 14:30:00:000
-        LocalTime now = LocalTime.now().truncatedTo(ChronoUnit.MINUTES);
-
+    // we can't use <= time for medications because time only holds LocalTime and =<
+    // would send notifications for past medications as well
+    public void processMedications(LocalTime now) {
         List<MedicationScheduleTime> currentTimes = timeRepository.findBySchedule_IsActiveTrueAndScheduledTime(now);
 
-        log.info("Notify Medications CRON Began:");
-
-        for(MedicationScheduleTime time : currentTimes){
-            List<DeviceToken> deviceTokens = deviceTokenRepository.findByUser_UserId(time.getSchedule().getPatient().getUserId());
-            log.info("{} devices found.", deviceTokens.size());
-
+        for (MedicationScheduleTime time : currentTimes) {
             String title = "İlaç Vakti!";
-            String body = time.getSchedule().getMedicationName() + " İlacından " + time.getSchedule().getDosage() + " Alınız.";
+            String body = time.getSchedule().getMedicationName() + " ilacından " + time.getSchedule().getDosage() + " alınız.";
 
-            int counter = 0;
-            for(DeviceToken token : deviceTokens){
-                if(token.getFcmToken() != null && !token.getFcmToken().isEmpty()){
-                    fcmService.sendNotificationToToken(token.getFcmToken(), title, body);
-                    counter++;
-                }
-            }
-            int failedNotifications = deviceTokens.size() - counter;
-            log.info("{} notifications sent. {} failed.", counter, failedNotifications);
+            // Ortak bildirim metodunu çağır
+            notificationService.sendNotificationToUser(time.getSchedule().getPatient(), title, body);
         }
     }
 }

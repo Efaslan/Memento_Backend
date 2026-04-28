@@ -2,12 +2,10 @@ package com.emiraslan.memento.service;
 
 import com.emiraslan.memento.dto.request.GeneralReminderRequestDto;
 import com.emiraslan.memento.dto.response.GeneralReminderResponseDto;
-import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.GeneralReminder;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.RecurrenceRule;
 import com.emiraslan.memento.enums.UserRole;
-import com.emiraslan.memento.repository.DeviceTokenRepository;
 import com.emiraslan.memento.repository.GeneralReminderRepository;
 import com.emiraslan.memento.repository.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
@@ -15,7 +13,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,8 +26,7 @@ public class GeneralReminderService {
 
     private final GeneralReminderRepository reminderRepository;
     private final UserRepository userRepository;
-    private final DeviceTokenRepository deviceTokenRepository;
-    private final FcmService fcmService;
+    private final NotificationService notificationService;
 
     // brings all active reminders
     public List<GeneralReminderResponseDto> getAllOngoingRemindersByPatient(Integer patientId) {
@@ -104,36 +100,20 @@ public class GeneralReminderService {
         reminderRepository.deleteById(reminderId);
     }
 
-    // Checks every minute for general reminders that are due
-    @Scheduled(cron = "0 * * * * *")
-    @Transactional
-    public void notifyGeneralReminders(){
-        LocalDateTime now = LocalDateTime.now();
-
-        // bring incomplete and due reminders
+    // we find general reminders with <= currentDateTime, in case the server went offline during a reminder's time.
+    // because we set the next reminder time or complete the reminder after notification, we don't send multiple notifications
+    // for a single reminder
+    public void processGeneralReminders(LocalDateTime now) {
         List<GeneralReminder> dueReminders = reminderRepository.findByReminderTimeLessThanEqualAndIsCompletedFalse(now);
-        log.info("Notify General Reminders CRON Began:");
 
-        for(GeneralReminder reminder : dueReminders){
+        for (GeneralReminder reminder : dueReminders) {
+            notificationService.sendNotificationToUser(reminder.getPatient(), "Memento Hatırlatıcı", reminder.getTitle());
 
-            List<DeviceToken> deviceTokens = deviceTokenRepository.findByUser_UserId(reminder.getPatient().getUserId());
-            log.info("{} devices found.", deviceTokens.size());
-
-            int counter = 0;
-            for(DeviceToken token : deviceTokens){
-                if(token.getFcmToken() != null && !token.getFcmToken().isEmpty()){
-                    fcmService.sendNotificationToToken(token.getFcmToken(), "Memento Hatırlatıcı", reminder.getTitle());
-                    counter++;
-                }
-            }
-            int failedNotifications = deviceTokens.size() - counter;
-            log.info("{} notifications sent. {} failed.", counter, failedNotifications);
-
-            // if the reminder is reoccurring, calculate next reminder's time
-            if(Boolean.TRUE.equals(reminder.getIsRecurring()) && reminder.getRecurrenceRule() != null){
+            // for isRecurring = true reminders
+            if (Boolean.TRUE.equals(reminder.getIsRecurring()) && reminder.getRecurrenceRule() != null) {
                 LocalDateTime nextReminderTime = calculateNextReminderTime(reminder.getReminderTime(), reminder.getRecurrenceRule());
                 reminder.setReminderTime(nextReminderTime);
-            } else{ // If it is not reoccurring, set it as completed
+            } else { // for one time reminders
                 reminder.setIsCompleted(true);
             }
             reminderRepository.save(reminder);
