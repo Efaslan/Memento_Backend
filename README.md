@@ -26,9 +26,9 @@ The system starts with a populated database. You can use these credentials in th
 
 | Role | Email | Password
 | :--- | :--- | :---
-| **Patient** | `demo.patient@test.com` | `123456`
-| **Doctor** | `demo.doctor@test.com` | `123456`
-| **Relative** | `demo.son@test.com` | `123456`
+| **Patient** | `demo.patient@test.com` | `1234567Ab+`
+| **Doctor** | `demo.doctor@test.com` | `1234567Ab+`
+| **Relative** | `demo.son@test.com` | `1234567Ab+`
 
 ---
 

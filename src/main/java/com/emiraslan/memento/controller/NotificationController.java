@@ -2,7 +2,7 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.request.TokenRegisterRequestDto;
 import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.service.FcmService;
+import com.emiraslan.memento.service.FcmTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "10 - Notifications")
 public class NotificationController {
 
-    private final FcmService fcmService;
+    private final FcmTokenService fcmTokenService;
 
     @Operation(
             summary = "Register or update the device's FCM token.",
@@ -28,7 +28,7 @@ public class NotificationController {
             @Valid @RequestBody TokenRegisterRequestDto request,
             @AuthenticationPrincipal User user
             ) {
-        fcmService.saveToken(request, user);
+        fcmTokenService.saveToken(request, user);
         return ResponseEntity.ok().build();
     }
 }

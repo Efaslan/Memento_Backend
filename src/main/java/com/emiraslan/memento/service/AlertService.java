@@ -3,12 +3,10 @@ package com.emiraslan.memento.service;
 import com.emiraslan.memento.dto.request.AlertRequestDto;
 import com.emiraslan.memento.dto.response.AlertResponseDto;
 import com.emiraslan.memento.entity.Alert;
-import com.emiraslan.memento.entity.DeviceToken;
 import com.emiraslan.memento.entity.PatientRelationship;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.AlertStatus;
 import com.emiraslan.memento.repository.AlertRepository;
-import com.emiraslan.memento.repository.DeviceTokenRepository;
 import com.emiraslan.memento.repository.PatientRelationshipRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -27,8 +25,7 @@ public class AlertService {
 
     private final AlertRepository alertRepository;
     private final PatientRelationshipRepository relationshipRepository;
-    private final DeviceTokenRepository deviceTokenRepository;
-    private final FcmService fcmService;
+    private final NotificationService notificationService;
 
     // returns all alerts of a patient
     public List<AlertResponseDto> getPatientAlerts(Integer patientId) {
@@ -107,7 +104,7 @@ public class AlertService {
         // for every primary contact
         for (PatientRelationship rel : contacts) {
             User caregiver = rel.getCaregiver();
-            sendPushToUser(caregiver, notificationTitle, notificationBody);
+            notificationService.sendNotificationToUser(caregiver, notificationTitle, notificationBody);
             log.info("Fall Notification sent to Caregiver: {}", caregiver.getEmail());
         }
     }
@@ -129,23 +126,8 @@ public class AlertService {
                 continue;
             }
 
-            sendPushToUser(relative, title, body);
+            notificationService.sendNotificationToUser(relative, title, body);
             log.info("Acknowledgment info sent to other relative: {}", relative.getEmail());
-        }
-    }
-
-    // helper method to push notifications todo neden bunu kullaniyoruz fcmService'te var zaten push notif
-    private void sendPushToUser(User user, String title, String body) {
-        // find every token of caregivers
-        List<DeviceToken> tokens = deviceTokenRepository.findByUser_UserId(user.getUserId());
-        if (tokens.isEmpty()) return;
-        // send out notifications to their devices
-        for (DeviceToken token : tokens) {
-            fcmService.sendNotificationToToken(
-                    token.getFcmToken(),
-                    title,
-                    body
-            );
         }
     }
 }

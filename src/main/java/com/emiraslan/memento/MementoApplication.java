@@ -12,5 +12,8 @@ public class MementoApplication {
         SpringApplication.run(MementoApplication.class, args);
 
         System.out.println("Hello and welcome!");
+        System.out.println("Notifications will not work unless you have a serviceAccountKey.json in resources. Please check FirebaseConfig.java class.");
+
+        // RedisCacheWarmer starts on ApplicationReadyEvent
     }
 }
