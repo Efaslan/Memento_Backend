@@ -13,7 +13,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "SavedLocations")
+@Table(name = "SavedLocations", indexes = {
+        @Index(name = "idx_saved_loc_patient", columnList = "patient_user_id")
+})
 public class SavedLocation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

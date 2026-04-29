@@ -27,7 +27,7 @@ public class User implements UserDetails {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true) // unique is indexed
     private String email;
 
     @Column(name = "password_hash", nullable = false, columnDefinition = "NVARCHAR(255)")

@@ -12,8 +12,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "PatientRelationships", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"patient_user_id", "caregiver_user_id"})
+@Table(name = "PatientRelationships", indexes = {
+        // unique = true, avoids duplicate relationships between two people
+        @Index(name = "idx_rel_patient_caregiver", columnList = "patient_user_id, caregiver_user_id", unique = true),
+
+        // for doctors and relatives to quickly find their patients
+        @Index(name = "idx_rel_caregiver_active", columnList = "caregiver_user_id, is_active")
 })
 public class PatientRelationship {
 

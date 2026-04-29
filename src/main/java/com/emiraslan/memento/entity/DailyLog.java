@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "DailyLogs")
+@Table(name = "DailyLogs", indexes = {
+        // patientId -> created_at
+        @Index(name = "idx_dailylog_patient_date", columnList = "patient_user_id, created_at")
+})
 public class DailyLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

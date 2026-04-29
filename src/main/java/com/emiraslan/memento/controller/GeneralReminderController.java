@@ -30,13 +30,7 @@ public class GeneralReminderController {
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/active/me")
     public ResponseEntity<List<GeneralReminderResponseDto>> getMyActiveReminders(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(reminderService.getAllOngoingRemindersByPatient(user.getUserId()));
-    }
-
-    @PreAuthorize("hasAuthority('PATIENT')")
-    @GetMapping("/history/me")
-    public ResponseEntity<List<GeneralReminderResponseDto>> getMyCompletedReminders(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(user.getUserId()));
+        return ResponseEntity.ok(reminderService.getAllRemindersByPatient(user.getUserId()));
     }
 
     // doctor / relative operations
@@ -46,16 +40,7 @@ public class GeneralReminderController {
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
     public ResponseEntity<List<GeneralReminderResponseDto>> getPatientActiveReminders(@PathVariable Integer patientId) {
-        return ResponseEntity.ok(reminderService.getAllOngoingRemindersByPatient(patientId));
-    }
-
-    @Operation(
-            description = "For doctors and relatives. Accessible only if you have an active relationship with the patient."
-    )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
-    @GetMapping("/history/patient/{patientId}")
-    public ResponseEntity<List<GeneralReminderResponseDto>> getPatientCompletedReminders(@PathVariable Integer patientId) {
-        return ResponseEntity.ok(reminderService.getCompletedRemindersByPatient(patientId));
+        return ResponseEntity.ok(reminderService.getAllRemindersByPatient(patientId));
     }
 
     // mutual operations (Create, Update, Delete)
@@ -78,13 +63,6 @@ public class GeneralReminderController {
             @Valid @RequestBody GeneralReminderRequestDto dto
     ) {
         return ResponseEntity.ok(reminderService.updateReminder(reminderId, dto));
-    }
-
-    @Operation(summary = "Set reminder as completed.") // todo gereksiz, direkt delete yapsin
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")
-    @PatchMapping("/{reminderId}/complete")
-    public ResponseEntity<GeneralReminderResponseDto> markAsCompleted(@PathVariable Integer reminderId) {
-        return ResponseEntity.ok(reminderService.markAsCompleted(reminderId));
     }
 
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyReminder(#reminderId, principal)")

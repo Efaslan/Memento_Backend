@@ -21,6 +21,10 @@ public interface PatientRelationshipRepository extends JpaRepository<PatientRela
     // All active relationships of a patient
     List<PatientRelationship> findByPatient_UserIdAndIsActiveTrue(Integer patientId);
 
+    // todo bu 4luyu silip tek bir metot yapalim. Aktif olmayanlari goruntulemeye gerek yok, soft-delete olur
+    // tekrar eklenmeye calisinca reactivate olur. Iliskilerimi getir de userId alir, 2 sutuna bakar 1'i cikarsa
+    // onun iliskisidir zaten
+    // temizledikten sonra index'leri yine gozden gecir
     List<PatientRelationship> findByCaregiver_UserIdAndIsActiveTrue(Integer caregiverId);
 
     List<PatientRelationship> findByCaregiver_UserIdAndIsActiveFalse(Integer caregiverId);

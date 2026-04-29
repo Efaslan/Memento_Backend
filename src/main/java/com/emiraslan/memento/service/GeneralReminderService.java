@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,16 +30,8 @@ public class GeneralReminderService {
     private final NotificationService notificationService;
 
     // brings all active reminders
-    public List<GeneralReminderResponseDto> getAllOngoingRemindersByPatient(Integer patientId) {
-        return reminderRepository.findByPatient_UserIdAndIsCompletedFalseOrderByReminderTimeAsc(patientId)
-                .stream()
-                .map(MapperUtil::toGeneralReminderResponseDto)
-                .collect(Collectors.toList());
-    }
-
-    // brings all past reminders
-    public List<GeneralReminderResponseDto> getCompletedRemindersByPatient(Integer patientId) {
-        return reminderRepository.findByPatient_UserIdAndIsCompletedTrueOrderByReminderTimeAsc(patientId)
+    public List<GeneralReminderResponseDto> getAllRemindersByPatient(Integer patientId) {
+        return reminderRepository.findByPatient_UserIdOrderByReminderTimeAsc(patientId)
                 .stream()
                 .map(MapperUtil::toGeneralReminderResponseDto)
                 .collect(Collectors.toList());
@@ -78,21 +71,6 @@ public class GeneralReminderService {
         return MapperUtil.toGeneralReminderResponseDto(reminderRepository.save(existingReminder));
     }
 
-    @Transactional
-    public GeneralReminderResponseDto markAsCompleted(Integer reminderId) {
-        GeneralReminder reminder = reminderRepository.findById(reminderId)
-                .orElseThrow(() -> new EntityNotFoundException("GENERAL_REMINDER_NOT_FOUND: " + reminderId));
-
-        if (Boolean.TRUE.equals(reminder.getIsCompleted())) {
-            // if its already completed, return it as it is
-            return MapperUtil.toGeneralReminderResponseDto(reminder);
-        }
-
-        reminder.setIsCompleted(true);
-
-        return MapperUtil.toGeneralReminderResponseDto(reminderRepository.save(reminder));
-    }
-
     public void deleteReminder(Integer reminderId) {
         if (!reminderRepository.existsById(reminderId)) {
             throw new EntityNotFoundException("GENERAL_REMINDER_NOT_FOUND: " + reminderId);
@@ -104,20 +82,25 @@ public class GeneralReminderService {
     // because we set the next reminder time or complete the reminder after notification, we don't send multiple notifications
     // for a single reminder
     public void processGeneralReminders(LocalDateTime now) {
-        List<GeneralReminder> dueReminders = reminderRepository.findByReminderTimeLessThanEqualAndIsCompletedFalse(now);
+        List<GeneralReminder> dueReminders = reminderRepository.findDueRemindersWithPatient(now);
+
+        List<GeneralReminder> toUpdate = new ArrayList<>();
+        List<GeneralReminder> toDelete = new ArrayList<>();
 
         for (GeneralReminder reminder : dueReminders) {
-            notificationService.sendNotificationToUser(reminder.getPatient(), "Memento Hatırlatıcı", reminder.getTitle());
+            notificationService.sendNotificationToUser(reminder.getPatient(), "Memento", reminder.getTitle());
 
             // for isRecurring = true reminders
             if (Boolean.TRUE.equals(reminder.getIsRecurring()) && reminder.getRecurrenceRule() != null) {
-                LocalDateTime nextReminderTime = calculateNextReminderTime(reminder.getReminderTime(), reminder.getRecurrenceRule());
-                reminder.setReminderTime(nextReminderTime);
-            } else { // for one time reminders
-                reminder.setIsCompleted(true);
+                reminder.setReminderTime(calculateNextReminderTime(reminder.getReminderTime(), reminder.getRecurrenceRule()));
+                toUpdate.add(reminder);
+            } else { // delete the reminder if its not recurring
+                toDelete.add(reminder);
             }
-            reminderRepository.save(reminder);
         }
+        // batch write
+        if (!toDelete.isEmpty()) reminderRepository.deleteAllInBatch(toDelete);
+        if (!toUpdate.isEmpty()) reminderRepository.saveAll(toUpdate);
     }
 
     private LocalDateTime calculateNextReminderTime(LocalDateTime currentReminderTime, RecurrenceRule recurrenceRule){

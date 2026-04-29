@@ -106,7 +106,6 @@ public class MapperUtil {
                 .reminderTime(entity.getReminderTime())
                 .isRecurring(entity.getIsRecurring())
                 .recurrenceRule(entity.getRecurrenceRule())
-                .isCompleted(entity.getIsCompleted())
                 .build();
     }
 

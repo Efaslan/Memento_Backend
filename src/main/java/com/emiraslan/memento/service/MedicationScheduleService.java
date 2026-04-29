@@ -44,7 +44,7 @@ public class MedicationScheduleService {
 
     // brings all schedules (including deactivated)
     public List<MedicationScheduleResponseDto> getAllSchedulesByPatient(Integer patientId) {
-        return scheduleRepository.findByPatient_UserId(patientId).stream()
+        return scheduleRepository.findByPatient_UserIdAndIsActiveFalse(patientId).stream()
                 .map(this::convertToDtoWithTimes)
                 .collect(Collectors.toList());
     }
@@ -184,7 +184,6 @@ public class MedicationScheduleService {
             String title = "İlaç Vakti!";
             String body = time.getSchedule().getMedicationName() + " ilacından " + time.getSchedule().getDosage() + " alınız.";
 
-            // Ortak bildirim metodunu çağır
             notificationService.sendNotificationToUser(time.getSchedule().getPatient(), title, body);
         }
     }

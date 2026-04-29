@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "DeviceTokens")
+@Table(name = "DeviceTokens") // fcmToken column is indexed with 'unique = true'.
+// The system writes all tokens into redis on startup, that is why we don't index user_id
 public class DeviceToken {
 
     @Id
@@ -26,7 +27,7 @@ public class DeviceToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "fcm_token", nullable = false, columnDefinition = "NVARCHAR(255)")
+    @Column(name = "fcm_token", nullable = false, unique = true, columnDefinition = "NVARCHAR(255)")
     private String fcmToken;
 
     @Enumerated(EnumType.STRING)

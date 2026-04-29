@@ -142,17 +142,17 @@ VALUES (
 );
 
 -- REMINDERS (Using H2 date functions)
-INSERT INTO general_reminders (patient_user_id, creator_user_id, title, reminder_time, is_recurring, is_completed)
+INSERT INTO general_reminders (patient_user_id, creator_user_id, title, reminder_time, is_recurring)
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
     (SELECT user_id FROM users WHERE email = 'demo.son@test.com'),
-    'Grandson Birthday', DATEADD('DAY', 2, CURRENT_DATE), false, false
+    'Grandson Birthday', DATEADD('DAY', 2, CURRENT_DATE), false
 );
 
 -- Cardiology Appointment (Created by Doctor)
-INSERT INTO general_reminders (patient_user_id, creator_user_id, title, reminder_time, is_recurring, is_completed)
+INSERT INTO general_reminders (patient_user_id, creator_user_id, title, reminder_time, is_recurring)
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
     (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com'),
-    'Cardiology Appointment', DATEADD('DAY', 7, CURRENT_DATE), false, false
+    'Cardiology Appointment', DATEADD('DAY', 7, CURRENT_DATE), false
 );

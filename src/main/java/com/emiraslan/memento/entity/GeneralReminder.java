@@ -13,7 +13,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "GeneralReminders")
+@Table(name = "GeneralReminders", indexes = {
+        // for monthly calendar view, patient -> reminder time
+        @Index(name = "idx_reminder_patient_time", columnList = "patient_user_id, reminder_time"),
+
+        // for the CRON job to find due reminders, just reminder time
+        @Index(name = "idx_reminder_time_only", columnList = "reminder_time")
+})
 public class GeneralReminder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,8 +49,4 @@ public class GeneralReminder {
     @Enumerated(EnumType.STRING)
     @Column(name = "recurrence_rule", length = 10)
     private RecurrenceRule recurrenceRule;
-
-    @Column(name = "is_completed")
-    @Builder.Default
-    private Boolean isCompleted = false;
 }

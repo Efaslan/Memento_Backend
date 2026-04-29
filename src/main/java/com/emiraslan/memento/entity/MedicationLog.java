@@ -14,7 +14,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "MedicationLogs")
+@Table(name = "MedicationLogs", indexes = {
+        // patient -> taken_at, for finding logs of a patient from e.g. last 7 days
+        @Index(name = "idx_medlog_patient_date", columnList = "patient_user_id, taken_at"),
+
+        // for CRON job NOT EXISTS query,
+        // time_id -> taken_at, finds if a log was taken for a time_id -> today
+        @Index(name = "idx_medlog_schedule_date", columnList = "schedule_time_id, taken_at")
+})
 public class MedicationLog {
 
     @Id

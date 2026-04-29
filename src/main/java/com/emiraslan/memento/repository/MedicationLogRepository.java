@@ -12,6 +12,13 @@ public interface MedicationLogRepository extends JpaRepository<MedicationLog, In
 
     List<MedicationLog> findByPatient_UserId(Integer patientId);
 
+    // for finding a patient's logs between given dates
+    List<MedicationLog> findByPatient_UserIdAndTakenAtBetweenOrderByTakenAtDesc(
+            Integer patientId,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
+
     // Medical history of a patient between given dates
     List<MedicationLog> findByPatient_UserIdAndTakenAtGreaterThanEqualAndTakenAtLessThan(Integer patientId, LocalDateTime start, LocalDateTime end);
 

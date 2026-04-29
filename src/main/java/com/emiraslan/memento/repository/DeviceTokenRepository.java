@@ -16,6 +16,6 @@ public interface DeviceTokenRepository extends JpaRepository<DeviceToken, Intege
     // sees if a token already exists to not create duplicates
     Optional<DeviceToken> findByFcmToken(String fcmToken);
 
-    // deletes a token on logout
+    // todo deletes a token on logout
     void deleteByFcmToken(String fcmToken);
 }

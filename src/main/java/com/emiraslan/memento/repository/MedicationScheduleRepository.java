@@ -13,12 +13,12 @@ public interface MedicationScheduleRepository extends JpaRepository<MedicationSc
     // Brings all active medication a patient is taking
     List<MedicationSchedule> findByPatient_UserIdAndIsActiveTrue(Integer patientId);
 
-    // All medication assigned to a patient(includes previous and is_active = 0)
-    List<MedicationSchedule> findByPatient_UserId(Integer patientId);
+    // All past medication assigned to a patient
+    List<MedicationSchedule> findByPatient_UserIdAndIsActiveFalse(Integer patientId);
 
     // All PRN(as needed) medication a patient is taking
     List<MedicationSchedule> findByPatient_UserIdAndIsActiveTrueAndIsPrnTrue(Integer patientId);
 
-    // For automatic deactivation of a schedule upon endDate
+    // For CRON job automatic deactivation of a schedule upon endDate
     List<MedicationSchedule> findByIsActiveTrueAndEndDateBefore(LocalDate date);
 }

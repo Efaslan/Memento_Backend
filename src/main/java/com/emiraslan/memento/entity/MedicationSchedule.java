@@ -13,7 +13,13 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "MedicationSchedules")
+@Table(name = "MedicationSchedules", indexes = {
+        // patient -> isActive, we check active instead of dates thanks to the CRON job
+        @Index(name = "idx_schedule_patient_active", columnList = "patient_user_id, is_active"),
+
+        // isActive -> endDate, for CRON job deactivating expired schedules
+        @Index(name = "idx_schedule_active_enddate", columnList = "is_active, end_date")
+})
 public class MedicationSchedule {
 
     @Id

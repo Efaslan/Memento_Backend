@@ -13,7 +13,13 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "MedicationScheduleTimes")
+@Table(name = "MedicationScheduleTimes", indexes = {
+        // for finding a schedule's times
+        @Index(name = "idx_medtime_schedule", columnList = "schedule_id"),
+
+        // for the CRON jobs
+        @Index(name = "idx_medtime_time_only", columnList = "scheduled_time")
+})
 public class MedicationScheduleTime {
 
     @Id

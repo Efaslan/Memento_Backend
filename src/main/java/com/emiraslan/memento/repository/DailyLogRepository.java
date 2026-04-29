@@ -11,8 +11,12 @@ import java.util.List;
 @Repository
 public interface DailyLogRepository extends JpaRepository<DailyLog, Integer> {
 
-    // Patient's food and water logs between given dates
-    List<DailyLog> findByPatient_UserIdAndCreatedAtBetween(Integer patientId, LocalDateTime start, LocalDateTime end);
+    // Patient's food and water logs between given dates (e.g. last week - now, 7 days)
+    List<DailyLog> findByPatient_UserIdAndCreatedAtBetween(
+            Integer patientId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 
     // Brings a specific log type(FOOD, or WATER) between given dates
     List<DailyLog> findByPatient_UserIdAndDailyLogTypeAndCreatedAtBetween(Integer patientId, DailyLogType dailyLogType, LocalDateTime start, LocalDateTime end);

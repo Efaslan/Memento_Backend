@@ -16,7 +16,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Alerts")
+@Table(name = "Alerts", indexes = {
+        // patientId -> status (PENDING etc.) -> alert type (FALL_DETECTED)
+        @Index(name = "idx_alert_patient_status_type", columnList = "patient_user_id, status, alert_type")
+})
 public class Alert {
 
     @Id

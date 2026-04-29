@@ -21,5 +21,4 @@ public class GeneralReminderResponseDto {
     private LocalDateTime reminderTime;
     private Boolean isRecurring;
     private RecurrenceRule recurrenceRule;
-    private Boolean isCompleted;
 }
