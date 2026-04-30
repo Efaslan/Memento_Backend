@@ -2,6 +2,7 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.auth.LoginRequest;
 import com.emiraslan.memento.dto.auth.LoginResponse;
+import com.emiraslan.memento.dto.auth.LogoutRequest;
 import com.emiraslan.memento.dto.auth.RegisterRequest;
 import com.emiraslan.memento.dto.response.UserResponseDto;
 import com.emiraslan.memento.service.AuthService;
@@ -10,10 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -37,5 +35,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @Valid @RequestBody LogoutRequest request,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        String jwt = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+        }
+        authService.logout(request.getFcmToken(), jwt);
+
+        return ResponseEntity.ok().build();
     }
 }

@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,12 +18,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static com.emiraslan.memento.service.AuthService.BLACKLIST_PREFIX;
+
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final StringRedisTemplate redisTemplate;
 
     @Override
     protected void doFilterInternal(
@@ -44,9 +48,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // removing "Bearer " from token
         jwt = authHeader.substring(7);
 
+        // Redis blacklist control
+        String redisKey = BLACKLIST_PREFIX + jwt;
+
+        Boolean isBlacklisted = redisTemplate.hasKey(redisKey);
+        if (isBlacklisted) {
+            // return 401
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token is invalidated. Please login again.");
+            return;
+        }
+
         userEmail = jwtService.extractUsername(jwt);
 
-        // checks if an email is entered and it isn't authenticated in SecurityContext
+        // checks if an email is entered, and it isn't authenticated in SecurityContext
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail); // find user

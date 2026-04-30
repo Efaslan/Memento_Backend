@@ -19,15 +19,20 @@ public interface MedicationScheduleTimeRepository extends JpaRepository<Medicati
     // brings "now" from all times in active schedules
     List<MedicationScheduleTime> findBySchedule_IsActiveTrueAndScheduledTime(LocalTime scheduledTime);
 
-    @Query("SELECT mst FROM MedicationScheduleTime mst " +
-            "WHERE mst.schedule.isActive = true " +
-            "AND mst.scheduledTime <= :threshold " +
-            "AND NOT EXISTS (" +
-            "   SELECT 1 FROM MedicationLog ml " +
-            "   WHERE ml.scheduleTime = mst " +
-            "   AND ml.takenAt >= :startOfDay " +
-            "   AND ml.takenAt <= :now" +
-            ")")
+    // Avoiding 1+2n query in service method by join fetching schedule and patient data
+    @Query("""
+    SELECT mst FROM MedicationScheduleTime mst
+    JOIN FETCH mst.schedule s
+    JOIN FETCH s.patient
+    WHERE s.isActive = true
+      AND mst.scheduledTime <= :threshold
+      AND NOT EXISTS (
+          SELECT 1 FROM MedicationLog ml
+          WHERE ml.scheduleTime = mst
+            AND ml.takenAt >= :startOfDay
+            AND ml.takenAt <= :now
+      )
+    """)
     List<MedicationScheduleTime> findOverdueTimesWithoutLogsToday(
             @Param("threshold") LocalTime threshold,
             @Param("startOfDay") LocalDateTime startOfDay,

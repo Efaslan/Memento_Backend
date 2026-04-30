@@ -102,7 +102,7 @@ public class MedicationLogService {
         LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
         LocalTime thresholdTime = now.toLocalTime().minusHours(2); // 2 hours before now()
 
-        // bring all unlogged and 2 hours past medications of today
+        // bring all unlogged and 2 hours past medications of today, together with schedules and patient data
         List<MedicationScheduleTime> unloggedOverdueTimes = timeRepository
                 .findOverdueTimesWithoutLogsToday(thresholdTime, startOfDay, now);
 
@@ -121,7 +121,7 @@ public class MedicationLogService {
                     .takenAt(now)
                     .status(MedicationStatus.SKIPPED)
                     .build();
-            logsToSave.add(skippedLog); // add them to the list to avoid n+1 query
+            logsToSave.add(skippedLog);
         }
         logRepository.saveAll(logsToSave); // batch save the list
         log.info("Automatically Skipped {} medications.", logsToSave.size());
