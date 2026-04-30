@@ -4,10 +4,8 @@ import com.emiraslan.memento.dto.request.DailyLogRequestDto;
 import com.emiraslan.memento.dto.response.DailyLogResponseDto;
 import com.emiraslan.memento.entity.DailyLog;
 import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.enums.DailyLogType;
 import com.emiraslan.memento.repository.DailyLogRepository;
 import com.emiraslan.memento.util.MapperUtil;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,45 +35,39 @@ public class DailyLogService {
         return dailyLogRepository.findByPatient_UserIdAndCreatedAtBetween(patientId, startDateTime, endDateTime)
                 .stream()
                 .map(MapperUtil::toDailyLogResponseDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    // adds a new log (water or food)
+    // adds or update a new log
     @Transactional
-    public DailyLogResponseDto createLog(DailyLogRequestDto dto, User patient){
-
-        DailyLog log = MapperUtil.toDailyLogEntity(dto, patient);
-        return MapperUtil.toDailyLogResponseDto(dailyLogRepository.save(log));
-    }
-
-    @Transactional
-    public DailyLogResponseDto updateLog(Integer logId, DailyLogRequestDto dto) {
-        DailyLog existingLog = dailyLogRepository.findById(logId)
-                .orElseThrow(() -> new EntityNotFoundException("DAILY_LOG_NOT_FOUND: " + logId));
-
-        existingLog.setDescription(dto.getDescription());
-        existingLog.setQuantityMl(dto.getQuantityMl());
-        existingLog.setDailyLogType(dto.getDailyLogType());
-
-        return MapperUtil.toDailyLogResponseDto(dailyLogRepository.save(existingLog));
-    }
-
-    public void deleteLog(Integer logId) {
-        dailyLogRepository.deleteById(logId);
-    }
-
-    // calculates how much water the patient drank today todo, suya yemege ayri ayri loglar var gibi backend'de, 1 gun icin su ve yemege 1 log olsun. LOG_TYPE direkt gitsin
-    public Integer getTodayTotalWaterIntake(Integer patientId) {
+    public DailyLogResponseDto upsertTodayLog(DailyLogRequestDto dto, User patient) {
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.atTime(LocalTime.MAX);
 
-        List<DailyLog> waterLogs = dailyLogRepository.findByPatient_UserIdAndDailyLogTypeAndCreatedAtBetween(
-                patientId, DailyLogType.WATER, start, end
-        );
+        // check if today's log exists
+        Optional<DailyLog> existingLogOpt = dailyLogRepository
+                .findTopByPatient_UserIdAndCreatedAtBetween(patient.getUserId(), start, end);
 
-        return waterLogs.stream()
-                .mapToInt(log -> log.getQuantityMl() != null ? log.getQuantityMl() : 0)
-                .sum();
+        DailyLog log;
+
+        if (existingLogOpt.isPresent()) {
+            // if it exists, update it
+            log = existingLogOpt.get();
+
+            log.setDescription(dto.getDescription());
+            log.setQuantityMl(dto.getQuantityMl());
+
+        } else {
+            // create log if not
+            log = MapperUtil.toDailyLogEntity(dto, patient);
+            dailyLogRepository.save(log);
+        }
+
+        return MapperUtil.toDailyLogResponseDto(dailyLogRepository.save(log));
+    }
+
+    public void deleteLog(Integer logId) {
+        dailyLogRepository.deleteById(logId);
     }
 }

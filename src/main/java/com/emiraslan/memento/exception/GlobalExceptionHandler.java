@@ -4,6 +4,8 @@ import com.emiraslan.memento.dto.ErrorResponse;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +28,7 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    // @Valid errors, checking for correct input (client-side)
+    // @Valid errors, checking for correct input (client-side), from spring web mvc
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex, HttpServletRequest request) {
 
@@ -44,6 +46,32 @@ public class GlobalExceptionHandler {
                 .message("Input validation failed.")
                 .validationErrors(errors) // sending validation errors as json objects ("email cant be empty")
                 .path(request.getRequestURI()) // points to the endpoint where the error occurred
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // @Valid errors, from jakarta.validation
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex, HttpServletRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+            String fieldName = violation.getPropertyPath().toString();
+            String errorMessage = violation.getMessage();
+            errors.put(fieldName, errorMessage);
+        }
+
+        log.info("Constraint Validation Error: {} - Path: {}", errors, request.getRequestURI());
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value()) // 400
+                .error("Validation Error")
+                .message("Parameter validation failed.")
+                .validationErrors(errors)
+                .path(request.getRequestURI())
                 .build();
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

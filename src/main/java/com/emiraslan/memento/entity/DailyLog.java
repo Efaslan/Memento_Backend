@@ -1,6 +1,5 @@
 package com.emiraslan.memento.entity;
 
-import com.emiraslan.memento.enums.DailyLogType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,10 +26,6 @@ public class DailyLog {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_user_id", nullable = false) // FK
     private User patient;
-
-    @Enumerated(EnumType.STRING) // FOOD or WATER
-    @Column(name = "log_type", nullable = false, length = 50)
-    private DailyLogType dailyLogType;
 
     // For food
     @Column(name = "description", columnDefinition = "NVARCHAR(255)")

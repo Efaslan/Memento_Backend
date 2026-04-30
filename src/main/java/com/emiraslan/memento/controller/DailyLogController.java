@@ -9,9 +9,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "06 - Daily Logs")
 @SecurityRequirement(name = "bearerAuth")
+@Validated
 public class DailyLogController {
 
     private final DailyLogService dailyLogService;
@@ -32,34 +35,25 @@ public class DailyLogController {
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/my/recent/{days}")
     public ResponseEntity<List<DailyLogResponseDto>> getMyRecentLogs(
-            @PathVariable Integer days,
+            @PathVariable
+            @Range(min = 0, max = 90, message = "Days back must be between 0 and 90.")
+            Integer days,
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(dailyLogService.getRecentLogs(user.getUserId(), days));
     }
 
     @Operation(
-            description = "Patients can only create daily logs for themselves, id is automatically set. Type must be either FOOD or WATER."
+            summary = "Upsert Today's Log",
+            description = "Creates or updates the daily log for the authenticated patient for TODAY. No ID required."
     )
     @PreAuthorize("hasAuthority('PATIENT')")
-    @PostMapping
-    public ResponseEntity<DailyLogResponseDto> createLog(
+    @PostMapping("/today")
+    public ResponseEntity<DailyLogResponseDto> upsertTodayLog(
             @Valid @RequestBody DailyLogRequestDto dto,
             @AuthenticationPrincipal User patient
     ) {
-        return ResponseEntity.ok(dailyLogService.createLog(dto, patient));
-    }
-
-    @Operation(
-            description = "Patients can update the description, type, and quantityMl of a daily log."
-    )
-    @PreAuthorize("hasAuthority('PATIENT') and @guard.isDailyLogOwner(#logId, principal)")
-    @PutMapping("/{logId}")
-    public ResponseEntity<DailyLogResponseDto> updateLog(
-            @PathVariable Integer logId,
-            @Valid @RequestBody DailyLogRequestDto dto
-    ) {
-        return ResponseEntity.ok(dailyLogService.updateLog(logId, dto));
+        return ResponseEntity.ok(dailyLogService.upsertTodayLog(dto, patient));
     }
 
     @DeleteMapping("/{logId}")
@@ -69,15 +63,6 @@ public class DailyLogController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation( // todo silinecek bu her gun icin 1 log oldugunda, zaten su dahil olucak yemeklerle beraber
-            description = "The amount of water the patient has drunk today."
-    )
-    @PreAuthorize("hasAuthority('PATIENT')")
-    @GetMapping("/my/water-total")
-    public ResponseEntity<Integer> getMyTodayWaterTotal(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(dailyLogService.getTodayTotalWaterIntake(user.getUserId()));
-    }
-
     // doctor / relative endpoints
 
     @Operation(summary = "A patient's daily logs for doctors and relatives")
@@ -85,7 +70,9 @@ public class DailyLogController {
     @GetMapping("/{patientId}/recent/{days}")
     public ResponseEntity<List<DailyLogResponseDto>> getPatientRecentLogs(
             @PathVariable Integer patientId,
-            @PathVariable Integer days
+            @PathVariable
+            @Range(min = 0, max = 90, message = "Days back must be between 0 and 90.")
+            Integer days
     ) {
         return ResponseEntity.ok(dailyLogService.getRecentLogs(patientId, days));
     }

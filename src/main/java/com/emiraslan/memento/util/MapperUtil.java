@@ -146,7 +146,6 @@ public class MapperUtil {
         return DailyLogResponseDto.builder()
                 .dailyLogId(entity.getDailyLogId())
                 .patientUserId(entity.getPatient().getUserId())
-                .dailyLogType(entity.getDailyLogType())
                 .description(entity.getDescription())
                 .quantityMl(entity.getQuantityMl())
                 .createdAt(entity.getCreatedAt())
@@ -157,7 +156,6 @@ public class MapperUtil {
         if (dto == null) return null;
         return DailyLog.builder()
                 .patient(patient)
-                .dailyLogType(dto.getDailyLogType())
                 .description(dto.getDescription())
                 .quantityMl(dto.getQuantityMl())
                 // createdAt is now() by default

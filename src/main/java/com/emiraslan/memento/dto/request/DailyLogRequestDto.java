@@ -1,7 +1,5 @@
 package com.emiraslan.memento.dto.request;
 
-import com.emiraslan.memento.enums.DailyLogType;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,9 +12,6 @@ import org.hibernate.validator.constraints.Range;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DailyLogRequestDto {
-
-    @NotNull(message = "LOG_TYPE_REQUIRED")
-    private DailyLogType dailyLogType;
 
     @Size(max = 255, message = "DESCRIPTION_TOO_LONG")
     private String description;

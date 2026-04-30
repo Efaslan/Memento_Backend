@@ -116,16 +116,10 @@ VALUES (
 );
 
 -- DAILY LOGS
-INSERT INTO daily_logs (patient_user_id, log_type, quantity_ml, created_at)
-VALUES (
-    (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
-    'WATER', 200, CURRENT_TIMESTAMP
-);
 
-INSERT INTO daily_logs (patient_user_id, log_type, description, created_at)
+INSERT INTO daily_logs (patient_user_id, description, quantity_ml, created_at)
 VALUES (
-    (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
-    'FOOD', 'Lentil soup and salad', CURRENT_TIMESTAMP
+    (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'), 'Lentil soup and salad', 200, CURRENT_TIMESTAMP
 );
 
 -- SAVED LOCATIONS
