@@ -57,36 +57,11 @@ public class PatientRelationshipService {
         });
     }
 
-    public List<RelationshipResponseDto> getActiveRelationships(User user, boolean excludeDoctors) {
-        if (user.getRole() == UserRole.PATIENT) {
-            if (excludeDoctors) {
-                return relationshipRepository.findByPatient_UserIdAndRelationshipTypeNotAndIsActiveTrue(
-                                user.getUserId(), RelationshipType.DOCTOR).stream()
-                        .map(MapperUtil::toRelationshipResponseDto).collect(Collectors.toList());
-            }
-            return relationshipRepository.findByPatient_UserIdAndIsActiveTrue(user.getUserId()).stream()
-                    .map(MapperUtil::toRelationshipResponseDto).collect(Collectors.toList());
-        }
-        // if the user is a relative or doctor
-        else {
-            return relationshipRepository.findByCaregiver_UserIdAndIsActiveTrue(user.getUserId())
-                    .stream()
-                    .map(MapperUtil::toRelationshipResponseDto)
-                    .collect(Collectors.toList());
-        }
-    }
-
-    public List<RelationshipResponseDto> getInactiveRelationships(User user) {
-        if (user.getRole() == UserRole.PATIENT) {
-            return relationshipRepository.findByPatient_UserIdAndIsActiveFalse(user.getUserId()).stream()
-                    .map(MapperUtil::toRelationshipResponseDto)
-                    .collect(Collectors.toList());
-        }
-        else {
-            return relationshipRepository.findByCaregiver_UserIdAndIsActiveFalse(user.getUserId()).stream()
-                    .map(MapperUtil::toRelationshipResponseDto)
-                    .collect(Collectors.toList());
-        }
+    public List<RelationshipResponseDto> getActiveRelationships(User user) {
+        return relationshipRepository.findAllActiveRelationshipsByUserId(user.getUserId())
+                .stream()
+                .map(MapperUtil::toRelationshipResponseDto)
+                .toList();
     }
 
     @Transactional
@@ -151,22 +126,29 @@ public class PatientRelationshipService {
         Optional<PatientRelationship> existingRel = relationshipRepository
                 .findByPatient_UserIdAndCaregiver_UserId(patient.getUserId(), caregiver.getUserId());
 
+        PatientRelationship relationship;
+
         if (existingRel.isPresent()) {
+            relationship = existingRel.get();
+
             if (Boolean.TRUE.equals(existingRel.get().getIsActive())) {
                 throw new IllegalStateException("RELATIONSHIP_ALREADY_EXISTS_AND_ACTIVE");
-            } else {
-                throw new IllegalStateException("RELATIONSHIP_EXISTS_BUT_INACTIVE_PLEASE_REACTIVATE");
             }
-        }
 
-        PatientRelationship relationship = PatientRelationship.builder()
+            // relationship exists but inactive, reactivating it
+            relationship.setIsActive(true);
+            relationship.setRelationshipType(type);
+            relationship.setIsPrimaryContact(isPrimaryContact != null ? isPrimaryContact : false);
+        } else {
+            // create the relationship if it doesn't exist
+            relationship = PatientRelationship.builder()
                 .patient(patient)
                 .caregiver(caregiver)
                 .relationshipType(type)
                 .isPrimaryContact(isPrimaryContact != null ? isPrimaryContact : false)
                 .isActive(true)
                 .build();
-
+        }
         return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
     }
 
@@ -190,16 +172,6 @@ public class PatientRelationshipService {
         if (dto.getRelationshipType() != null) relationship.setRelationshipType(dto.getRelationshipType());
         if (dto.getIsPrimaryContact() != null) relationship.setIsPrimaryContact(dto.getIsPrimaryContact());
 
-        return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
-    }
-
-    // toggle to deactivate or reactivate relationships
-    @Transactional
-    public RelationshipResponseDto toggleActivation(Integer relationshipId) {
-        PatientRelationship relationship = relationshipRepository.findById(relationshipId)
-                .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
-
-        relationship.setIsActive(!relationship.getIsActive());
         return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
     }
 

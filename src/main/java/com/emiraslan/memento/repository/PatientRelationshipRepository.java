@@ -15,22 +15,14 @@ import java.util.Optional;
 @Repository
 public interface PatientRelationshipRepository extends JpaRepository<PatientRelationship, Integer> {
 
-    // All deactivated relationships of a patient
-    List<PatientRelationship> findByPatient_UserIdAndIsActiveFalse(Integer patientId);
-
-    // All active relationships of a patient
-    List<PatientRelationship> findByPatient_UserIdAndIsActiveTrue(Integer patientId);
-
-    // todo bu 4luyu silip tek bir metot yapalim. Aktif olmayanlari goruntulemeye gerek yok, soft-delete olur
-    // tekrar eklenmeye calisinca reactivate olur. Iliskilerimi getir de userId alir, 2 sutuna bakar 1'i cikarsa
-    // onun iliskisidir zaten
-    // temizledikten sonra index'leri yine gozden gecir
-    List<PatientRelationship> findByCaregiver_UserIdAndIsActiveTrue(Integer caregiverId);
-
-    List<PatientRelationship> findByCaregiver_UserIdAndIsActiveFalse(Integer caregiverId);
-
-    // Filter a specific role from the relationships. Example: show only relatives by excluding DOCTOR
-    List<PatientRelationship> findByPatient_UserIdAndRelationshipTypeNotAndIsActiveTrue(Integer patientId, RelationshipType type);
+    @Query("""
+        SELECT r FROM PatientRelationship r
+        JOIN FETCH r.patient
+        JOIN FETCH r.caregiver
+        WHERE (r.patient.userId = :userId OR r.caregiver.userId = :userId)
+          AND r.isActive = true
+    """)
+    List<PatientRelationship> findAllActiveRelationshipsByUserId(@Param("userId") Integer userId);
 
     // Brings all primary contacts
     List<PatientRelationship> findByPatient_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(Integer patientId);

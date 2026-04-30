@@ -29,21 +29,13 @@ public class PatientRelationshipController {
     private final PatientRelationshipService relationshipService;
 
     // lists all active relationships of a patient
-    @Operation(description = "All relationships of a user. You can filter doctors out by setting the boolean as true.")
+    @Operation(description = "All relationships of a user.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
     @GetMapping("/me")
     public ResponseEntity<List<RelationshipResponseDto>> getMyRelationships(
-            @AuthenticationPrincipal User user,
-            @RequestParam(defaultValue = "false") boolean excludeDoctors
+            @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(relationshipService.getActiveRelationships(user, excludeDoctors));
-    }
-
-    @Operation(description = "Deactivated relationships of a user.")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
-    @GetMapping("/me/inactive")
-    public ResponseEntity<List<RelationshipResponseDto>> getMyInactiveRelationships(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(relationshipService.getInactiveRelationships(user));
+        return ResponseEntity.ok(relationshipService.getActiveRelationships(user));
     }
 
     @Operation(
@@ -78,13 +70,6 @@ public class PatientRelationshipController {
             @AuthenticationPrincipal User user
     ) {
         return ResponseEntity.ok(relationshipService.updateRelationship(relationshipId, dto, user));
-    }
-
-    @Operation(description = "Activate or deactivate a relationship.")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE') and @guard.canUpdateRelationship(#relationshipId, principal)")
-    @PatchMapping("/{relationshipId}/toggle-active")
-    public ResponseEntity<RelationshipResponseDto> toggleActivation(@PathVariable Integer relationshipId) {
-        return ResponseEntity.ok(relationshipService.toggleActivation(relationshipId));
     }
 
     @Operation(
