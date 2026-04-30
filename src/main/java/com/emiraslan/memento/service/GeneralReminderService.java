@@ -88,7 +88,7 @@ public class GeneralReminderService {
         List<GeneralReminder> toDelete = new ArrayList<>();
 
         for (GeneralReminder reminder : dueReminders) {
-            notificationService.sendNotificationToUser(reminder.getPatient(), "Memento", reminder.getTitle());
+            notificationService.sendNotificationToUser(reminder.getPatient().getUserId(), "Memento", reminder.getTitle());
 
             // for isRecurring = true reminders
             if (Boolean.TRUE.equals(reminder.getIsRecurring()) && reminder.getRecurrenceRule() != null) {

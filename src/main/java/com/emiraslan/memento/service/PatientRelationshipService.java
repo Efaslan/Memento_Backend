@@ -45,7 +45,7 @@ public class PatientRelationshipService {
         Map<Integer, PatientProfile> profileMap = patientProfileRepository.findByPatient_UserIdIn(patientIds)
                 .stream().
                 collect(Collectors.toMap(
-                        profile -> profile.getPatient().getUserId(),
+                        PatientProfile::getPatientUserId,
                         profile -> profile
                 ));
 

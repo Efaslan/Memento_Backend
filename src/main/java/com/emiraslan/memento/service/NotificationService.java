@@ -1,6 +1,5 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.entity.User;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
@@ -20,13 +19,13 @@ public class NotificationService {
     private final FcmTokenService fcmTokenService;
 
     // todo burada user yerine direkt userid kullanabiriz ileride test ettikten sonra loglar icin user kalsin
-    public void sendNotificationToUser(User user, String title, String body) {
+    public void sendNotificationToUser(Integer userId, String title, String body) {
 
-        String redisKey = "deviceTokens:user:" + user.getUserId();
+        String redisKey = "deviceTokens:user:" + userId;
         Set<String> tokens = redisTemplate.opsForSet().members(redisKey);
 
         if (tokens == null || tokens.isEmpty()) {
-            log.warn("No device tokens found in Redis for UserID: {}", user.getUserId());
+            log.warn("No device tokens found in Redis for UserID: {}", userId);
             return;
         }
 
@@ -44,10 +43,10 @@ public class NotificationService {
 
                 // send it to Google
                 String response = FirebaseMessaging.getInstance().send(message);
-                log.info("Notification Sent to {}. Response: {}", user.getEmail(), response);
+                log.info("Notification Sent to {}. Response: {}", userId, response);
 
             } catch (Exception e) {
-                log.error("Failed to send notification to {}: {}", user.getEmail(), e.getMessage());
+                log.error("Failed to send notification to {}: {}", userId, e.getMessage());
 
                 if (e.getMessage() != null && (e.getMessage().contains("registration-token-not-registered") ||
                         e.getMessage().contains("invalid-argument"))) {

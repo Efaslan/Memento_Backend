@@ -184,7 +184,7 @@ public class MedicationScheduleService {
             String title = "İlaç Vakti!";
             String body = time.getSchedule().getMedicationName() + " ilacından " + time.getSchedule().getDosage() + " alınız.";
 
-            notificationService.sendNotificationToUser(time.getSchedule().getPatient(), title, body);
+            notificationService.sendNotificationToUser(time.getSchedule().getPatient().getUserId(), title, body);
         }
     }
 }

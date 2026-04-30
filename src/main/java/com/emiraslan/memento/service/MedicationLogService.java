@@ -1,6 +1,7 @@
 package com.emiraslan.memento.service;
 
 import com.emiraslan.memento.dto.response.MedicationLogResponseDto;
+import com.emiraslan.memento.dto.response.MedicationLogSummaryResponseDto;
 import com.emiraslan.memento.entity.MedicationLog;
 import com.emiraslan.memento.entity.MedicationScheduleTime;
 import com.emiraslan.memento.entity.User;
@@ -12,6 +13,10 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,7 +25,6 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,23 +37,32 @@ public class MedicationLogService {
     // timespan for "TAKEN" status
     private static final int ON_TIME_TOLERANCE_MINUTES = 30;
 
-    // brings patient logs of a specific date
-    public List<MedicationLogResponseDto> getLogsByDate(Integer patientId, LocalDate date) {
-        LocalDateTime startOfDay = date.atStartOfDay();
-        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
-        log.info("{}", endOfDay);
+    public MedicationLogSummaryResponseDto getRecentLogsSummary(Integer patientId, Integer daysBack, Integer page, Integer size) {
 
-        return logRepository.findByPatient_UserIdAndTakenAtGreaterThanEqualAndTakenAtLessThan(patientId, startOfDay, endOfDay)
-                .stream()
-                .map(MapperUtil::toMedicationLogResponseDto)
-                .collect(Collectors.toList());
-    }
+        LocalDate today = LocalDate.now();
+        LocalDateTime endDateTime = today.atTime(LocalTime.MAX);
+        LocalDateTime startDateTime = today.minusDays(daysBack).atStartOfDay();
 
-    public List<MedicationLogResponseDto> getAllLogs(Integer patientId){
-        return logRepository.findByPatient_UserId(patientId)
-                .stream()
-                .map(MapperUtil::toMedicationLogResponseDto)
-                .collect(Collectors.toList());
+        // latest logs are on top
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "takenAt"));
+
+        // pull the log statistics of all logs between the given dates
+        MedicationLogSummaryResponseDto.StatsProjection stats = logRepository.getStatistics(patientId, startDateTime, endDateTime);
+
+        // pull the logs with pagination
+        Page<MedicationLog> logPage = logRepository.findByPatient_UserIdAndTakenAtBetween(
+                patientId, startDateTime, endDateTime, pageable
+        );
+
+        // maps the logs into dto pages
+        Page<MedicationLogResponseDto> dtoPage = logPage.map(MapperUtil::toMedicationLogResponseDto);
+
+        return MedicationLogSummaryResponseDto.builder()
+                .takenCount(stats.getTakenCount())
+                .delayedCount(stats.getDelayedCount())
+                .skippedCount(stats.getSkippedCount())
+                .logs(dtoPage)
+                .build();
     }
 
     // creates a new log

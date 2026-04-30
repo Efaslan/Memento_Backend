@@ -1,20 +1,19 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.response.MedicationLogResponseDto;
+import com.emiraslan.memento.dto.response.MedicationLogSummaryResponseDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.service.MedicationLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/medications/logs")
@@ -26,28 +25,18 @@ public class MedicationLogController {
     private final MedicationLogService logService;
 
     @Operation(
-            summary = "Patient's medication logs of a specific date.",
-            description = "Today's logs will be returned if no date is given."
+            summary = "Get my recent medication logs with statistics. Paginated.",
+            description = "This week's logs will be returned on default."
     )
     @PreAuthorize("hasAuthority('PATIENT')")
-    @GetMapping("/me/date") // todo bunu da recent logs yapalim gun vererek
-    public ResponseEntity<List<MedicationLogResponseDto>> getMyLogsByDate(
+    @GetMapping("/me/recent")
+    public ResponseEntity<MedicationLogSummaryResponseDto> getMyRecentLogs(
             @AuthenticationPrincipal User user,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+            @RequestParam(defaultValue = "7") @Range(min = 0, max = 90) Integer daysBack,
+            @RequestParam(defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(defaultValue = "20") @Range(min = 0, max = 50) Integer size
     ) {
-        LocalDate targetDate = (date != null) ? date : LocalDate.now();
-        return ResponseEntity.ok(logService.getLogsByDate(user.getUserId(), targetDate));
-    }
-
-    @Operation(
-            summary = "All of a patient's medication logs."
-    )
-    @PreAuthorize("hasAuthority('PATIENT')")
-    @GetMapping("/me")
-    public ResponseEntity<List<MedicationLogResponseDto>> getAllOfMyLogs(
-            @AuthenticationPrincipal User user
-    ) {
-        return ResponseEntity.ok(logService.getAllLogs(user.getUserId()));
+        return ResponseEntity.ok(logService.getRecentLogsSummary(user.getUserId(), daysBack, page, size));
     }
 
     @Operation(
@@ -64,27 +53,17 @@ public class MedicationLogController {
     }
 
     @Operation(
-            summary = "All of a patient's medication logs for relatives and doctors."
+            summary = "Get patient's recent medication logs with statistics. Paginated.",
+            description = "This week's logs will be returned on default."
     )
     @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canViewPatientData(#patientId, principal)")
-    @GetMapping("/{patientId}")
-    public ResponseEntity<List<MedicationLogResponseDto>> getAllPatientLogs(
-            @PathVariable Integer patientId
-    ) {
-        return ResponseEntity.ok(logService.getAllLogs(patientId));
-    }
-
-    @Operation(
-            summary = "Patient's medication logs of a specific date for relatives and doctors.",
-            description = "Today's logs will be returned if no date is given."
-    )
-    @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canViewPatientData(#patientId, principal)")
-    @GetMapping("/{patientId}/date")
-    public ResponseEntity<List<MedicationLogResponseDto>> getPatientLogsByDate(
+    @GetMapping("/patient/{patientId}/recent")
+    public ResponseEntity<MedicationLogSummaryResponseDto> getPatientsRecentLogs(
             @PathVariable Integer patientId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+            @RequestParam(defaultValue = "7") @Range(min = 0, max = 90) Integer daysBack,
+            @RequestParam(defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(defaultValue = "20") @Range(min = 0, max = 50) Integer size
     ) {
-        LocalDate targetDate = (date != null) ? date : LocalDate.now();
-        return ResponseEntity.ok(logService.getLogsByDate(patientId, targetDate));
+        return ResponseEntity.ok(logService.getRecentLogsSummary(patientId, daysBack, page, size));
     }
 }

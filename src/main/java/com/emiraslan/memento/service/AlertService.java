@@ -104,7 +104,7 @@ public class AlertService {
         // for every primary contact
         for (PatientRelationship rel : contacts) {
             User caregiver = rel.getCaregiver();
-            notificationService.sendNotificationToUser(caregiver, notificationTitle, notificationBody);
+            notificationService.sendNotificationToUser(caregiver.getUserId(), notificationTitle, notificationBody);
             log.info("Fall Notification sent to Caregiver: {}", caregiver.getEmail());
         }
     }
@@ -126,7 +126,7 @@ public class AlertService {
                 continue;
             }
 
-            notificationService.sendNotificationToUser(relative, title, body);
+            notificationService.sendNotificationToUser(relative.getUserId(), title, body);
             log.info("Acknowledgment info sent to other relative: {}", relative.getEmail());
         }
     }
