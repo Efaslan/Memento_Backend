@@ -16,8 +16,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class AlertRequestDto {
 
-    // private Integer patientUserId; bunu direkt servise principal ile controller gonderecek
-
     @NotNull(message = "ALERT_TYPE_REQUIRED")
     private AlertType alertType;
 

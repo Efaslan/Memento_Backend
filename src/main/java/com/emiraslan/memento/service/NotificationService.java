@@ -18,7 +18,6 @@ public class NotificationService {
     private final StringRedisTemplate redisTemplate;
     private final FcmTokenService fcmTokenService;
 
-    // todo burada user yerine direkt userid kullanabiriz ileride test ettikten sonra loglar icin user kalsin
     public void sendNotificationToUser(Integer userId, String title, String body) {
 
         String redisKey = "deviceTokens:user:" + userId;
