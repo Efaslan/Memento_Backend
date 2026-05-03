@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Alerts", indexes = {
+@Table(name = "alerts", indexes = {
         // patientId -> status (PENDING etc.)
         @Index(name = "idx_alert_patient_timestamp", columnList = "patient_user_id, alert_timestamp")
 })
@@ -40,7 +40,7 @@ public class Alert {
     @Column(name = "alert_type", nullable = false, length = 20)
     private AlertType alertType;
 
-    @Column(name = "alert_timestamp", columnDefinition = "DATETIME2 DEFAULT GETDATE()")
+    @Column(name = "alert_timestamp")
     @Builder.Default
     private LocalDateTime alertTimestamp = LocalDateTime.now();
 
@@ -57,6 +57,6 @@ public class Alert {
     @Builder.Default
     private AlertStatus status = AlertStatus.PENDING; // Default value is "PENDING" whenever an Alert is created
 
-    @Column(name = "details", columnDefinition = "NVARCHAR(100)")
+    @Column(name = "details", length = 100)
     private String details;
 }

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "GeneralReminders", indexes = {
+@Table(name = "general_reminders", indexes = {
         // for monthly calendar view, patient -> reminder time
         @Index(name = "idx_reminder_patient_time", columnList = "patient_user_id, reminder_time"),
 

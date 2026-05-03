@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "DailyLogs", indexes = {
+@Table(name = "daily_logs", indexes = {
         // patientId -> created_at
         @Index(name = "idx_dailylog_patient_date", columnList = "patient_user_id, created_at")
 })
@@ -28,14 +28,14 @@ public class DailyLog {
     private User patient;
 
     // For food
-    @Column(name = "description", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "description") // default string is length = 255
     private String description;
 
     // For water
     @Column(name = "quantity_ml")
     private Integer quantityMl;
 
-    @Column(name = "created_at", columnDefinition = "DATETIME2 DEFAULT GETDATE()")
+    @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

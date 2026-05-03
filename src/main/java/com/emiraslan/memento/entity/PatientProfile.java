@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "PatientProfiles")
+@Table(name = "patient_profiles")
 public class PatientProfile {
 
     @Id
@@ -39,6 +39,6 @@ public class PatientProfile {
     @Column(name = "blood_type", length = 15)
     private BloodType bloodType;
 
-    @Column(name = "emergency_notes", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "emergency_notes")
     private String emergencyNotes;
 }

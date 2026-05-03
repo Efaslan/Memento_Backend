@@ -19,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Users")
+@Table(name = "users")
 public class User implements UserDetails {
 
     @Id
@@ -30,7 +30,7 @@ public class User implements UserDetails {
     @Column(name = "email", nullable = false, unique = true) // unique is indexed
     private String email;
 
-    @Column(name = "password_hash", nullable = false, columnDefinition = "NVARCHAR(255)")
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Column(name = "first_name", nullable = false, length = 50)
@@ -47,7 +47,7 @@ public class User implements UserDetails {
     @Column(name = "role", nullable = false, length = 10)
     private UserRole role;
 
-    @Column(name = "created_at", columnDefinition = "DATETIME2 DEFAULT GETDATE()")
+    @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "PatientRelationships", indexes = {
+@Table(name = "patient_relationships", indexes = {
         // unique = true, avoids duplicate relationships between two people
         @Index(name = "idx_rel_patient_caregiver", columnList = "patient_user_id, caregiver_user_id", unique = true),
 

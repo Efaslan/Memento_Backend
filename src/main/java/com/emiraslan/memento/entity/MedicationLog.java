@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "MedicationLogs", indexes = {
+@Table(name = "medication_logs", indexes = {
         // patient -> taken_at, for finding logs of a patient from e.g. last 7 days
         @Index(name = "idx_medlog_patient_date", columnList = "patient_user_id, taken_at"),
 
@@ -39,7 +39,7 @@ public class MedicationLog {
     private User patient;
 
     // The timestamp when the patient physically takes their medicine.
-    @Column(name = "taken_at", columnDefinition = "DATETIME2 DEFAULT GETDATE()")
+    @Column(name = "taken_at")
     @Builder.Default
     private LocalDateTime takenAt = LocalDateTime.now();
 

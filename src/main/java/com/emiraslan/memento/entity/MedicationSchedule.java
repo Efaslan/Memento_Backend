@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "MedicationSchedules", indexes = {
+@Table(name = "medication_schedules", indexes = {
         // patient -> isActive, we check active instead of dates thanks to the CRON job
         @Index(name = "idx_schedule_patient_active", columnList = "patient_user_id, is_active"),
 
@@ -42,7 +42,7 @@ public class MedicationSchedule {
     @Column(name = "dosage", length = 50)
     private String dosage;
 
-    @Column(name = "notes", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "notes")
     private String notes;
 
     @Column(name = "start_date")

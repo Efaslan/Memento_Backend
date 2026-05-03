@@ -1,7 +1,7 @@
 package com.emiraslan.memento.security;
 
-import com.emiraslan.memento.dto.response.GeneralReminderResponseDto;
-import com.emiraslan.memento.dto.response.MedicationScheduleResponseDto;
+import com.emiraslan.memento.dto.request.GeneralReminderRequestDto;
+import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
 import com.emiraslan.memento.entity.User;
 import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
@@ -83,7 +83,7 @@ public class SecurityService {
     // GENERAL REMINDER SECURITY
     // ========================================================================
 
-    public boolean canCreateReminder(GeneralReminderResponseDto dto, User user) {
+    public boolean canCreateReminder(GeneralReminderRequestDto dto, User user) {
         // patients do not need to include id in their request. It is automatically set in service
         if (user.getRole() == UserRole.PATIENT) {
             return true;
@@ -174,7 +174,7 @@ public class SecurityService {
                 }).orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
     }
 
-    public boolean canCreateSchedule(MedicationScheduleResponseDto dto, User doctor){
+    public boolean canCreateSchedule(MedicationScheduleRequestDto dto, User doctor){
         if (dto.getPatientUserId() == null) throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
 
         return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(dto.getPatientUserId(), doctor.getUserId())

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "DeviceTokens") // fcmToken column is indexed with 'unique = true'.
+@Table(name = "device_tokens") // fcmToken column is indexed with 'unique = true'.
 // The system writes all tokens into redis on startup, that is why we don't index user_id
 public class DeviceToken {
 
@@ -27,14 +27,14 @@ public class DeviceToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "fcm_token", nullable = false, unique = true, columnDefinition = "NVARCHAR(255)")
+    @Column(name = "fcm_token", nullable = false, unique = true)
     private String fcmToken;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "device_type", length = 50)
     private DeviceType deviceType; // only ANDROID for now
 
-    @Column(name = "last_updated", columnDefinition = "DATETIME2 DEFAULT GETDATE()")
+    @Column(name = "last_updated")
     @Builder.Default
     private LocalDateTime lastUpdated = LocalDateTime.now();
 }

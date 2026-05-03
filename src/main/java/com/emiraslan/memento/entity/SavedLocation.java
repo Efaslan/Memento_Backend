@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "SavedLocations", indexes = {
+@Table(name = "saved_locations", indexes = {
         @Index(name = "idx_saved_loc_patient", columnList = "patient_user_id")
 })
 public class SavedLocation {
@@ -36,6 +36,6 @@ public class SavedLocation {
     @Column(name = "longitude", nullable = false, precision = 9, scale = 6)
     private BigDecimal longitude;
 
-    @Column(name = "address_details", columnDefinition = "NVARCHAR(255)")
+    @Column(name = "address_details")
     private String addressDetails;
 }
