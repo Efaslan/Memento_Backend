@@ -11,11 +11,18 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,31 +36,52 @@ public class MedicationScheduleService {
     private final MedicationLogRepository logRepository;
     private final NotificationService notificationService;
 
-    // helper method: Entity -> DTO conversion (with times)
-    private MedicationScheduleResponseDto convertToDtoWithTimes(MedicationSchedule schedule) {
-        List<MedicationScheduleTime> times = timeRepository.findBySchedule_ScheduleId(schedule.getScheduleId());
-        return MapperUtil.toMedicationScheduleResponseDto(schedule, times);
+    private Function<MedicationSchedule, MedicationScheduleResponseDto> buildScheduleMapper(List<MedicationSchedule> schedules){
+
+        // pile the schedule ids into a list
+        List<Integer> scheduleIds = schedules.stream()
+                .map(MedicationSchedule::getScheduleId)
+                .toList();
+        // pull all times from the schedule id list
+        List<MedicationScheduleTime> scheduleTimes = timeRepository.findBySchedule_ScheduleIdIn(scheduleIds);
+
+        // group the times by their schedule ids
+        Map<Integer, List<MedicationScheduleTime>> scheduleIdsWithTimes = scheduleTimes.stream()
+                .collect(Collectors.groupingBy(time -> time.getSchedule().getScheduleId()));
+
+        // create the DTOs with schedules and their times
+        return schedule -> {
+            List<MedicationScheduleTime> timesForThisSchedule = scheduleIdsWithTimes.getOrDefault(schedule.getScheduleId(), Collections.emptyList());
+            return MapperUtil.toMedicationScheduleResponseDto(schedule, timesForThisSchedule);
+        };
     }
 
     // brings active medication schedules and times
     public List<MedicationScheduleResponseDto> getActiveSchedulesByPatient(Integer patientId) {
-        return scheduleRepository.findByPatient_UserIdAndIsActiveTrue(patientId).stream()
-                .map(this::convertToDtoWithTimes)
-                .collect(Collectors.toList());
+        List<MedicationSchedule> activeSchedules = scheduleRepository.findByPatient_UserIdAndIsActiveTrue(patientId);
+
+        if (activeSchedules.isEmpty()){
+            return Collections.emptyList();
+        }
+
+        return activeSchedules.stream()
+                .map(buildScheduleMapper(activeSchedules))
+                .toList();
     }
 
-    // brings all schedules (including deactivated)
-    public List<MedicationScheduleResponseDto> getAllSchedulesByPatient(Integer patientId) {
-        return scheduleRepository.findByPatient_UserIdAndIsActiveFalse(patientId).stream()
-                .map(this::convertToDtoWithTimes)
-                .collect(Collectors.toList());
-    }
+    // brings all past schedules of a patient
+    public Page<MedicationScheduleResponseDto> getAllPastSchedulesByPatient(Integer patientId, int page, int size) {
 
-    // brings all active PRN schedules
-    public List<MedicationScheduleResponseDto> getPrnSchedulesByPatient(Integer patientId) {
-        return scheduleRepository.findByPatient_UserIdAndIsActiveTrueAndIsPrnTrue(patientId).stream()
-                .map(this::convertToDtoWithTimes)
-                .collect(Collectors.toList());
+        // sorting to show the latest expired schedules on top
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "endDate"));
+
+        Page<MedicationSchedule> schedulePage = scheduleRepository.findByPatient_UserIdAndIsActiveFalse(patientId, pageable);
+
+        if (schedulePage.isEmpty()) {
+            return schedulePage.map(schedule -> MapperUtil.toMedicationScheduleResponseDto(schedule, Collections.emptyList()));
+        }
+
+        return schedulePage.map(buildScheduleMapper(schedulePage.getContent()));
     }
 
     @Transactional
@@ -126,27 +154,36 @@ public class MedicationScheduleService {
     // saving medication times
     private void saveScheduleTimes(MedicationSchedule schedule, MedicationScheduleRequestDto dto) {
         if (Boolean.TRUE.equals(dto.getIsPrn())) {
-            // if isPrn = true, time will be null
+            if (dto.getTimes() != null && !dto.getTimes().isEmpty()) {
+                throw new IllegalArgumentException("PRN medications cannot have time information.");
+            }
+
             MedicationScheduleTime time = MedicationScheduleTime.builder()
                     .schedule(schedule)
                     .scheduledTime(null)
                     .build();
             timeRepository.save(time);
-        } else {
-            // create an entry for each time sent by the frontend
-            if (dto.getTimes() != null && !dto.getTimes().isEmpty()) {
-                for (LocalTime timeVal : dto.getTimes()) {
-                    MedicationScheduleTime time = MedicationScheduleTime.builder()
-                            .schedule(schedule)
-                            .scheduledTime(timeVal)
-                            .build();
-                    timeRepository.save(time);
-                }
+
+        }
+        // if not prn medication:
+        else {
+            // they must have time information
+            if (dto.getTimes() == null || dto.getTimes().isEmpty()) {
+                throw new IllegalArgumentException("You must enter at least 1 time(HH:mm) for medication schedules.");
+            }
+
+            for (LocalTime timeVal : dto.getTimes()) {
+                MedicationScheduleTime time = MedicationScheduleTime.builder()
+                        .schedule(schedule)
+                        .scheduledTime(timeVal)
+                        .build();
+                timeRepository.save(time);
             }
         }
     }
 
     // manual deactivation of a schedule, in case the doctor wants to end it earlier than planned
+    @Transactional
     public void deactivateSchedule(Integer scheduleId) {
         MedicationSchedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND: " + scheduleId));
@@ -177,6 +214,7 @@ public class MedicationScheduleService {
 
     // we can't use <= time for medications because time only holds LocalTime and =<
     // would send notifications for past medications as well
+    @Transactional
     public void processMedications(LocalTime now) {
         List<MedicationScheduleTime> currentTimes = timeRepository.findBySchedule_IsActiveTrueAndScheduledTime(now);
 

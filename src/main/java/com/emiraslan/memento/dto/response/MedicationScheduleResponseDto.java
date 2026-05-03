@@ -1,8 +1,6 @@
 package com.emiraslan.memento.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,12 +27,16 @@ public class MedicationScheduleResponseDto {
     private Boolean isPrn;
     private Boolean isActive;
 
+    private List<TimeInfoDto> times;
+
     // Time information from MedicationSchedulesTime. We combine the two tables in one dto class.
-    @JsonFormat(pattern = "HH:mm")
-    @ArraySchema(schema = @Schema(
-            type = "string",
-            pattern = "HH:mm",
-            example = "09:00"
-    ))
-    private List<LocalTime> times;
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TimeInfoDto{
+        private Integer timeId;
+
+        @JsonFormat(pattern = "HH:mm")
+        private LocalTime time;
+    }
 }

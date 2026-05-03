@@ -4,8 +4,6 @@ import com.emiraslan.memento.dto.*;
 import com.emiraslan.memento.dto.request.*;
 import com.emiraslan.memento.dto.response.*;
 import com.emiraslan.memento.entity.*;
-import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -174,12 +172,13 @@ public class MapperUtil {
             doctorName = entity.getDoctor().getFirstName() + " " + entity.getDoctor().getLastName();
         }
 
-        // create a LocalTime list from times
-        List<LocalTime> timeList = (times != null) ?
+        List<MedicationScheduleResponseDto.TimeInfoDto> timeList =
                 times.stream()
-                        .map(MedicationScheduleTime::getScheduledTime)
-                        .collect(Collectors.toList())
-                : Collections.emptyList();
+                        .map(timeEntity -> new MedicationScheduleResponseDto.TimeInfoDto(
+                                timeEntity.getTimeId(),
+                                timeEntity.getScheduledTime()
+                        ))
+                        .collect(Collectors.toList());
 
         return MedicationScheduleResponseDto.builder()
                 .scheduleId(entity.getScheduleId())
@@ -193,7 +192,7 @@ public class MapperUtil {
                 .endDate(entity.getEndDate())
                 .isPrn(entity.getIsPrn())
                 .isActive(entity.getIsActive())
-                .times(timeList) // created LocalTime list
+                .times(timeList) // created a LocalTime list with ids
                 .build();
     }
 

@@ -19,6 +19,9 @@ public interface MedicationScheduleTimeRepository extends JpaRepository<Medicati
     // brings "now" from all times in active schedules
     List<MedicationScheduleTime> findBySchedule_IsActiveTrueAndScheduledTime(LocalTime scheduledTime);
 
+    // Brings all times belonging to the schedules in the scheduleId list
+    List<MedicationScheduleTime> findBySchedule_ScheduleIdIn(List<Integer> scheduleIds);
+
     // Avoiding 1+2n query in service method by join fetching schedule and patient data
     @Query("""
     SELECT mst FROM MedicationScheduleTime mst

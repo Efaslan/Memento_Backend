@@ -8,7 +8,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.Range;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,17 +44,13 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me/history")
-    public ResponseEntity<List<MedicationScheduleResponseDto>> getMyScheduleHistory(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(scheduleService.getAllSchedulesByPatient(user.getUserId()));
-    }
+    public ResponseEntity<Page<MedicationScheduleResponseDto>> getMyScheduleHistory(
+            @AuthenticationPrincipal User user,
+            @RequestParam(defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(defaultValue = "20") @Range(min = 1, max = 20) Integer size
 
-    @Operation(
-            summary = "Medications a patient takes on need without a specific time."
-    )
-    @PreAuthorize("hasAuthority('PATIENT')")
-    @GetMapping("/me/prn")
-    public ResponseEntity<List<MedicationScheduleResponseDto>> getMyPrnSchedules(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(scheduleService.getPrnSchedulesByPatient(user.getUserId()));
+            ) {
+        return ResponseEntity.ok(scheduleService.getAllPastSchedulesByPatient(user.getUserId(), page, size));
     }
 
     // -----------------DOCTOR OPERATIONS-------------------
@@ -108,9 +107,11 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}/history")
-    public ResponseEntity<List<MedicationScheduleResponseDto>> getPatientScheduleHistory(
-            @PathVariable Integer patientId
+    public ResponseEntity<Page<MedicationScheduleResponseDto>> getPatientScheduleHistory(
+            @PathVariable Integer patientId,
+            @RequestParam(defaultValue = "0") @Min(0) Integer page,
+            @RequestParam(defaultValue = "20") @Range(min = 1, max = 20) Integer size
     ) {
-        return ResponseEntity.ok(scheduleService.getAllSchedulesByPatient(patientId));
+        return ResponseEntity.ok(scheduleService.getAllPastSchedulesByPatient(patientId, page, size));
     }
 }

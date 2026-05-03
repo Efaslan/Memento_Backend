@@ -34,7 +34,7 @@ public class MedicationLogController {
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "7") @Range(min = 0, max = 90) Integer daysBack,
             @RequestParam(defaultValue = "0") @Min(0) Integer page,
-            @RequestParam(defaultValue = "20") @Range(min = 0, max = 50) Integer size
+            @RequestParam(defaultValue = "20") @Range(min = 1, max = 50) Integer size
     ) {
         return ResponseEntity.ok(logService.getRecentLogsSummary(user.getUserId(), daysBack, page, size));
     }

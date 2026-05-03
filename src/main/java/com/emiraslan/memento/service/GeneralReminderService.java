@@ -81,6 +81,7 @@ public class GeneralReminderService {
     // we find general reminders with <= currentDateTime, in case the server went offline during a reminder's time.
     // because we set the next reminder time or complete the reminder after notification, we don't send multiple notifications
     // for a single reminder
+    @Transactional
     public void processGeneralReminders(LocalDateTime now) {
         List<GeneralReminder> dueReminders = reminderRepository.findDueRemindersWithPatient(now);
 

@@ -1,6 +1,8 @@
 package com.emiraslan.memento.repository;
 
 import com.emiraslan.memento.entity.MedicationSchedule;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,10 +16,7 @@ public interface MedicationScheduleRepository extends JpaRepository<MedicationSc
     List<MedicationSchedule> findByPatient_UserIdAndIsActiveTrue(Integer patientId);
 
     // All past medication assigned to a patient
-    List<MedicationSchedule> findByPatient_UserIdAndIsActiveFalse(Integer patientId);
-
-    // All PRN(as needed) medication a patient is taking
-    List<MedicationSchedule> findByPatient_UserIdAndIsActiveTrueAndIsPrnTrue(Integer patientId);
+    Page<MedicationSchedule> findByPatient_UserIdAndIsActiveFalse(Integer patientId, Pageable pageable);
 
     // For CRON job automatic deactivation of a schedule upon endDate
     List<MedicationSchedule> findByIsActiveTrueAndEndDateBefore(LocalDate date);
