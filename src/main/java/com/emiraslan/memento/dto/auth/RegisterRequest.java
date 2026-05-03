@@ -34,7 +34,7 @@ public class RegisterRequest {
     private String password;
 
     @NotBlank(message = "PHONE_NUMBER_REQUIRED")
-    @Pattern(regexp = "^[1-9]\\d{9}$", message = "PHONE_NUMBER_ONLY_DIGITS_DO_NOT_START_WITH_0")
+    @Pattern(regexp = "^[1-9]\\d{9}$", message = "PHONE_NUMBER_10_DIGITS_DO_NOT_START_WITH_0")
     private String phoneNumber;
 
     @NotNull(message = "ROLE_REQUIRED")
