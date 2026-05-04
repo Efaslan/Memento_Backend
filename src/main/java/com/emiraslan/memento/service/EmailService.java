@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class EmailService{
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
+    @Value("${memento.mail.sender}")
     private String fromEmail;
 
     public void sendSimpleEmail(String to, String subject, String body) {

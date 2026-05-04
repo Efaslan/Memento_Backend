@@ -32,7 +32,7 @@ public class OtpService {
 
         saveToRedis(redisKey, otpCode, 5);
 
-        String subject = "Memento - Şifre Sıfırlama";
+        String subject = "Şifre Sıfırlama";
         String body = "Merhaba " + user.getFirstName() + ",\n\n"
                 + "Şifrenizi sıfırlamak için talebiniz alınmıştır. Şifre sıfırlama kodunuz:\n\n"
                 + otpCode + "\n\n"
@@ -59,7 +59,7 @@ public class OtpService {
 
         saveToRedis(redisKey, otpCode, 10);
 
-        String subject = "Memento - Yakın Daveti";
+        String subject = "Yakın Daveti";
         String body = "Merhaba " + targetUser.getFirstName() + ",\n\n"
                 + initiator.getFirstName() + " " + initiator.getLastName() + " sizi Memento'da yakını olarak eklemek istiyor. Onay kodunuz:\n\n"
                 + otpCode + "\n\n"
