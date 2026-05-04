@@ -1,6 +1,6 @@
 package com.emiraslan.memento.security;
 
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.exception.RateLimitExceededException;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;

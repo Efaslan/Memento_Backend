@@ -1,7 +1,7 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.entity.DeviceToken;
-import com.emiraslan.memento.repository.DeviceTokenRepository;
+import com.emiraslan.memento.entity.NotificationToken;
+import com.emiraslan.memento.repository.device.NotificationTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -17,28 +17,29 @@ import java.util.Set;
 @Slf4j
 public class RedisCacheWarmer {
 
-    private final DeviceTokenRepository deviceTokenRepository;
+    private final NotificationTokenRepository notificationTokenRepository;
     private final StringRedisTemplate redisTemplate;
 
+    // loading all fcm tokens to redis when the system starts up to avoid constant db queries while getting user notification tokens
     @EventListener(ApplicationReadyEvent.class)
     public void loadTokensToRedis() {
-        log.info("Starting to warm up Redis with DeviceTokens...");
+        log.info("Starting to warm up Redis with NotificationTokens...");
 
-        // delete oldKeys from last startup, just in case. (in dev, we pull redis from docker anyway so it will always be empty)
-        Set<String> oldKeys = redisTemplate.keys("deviceTokens:user:*");
+        // delete oldKeys from last startup, just in case
+        Set<String> oldKeys = redisTemplate.keys("notificationTokens:user:*");
         if (!oldKeys.isEmpty()) {
             redisTemplate.delete(oldKeys);
         }
 
         // pull all tokens from the db
-        List<DeviceToken> allTokens = deviceTokenRepository.findAll();
+        List<NotificationToken> allTokens = notificationTokenRepository.findAllWithDeviceAndUser();
 
         // save them into redis as a set
-        for (DeviceToken token : allTokens) {
-            String redisKey = "deviceTokens:user:" + token.getUser().getUserId();
+        for (NotificationToken token : allTokens) {
+            String redisKey = "notificationTokens:user:" + token.getUserDevice().getUser().getUserId();
             redisTemplate.opsForSet().add(redisKey, token.getFcmToken());
         }
 
-        log.info("Successfully loaded {} DeviceTokens Tokens into Redis.", allTokens.size());
+        log.info("Successfully loaded {} NotificationTokens Tokens into Redis.", allTokens.size());
     }
 }

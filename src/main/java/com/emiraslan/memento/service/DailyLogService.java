@@ -3,7 +3,7 @@ package com.emiraslan.memento.service;
 import com.emiraslan.memento.dto.request.DailyLogRequestDto;
 import com.emiraslan.memento.dto.response.DailyLogResponseDto;
 import com.emiraslan.memento.entity.DailyLog;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.repository.DailyLogRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.transaction.Transactional;

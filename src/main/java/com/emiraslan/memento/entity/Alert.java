@@ -1,5 +1,6 @@
 package com.emiraslan.memento.entity;
 
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.enums.AlertStatus;
 import com.emiraslan.memento.enums.AlertType;
 import jakarta.persistence.*;

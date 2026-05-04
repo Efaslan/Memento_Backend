@@ -2,7 +2,7 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.request.AlertRequestDto;
 import com.emiraslan.memento.dto.response.AlertResponseDto;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.enums.AlertType;
 import com.emiraslan.memento.service.AlertService;
 import io.swagger.v3.oas.annotations.Operation;

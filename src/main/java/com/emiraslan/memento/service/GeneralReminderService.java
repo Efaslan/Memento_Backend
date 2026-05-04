@@ -3,11 +3,12 @@ package com.emiraslan.memento.service;
 import com.emiraslan.memento.dto.request.GeneralReminderRequestDto;
 import com.emiraslan.memento.dto.response.GeneralReminderResponseDto;
 import com.emiraslan.memento.entity.GeneralReminder;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.enums.RecurrenceRule;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.GeneralReminderRepository;
-import com.emiraslan.memento.repository.UserRepository;
+import com.emiraslan.memento.repository.user.UserRepository;
+import com.emiraslan.memento.service.notification.NotificationService;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -95,7 +96,7 @@ public class GeneralReminderService {
             if (Boolean.TRUE.equals(reminder.getIsRecurring()) && reminder.getRecurrenceRule() != null) {
                 reminder.setReminderTime(calculateNextReminderTime(reminder.getReminderTime(), reminder.getRecurrenceRule()));
                 toUpdate.add(reminder);
-            } else { // delete the reminder if its not recurring
+            } else { // delete the reminder if it's not recurring
                 toDelete.add(reminder);
             }
         }

@@ -4,7 +4,7 @@ import com.emiraslan.memento.dto.request.DoctorProfileRequestDto;
 import com.emiraslan.memento.dto.request.PatientProfileRequestDto;
 import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
 import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;

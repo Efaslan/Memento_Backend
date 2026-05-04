@@ -1,0 +1,47 @@
+package com.emiraslan.memento.repository.user;
+
+import com.emiraslan.memento.entity.user.PatientRelationship;
+import com.emiraslan.memento.enums.RelationshipType;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface PatientRelationshipRepository extends JpaRepository<PatientRelationship, Integer> {
+
+    @Query("""
+        SELECT r FROM PatientRelationship r
+        JOIN FETCH r.patient
+        JOIN FETCH r.caregiver
+        WHERE (r.patient.userId = :userId OR r.caregiver.userId = :userId)
+          AND r.isActive = true
+    """)
+    List<PatientRelationship> findAllActiveRelationshipsByUserId(@Param("userId") Integer userId);
+
+    // Brings all primary contacts
+    List<PatientRelationship> findByPatient_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(Integer patientId);
+
+    // checks if a relationship already exists
+    Optional<PatientRelationship> findByPatient_UserIdAndCaregiver_UserId(Integer patientId, Integer caregiverId);
+
+    // checks if a user is primary contact and active. Used for alert acknowledgements
+    boolean existsByPatient_UserIdAndCaregiver_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(Integer patientId, Integer caregiverId);
+
+    @EntityGraph(attributePaths = {"patient"}) // pulling patient user data together with relationships to avoid n+1 in responseDTO mapper
+    @Query("SELECT r FROM PatientRelationship r " +
+            "WHERE r.caregiver.userId = :doctorId AND r.isActive = true " +
+            "AND (:searchTerm IS NULL OR " +
+            "LOWER(r.patient.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(r.patient.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+    Slice<PatientRelationship> findActivePatientsForDoctor(
+            @Param("doctorId") Integer doctorId,
+            @Param("searchTerm") String searchTerm,
+            Pageable pageable);
+}

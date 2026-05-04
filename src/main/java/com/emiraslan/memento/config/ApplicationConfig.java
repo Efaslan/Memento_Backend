@@ -1,6 +1,6 @@
 package com.emiraslan.memento.config;
 
-import com.emiraslan.memento.repository.UserRepository;
+import com.emiraslan.memento.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

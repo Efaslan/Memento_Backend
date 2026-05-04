@@ -1,5 +1,7 @@
 package com.emiraslan.memento.service;
 
+import com.emiraslan.memento.service.medication.MedicationLogService;
+import com.emiraslan.memento.service.medication.MedicationScheduleService;
 import org.springframework.scheduling.annotation.Scheduled;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

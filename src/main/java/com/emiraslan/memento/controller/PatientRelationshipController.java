@@ -4,7 +4,7 @@ import com.emiraslan.memento.dto.PatientCardDto;
 import com.emiraslan.memento.dto.response.RelationshipResponseDto;
 import com.emiraslan.memento.dto.request.RelationshipRequestDto;
 import com.emiraslan.memento.dto.auth.EmailDto;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.service.PatientRelationshipService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

@@ -2,7 +2,7 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.request.SavedLocationRequestDto;
 import com.emiraslan.memento.dto.response.SavedLocationResponseDto;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.service.SavedLocationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

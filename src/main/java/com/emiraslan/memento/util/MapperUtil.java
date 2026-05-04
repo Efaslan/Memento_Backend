@@ -4,7 +4,18 @@ import com.emiraslan.memento.dto.*;
 import com.emiraslan.memento.dto.request.*;
 import com.emiraslan.memento.dto.response.*;
 import com.emiraslan.memento.entity.*;
+import com.emiraslan.memento.entity.medication.MedicationLog;
+import com.emiraslan.memento.entity.medication.MedicationSchedule;
+import com.emiraslan.memento.entity.medication.MedicationScheduleTime;
+import com.emiraslan.memento.entity.user.DoctorProfile;
+import com.emiraslan.memento.entity.user.PatientProfile;
+import com.emiraslan.memento.entity.user.PatientRelationship;
+import com.emiraslan.memento.entity.user.User;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class MapperUtil {
@@ -285,6 +296,24 @@ public class MapperUtil {
                 .weightKg(profile != null ? profile.getWeightKg() : null)
                 .bloodType(profile != null && profile.getBloodType() != null ? profile.getBloodType() : null)
                 .emergencyNotes(profile != null ? profile.getEmergencyNotes() : null)
+                .build();
+    }
+
+    // for device and tokens
+    public static UserDevice toUserDeviceEntity(User user, String deviceModel, String osVersion) {
+        return UserDevice.builder()
+                .user(user)
+                .deviceModel(deviceModel)
+                .osVersion(osVersion)
+                .lastActive(Instant.now())
+                .build();
+    }
+
+    public static RefreshToken toRefreshTokenEntity(UserDevice device) {
+        return RefreshToken.builder()
+                .userDevice(device)
+                .refreshToken(UUID.randomUUID().toString())
+                .expiryDate(Instant.now().plus(90, ChronoUnit.DAYS))
                 .build();
     }
 }

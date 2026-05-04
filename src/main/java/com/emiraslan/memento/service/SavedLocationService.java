@@ -3,7 +3,7 @@ package com.emiraslan.memento.service;
 import com.emiraslan.memento.dto.request.SavedLocationRequestDto;
 import com.emiraslan.memento.dto.response.SavedLocationResponseDto;
 import com.emiraslan.memento.entity.SavedLocation;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.repository.SavedLocationRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;

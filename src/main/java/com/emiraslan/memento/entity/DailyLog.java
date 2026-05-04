@@ -1,5 +1,6 @@
 package com.emiraslan.memento.entity;
 
+import com.emiraslan.memento.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

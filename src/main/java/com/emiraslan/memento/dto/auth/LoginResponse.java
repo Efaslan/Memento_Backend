@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
-    private String token; // JWT
+
     private UserResponseDto user;
+    private String accessJwtToken;  // 1 hour jwt
+    private String refreshToken; // 90 days refresh token
+
 }

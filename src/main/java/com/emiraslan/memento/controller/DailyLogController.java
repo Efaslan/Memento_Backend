@@ -2,7 +2,7 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.request.DailyLogRequestDto;
 import com.emiraslan.memento.dto.response.DailyLogResponseDto;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.service.DailyLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

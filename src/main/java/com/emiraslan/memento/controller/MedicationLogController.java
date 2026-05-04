@@ -2,8 +2,8 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.response.MedicationLogResponseDto;
 import com.emiraslan.memento.dto.response.MedicationLogSummaryResponseDto;
-import com.emiraslan.memento.entity.User;
-import com.emiraslan.memento.service.MedicationLogService;
+import com.emiraslan.memento.entity.user.User;
+import com.emiraslan.memento.service.medication.MedicationLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;

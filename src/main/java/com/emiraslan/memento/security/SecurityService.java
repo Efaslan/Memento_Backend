@@ -2,10 +2,13 @@ package com.emiraslan.memento.security;
 
 import com.emiraslan.memento.dto.request.GeneralReminderRequestDto;
 import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
-import com.emiraslan.memento.entity.User;
+import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.*;
+import com.emiraslan.memento.repository.medication.MedicationScheduleRepository;
+import com.emiraslan.memento.repository.medication.MedicationScheduleTimeRepository;
+import com.emiraslan.memento.repository.user.PatientRelationshipRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;

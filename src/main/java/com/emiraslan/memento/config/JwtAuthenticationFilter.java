@@ -1,6 +1,6 @@
 package com.emiraslan.memento.config;
 
-import com.emiraslan.memento.service.JwtService;
+import com.emiraslan.memento.service.auth.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import static com.emiraslan.memento.service.AuthService.BLACKLIST_PREFIX;
+import static com.emiraslan.memento.service.auth.AuthService.BLACKLIST_PREFIX;
 
 @Component
 @RequiredArgsConstructor
@@ -59,7 +59,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        userEmail = jwtService.extractUsername(jwt);
+        try { // error checking here because global exception handler comes after the jwt security filter
+            userEmail = jwtService.extractUsername(jwt);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token has expired. Please use refresh token.");
+            return;
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid token.");
+            return;
+        }
 
         // checks if an email is entered, and it isn't authenticated in SecurityContext
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
