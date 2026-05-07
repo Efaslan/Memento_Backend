@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/reminders")
 @RequiredArgsConstructor
-@Tag(name = "05 - General Reminders")
+@Tag(name = "06 - General Reminders")
 @SecurityRequirement(name = "bearerAuth")
 public class GeneralReminderController {
 

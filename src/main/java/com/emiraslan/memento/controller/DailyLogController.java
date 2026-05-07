@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/dailylogs")
 @RequiredArgsConstructor
-@Tag(name = "06 - Daily Logs")
+@Tag(name = "07 - Daily Logs")
 @SecurityRequirement(name = "bearerAuth")
 @Validated
 public class DailyLogController {

@@ -1,8 +1,10 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.auth.DevicePublicKeyRegisterRequestDto;
+import com.emiraslan.memento.dto.request.NotificationTokenRegisterRequestDto;
 import com.emiraslan.memento.dto.response.UserDeviceResponseDto;
 import com.emiraslan.memento.entity.user.User;
+import com.emiraslan.memento.service.notification.NotificationTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,10 +20,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/devices")
 @RequiredArgsConstructor
-@Tag(name = "User Devices", description = "Authenticated device management and remote logout APIs")
+@Tag(name = "02 - User Devices")
 public class UserDeviceController {
 
     private final UserDeviceService userDeviceService;
+    private final NotificationTokenService notificationTokenService;
+
+    @Operation(
+            summary = "Register or update the device's FCM token.",
+            description = "Registers the device's FCM token using the Refresh Token. Push notifications are used for Alerts, Medication reminders, General Reminders, and Daily Logs. The aim is to motivate, while not bothering, the users into keeping track of their medication and daily consumptions."
+    )
+    @PostMapping("/register/fcm-token")
+    public ResponseEntity<Void> registerFcmToken(
+            @Valid @RequestBody NotificationTokenRegisterRequestDto request
+    ) {
+        notificationTokenService.upsertNotificationToken(request);
+        return ResponseEntity.ok().build();
+    }
 
     @Operation(summary = "Lists a user's own devices.")
     @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE')")

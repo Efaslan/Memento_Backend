@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/relationships")
 @RequiredArgsConstructor
-@Tag(name = "03 - Relationships")
+@Tag(name = "04 - Relationships")
 @SecurityRequirement(name = "bearerAuth")
 public class PatientRelationshipController {
 
