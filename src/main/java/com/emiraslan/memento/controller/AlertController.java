@@ -50,8 +50,6 @@ public class AlertController {
         return ResponseEntity.ok(alertService.cancelAlert(alertId));
     }
 
-    // todo, frontend will no longer confirm the fall alert, the backend will have a 30 second timer
-
     @Operation(
             summary = "A relative is checking the situation.",
             description = "Alert status becomes 'acknowledged' when a primary contact affirms the notification."

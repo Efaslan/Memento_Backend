@@ -18,6 +18,7 @@ public class MasterSchedulerService {
     private final GeneralReminderService reminderService;
     private final MedicationScheduleService medicationScheduleService;
     private final MedicationLogService medicationLogService;
+    private final UserDeviceService userDeviceService;
 
     // cron that works each minute to find due general reminders and medications and sends out notifications
     @Scheduled(cron = "0 * * * * *")
@@ -25,7 +26,7 @@ public class MasterSchedulerService {
         LocalDateTime currentDateTime = LocalDateTime.now(); // for general reminders
         LocalTime currentTime = currentDateTime.toLocalTime().truncatedTo(ChronoUnit.MINUTES); // for medications
 
-        log.info("Master Notification CRON Began at {}", currentDateTime);
+        log.info("CRON [Notifications] began: ");
 
         reminderService.processGeneralReminders(currentDateTime);
         medicationScheduleService.processMedications(currentTime);
@@ -34,14 +35,17 @@ public class MasterSchedulerService {
     // checking for missed medications every hour and logs them as skipped if not taken within 2 hours
     @Scheduled(cron = "0 0 * * * *")
     public void masterSkippedMedicationCron() {
-        log.info("CRON [Skipped Medication]: Checking for medications missed by >2 hours");
+        log.info("CRON [Skipped Medications]: Checking for medications missed by >2 hours");
         medicationLogService.markMissedMedicationsAsSkipped();
     }
 
-    // works at 00:05 each night for expired schedules and deactivates them
+    // works at 00:05 each night
     @Scheduled(cron = "0 5 0 * * *")
-    public void masterDeactivateSchedulesCron() {
-        log.info("CRON [Deactivate Schedules]: Checking for expired schedules");
+    public void endOfDayCron() {
+        log.info("CRON [End of day] began:");
+        // Finds expired medication schedules and deactivates them
         medicationScheduleService.autoDeactivateExpiredSchedules();
+        // Deletes expired refresh tokens
+        userDeviceService.deleteExpiredRefreshTokens();
     }
 }

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "general_reminders", indexes = {
         // for monthly calendar view, patient -> reminder time
-        @Index(name = "idx_reminder_patient_time", columnList = "patient_user_id, reminder_time"),
+        @Index(name = "idx_reminder_patient", columnList = "patient_user_id"),
 
         // for the CRON job to find due reminders, just reminder time
         @Index(name = "idx_reminder_time_only", columnList = "reminder_time")

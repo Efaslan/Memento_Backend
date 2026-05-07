@@ -89,8 +89,10 @@ public class GeneralReminderService {
         List<GeneralReminder> toUpdate = new ArrayList<>();
         List<GeneralReminder> toDelete = new ArrayList<>();
 
+        int notificationCounter = 0;
         for (GeneralReminder reminder : dueReminders) {
             notificationService.sendNotificationToUser(reminder.getPatient().getUserId(), "Memento", reminder.getTitle());
+            notificationCounter++;
 
             // for isRecurring = true reminders
             if (Boolean.TRUE.equals(reminder.getIsRecurring()) && reminder.getRecurrenceRule() != null) {
@@ -103,6 +105,7 @@ public class GeneralReminderService {
         // batch write
         if (!toDelete.isEmpty()) reminderRepository.deleteAllInBatch(toDelete);
         if (!toUpdate.isEmpty()) reminderRepository.saveAll(toUpdate);
+        log.info("{} notifications sent for General Reminders.", notificationCounter);
     }
 
     private LocalDateTime calculateNextReminderTime(LocalDateTime currentReminderTime, RecurrenceRule recurrenceRule){

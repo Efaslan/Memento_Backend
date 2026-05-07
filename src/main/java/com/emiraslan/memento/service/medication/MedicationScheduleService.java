@@ -199,21 +199,8 @@ public class MedicationScheduleService {
     // cron job method, each night 00:05
     @Transactional
     public void autoDeactivateExpiredSchedules() {
-        LocalDate today = LocalDate.now();
-
-        // find all schedules with an endDate before today
-        List<MedicationSchedule> expiredSchedules = scheduleRepository.findByIsActiveTrueAndEndDateBefore(today);
-
-        if (!expiredSchedules.isEmpty()) {
-            for (MedicationSchedule schedule : expiredSchedules) {
-                schedule.setIsActive(false); // deactivate all found expired schedules
-            }
-            scheduleRepository.saveAll(expiredSchedules);
-
-            log.info("Deactivated {} expired medication schedules.", expiredSchedules.size());
-        } else {
-            log.info("No expired medication schedule was found.");
-        }
+        int updatedCount = scheduleRepository.deactivateExpiredSchedules(LocalDate.now());
+        log.info("Deactivated {} expired medication schedules.", updatedCount);
     }
 
     // we can't use <= time for medications because time only holds LocalTime and =<
@@ -222,11 +209,14 @@ public class MedicationScheduleService {
     public void processMedications(LocalTime now) {
         List<MedicationScheduleTime> currentTimes = timeRepository.findBySchedule_IsActiveTrueAndScheduledTime(now);
 
+        int notificationCounter = 0;
         for (MedicationScheduleTime time : currentTimes) {
             String title = "İlaç Vakti!";
             String body = time.getSchedule().getMedicationName() + " ilacından " + time.getSchedule().getDosage() + " alınız.";
 
             notificationService.sendNotificationToUser(time.getSchedule().getPatient().getUserId(), title, body);
+            notificationCounter++;
         }
+        log.info("{} notifications sent for Medication Reminders.", notificationCounter);
     }
 }

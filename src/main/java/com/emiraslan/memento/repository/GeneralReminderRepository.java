@@ -15,13 +15,6 @@ public interface GeneralReminderRepository extends JpaRepository<GeneralReminder
     // All reminders of a patient
     List<GeneralReminder> findByPatient_UserIdOrderByReminderTimeAsc(Integer patientId);
 
-    // a patient's reminders within a timespan (May 1st - 31st)
-    List<GeneralReminder> findByPatient_UserIdAndReminderTimeBetweenOrderByReminderTimeAsc(
-            Integer patientId,
-            LocalDateTime start,
-            LocalDateTime end
-    );
-
     // Finding reminders and patients for Daily Reminder notification Cron
     @Query("SELECT r FROM GeneralReminder r JOIN FETCH r.patient WHERE r.reminderTime <= :now")
     List<GeneralReminder> findDueRemindersWithPatient(@Param("now") LocalDateTime now);
