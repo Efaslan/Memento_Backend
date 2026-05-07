@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -81,7 +81,7 @@ public class UserDeviceService {
     @Transactional
     public void deleteExpiredRefreshTokens() {
         // deleting all refresh tokens that has an expiry date before now
-        int deletedCount = refreshTokenRepository.deleteExpiredRefreshTokens(Instant.now());
+        int deletedCount = refreshTokenRepository.deleteExpiredRefreshTokens(LocalDateTime.now());
         log.info("Deleted {} expired refresh tokens from database.", deletedCount);
     }
 }

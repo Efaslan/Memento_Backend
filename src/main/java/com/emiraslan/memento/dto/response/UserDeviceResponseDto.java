@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -17,5 +17,5 @@ public class UserDeviceResponseDto {
     private String deviceModel;
     private String osVersion;
     private boolean biometricEnabled;
-    private Instant lastActive;
+    private LocalDateTime lastActive;
 }

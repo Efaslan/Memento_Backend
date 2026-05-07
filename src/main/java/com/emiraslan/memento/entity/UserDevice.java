@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -45,7 +45,7 @@ public class UserDevice {
 
     @Column(name = "last_active")
     @Builder.Default
-    private Instant lastActive = Instant.now();
+    private LocalDateTime lastActive = LocalDateTime.now();
 
     // --- CASCADE DELETE ---
     // if a device is deleted, all tokens related to it are deleted as well

@@ -33,7 +33,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -131,7 +131,7 @@ public class AuthService {
         User user = refreshToken.getUserDevice().getUser();
 
         // update the device's last active info
-        refreshToken.getUserDevice().setLastActive(Instant.now());
+        refreshToken.getUserDevice().setLastActive(LocalDateTime.now());
         userDeviceRepository.save(refreshToken.getUserDevice());
 
         // generate a new short-lived JWT (refresh token stays the same)
@@ -210,7 +210,7 @@ public class AuthService {
         String newAccessJwt = jwtService.generateToken(extraClaims, user);
 
         // update the device's last active info
-        device.setLastActive(Instant.now());
+        device.setLastActive(LocalDateTime.now());
         userDeviceRepository.save(device);
 
         // return device id (mobile already has it), new refresh and JWT access tokens

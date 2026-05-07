@@ -12,8 +12,7 @@ import com.emiraslan.memento.entity.user.PatientProfile;
 import com.emiraslan.memento.entity.user.PatientRelationship;
 import com.emiraslan.memento.entity.user.User;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -305,7 +304,7 @@ public class MapperUtil {
                 .user(user)
                 .deviceModel(deviceModel)
                 .osVersion(osVersion)
-                .lastActive(Instant.now())
+                .lastActive(LocalDateTime.now())
                 .build();
     }
 
@@ -313,7 +312,7 @@ public class MapperUtil {
         return RefreshToken.builder()
                 .userDevice(device)
                 .refreshToken(UUID.randomUUID().toString())
-                .expiryDate(Instant.now().plus(14, ChronoUnit.DAYS))
+                .expiryDate(LocalDateTime.now().plusDays(14))
                 .build();
     }
 

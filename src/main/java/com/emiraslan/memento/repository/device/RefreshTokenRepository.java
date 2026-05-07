@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -22,5 +22,5 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Inte
     // clear automatically removes the deleted entity from JPA cache
     @Modifying(clearAutomatically = true) // @Query annotation's default behaviour is SELECT. With @Modifying, we tell JPA that we will be doing a read or delete action.
     @Query("DELETE FROM RefreshToken r WHERE r.expiryDate < :now")
-    int deleteExpiredRefreshTokens(@Param("now") Instant now);
+    int deleteExpiredRefreshTokens(@Param("now") LocalDateTime now);
 }

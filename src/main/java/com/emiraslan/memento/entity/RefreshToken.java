@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -33,5 +33,5 @@ public class RefreshToken {
     private String refreshToken;
 
     @Column(name = "expiry_date", nullable = false)
-    private Instant expiryDate;
+    private LocalDateTime expiryDate;
 }

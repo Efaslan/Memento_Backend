@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -50,7 +50,7 @@ public class NotificationTokenService {
 
         // set the new fcm token
         notificationToken.setFcmToken(newFcmToken);
-        notificationToken.setLastUpdated(Instant.now());
+        notificationToken.setLastUpdated(LocalDateTime.now());
 
         // save it to db and redis
         notificationTokenRepository.save(notificationToken);
