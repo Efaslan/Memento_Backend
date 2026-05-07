@@ -2,9 +2,18 @@ package com.emiraslan.memento.repository.device;
 
 import com.emiraslan.memento.entity.UserDevice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserDeviceRepository extends JpaRepository<UserDevice, Integer> {
 
+    @Query("SELECT d FROM UserDevice d JOIN FETCH d.user WHERE d.deviceId = :deviceId")
+    Optional<UserDevice> findByIdWithUser(@Param("deviceId") Integer deviceId);
+
+    List<UserDevice> findAllByUser_UserId(Integer userId);
 }

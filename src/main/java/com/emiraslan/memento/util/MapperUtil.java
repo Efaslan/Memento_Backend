@@ -313,7 +313,21 @@ public class MapperUtil {
         return RefreshToken.builder()
                 .userDevice(device)
                 .refreshToken(UUID.randomUUID().toString())
-                .expiryDate(Instant.now().plus(90, ChronoUnit.DAYS))
+                .expiryDate(Instant.now().plus(14, ChronoUnit.DAYS))
+                .build();
+    }
+
+    public static UserDeviceResponseDto toUserDeviceResponseDto(UserDevice device) {
+        if (device == null) {
+            return null;
+        }
+
+        return UserDeviceResponseDto.builder()
+                .deviceId(device.getDeviceId())
+                .deviceModel(device.getDeviceModel())
+                .osVersion(device.getOsVersion())
+                .biometricEnabled(device.getBiometricEnabled())
+                .lastActive(device.getLastActive())
                 .build();
     }
 }

@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @Builder
@@ -38,17 +36,22 @@ public class UserDevice {
     @Column(name = "os_version", length = 50)
     private String osVersion;
 
+    @Column(name = "public_key")
+    private String publicKey;
+
+    @Column(name = "biometric_enabled")
+    @Builder.Default
+    private Boolean biometricEnabled = false;
+
     @Column(name = "last_active")
     @Builder.Default
     private Instant lastActive = Instant.now();
 
     // --- CASCADE DELETE ---
     // if a device is deleted, all tokens related to it are deleted as well
-    @OneToMany(mappedBy = "userDevice", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<RefreshToken> refreshTokens = new ArrayList<>();
+    @OneToOne(mappedBy = "userDevice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private RefreshToken refreshToken;
 
-    @OneToMany(mappedBy = "userDevice", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<NotificationToken> notificationTokens = new ArrayList<>();
+    @OneToOne(mappedBy = "userDevice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private NotificationToken notificationToken;
 }

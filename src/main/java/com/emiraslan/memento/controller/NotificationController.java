@@ -25,7 +25,7 @@ public class NotificationController {
     public ResponseEntity<Void> registerToken(
             @Valid @RequestBody NotificationTokenRegisterRequestDto request
             ) {
-        notificationTokenService.updateNotificationToken(request);
+        notificationTokenService.upsertNotificationToken(request);
         return ResponseEntity.ok().build();
     }
 }

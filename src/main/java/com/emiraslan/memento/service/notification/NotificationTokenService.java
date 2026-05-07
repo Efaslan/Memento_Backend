@@ -26,7 +26,7 @@ public class NotificationTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
-    public void updateNotificationToken(NotificationTokenRegisterRequestDto dto) {
+    public void upsertNotificationToken(NotificationTokenRegisterRequestDto dto) {
 
         // find the user and the device through the refresh token
         RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(dto.getRefreshToken())

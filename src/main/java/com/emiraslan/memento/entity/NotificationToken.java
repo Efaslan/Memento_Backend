@@ -23,7 +23,7 @@ public class NotificationToken {
     @Column(name = "token_id")
     private Integer tokenId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id", nullable = false)
     private UserDevice userDevice;
 

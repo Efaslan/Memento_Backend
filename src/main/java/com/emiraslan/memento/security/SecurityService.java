@@ -2,10 +2,12 @@ package com.emiraslan.memento.security;
 
 import com.emiraslan.memento.dto.request.GeneralReminderRequestDto;
 import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
+import com.emiraslan.memento.entity.UserDevice;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.*;
+import com.emiraslan.memento.repository.device.UserDeviceRepository;
 import com.emiraslan.memento.repository.medication.MedicationScheduleRepository;
 import com.emiraslan.memento.repository.medication.MedicationScheduleTimeRepository;
 import com.emiraslan.memento.repository.user.PatientRelationshipRepository;
@@ -25,6 +27,7 @@ public class SecurityService {
     private final AlertRepository alertRepository;
     private final MedicationScheduleRepository medicationScheduleRepository;
     private final MedicationScheduleTimeRepository timesRepository;
+    private final UserDeviceRepository userDeviceRepository;
 
     // --- helper method ----
     private boolean hasActiveRelationship(Integer patientId, Integer caregiverId){
@@ -202,5 +205,31 @@ public class SecurityService {
                     return true;
                 })
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND"));
+    }
+
+    // ========================================================================
+    // USER DEVICE SECURITY
+    // ========================================================================
+
+    public boolean isDeviceOwner(Integer deviceId, User user){
+        UserDevice device = userDeviceRepository.findByIdWithUser(deviceId)
+                .orElseThrow(() -> new EntityNotFoundException("DEVICE_NOT_FOUND"));
+
+        if(!device.getUser().getUserId().equals(user.getUserId())){
+            throw new AccessDeniedException("YOU_ARE_NOT_DEVICE_OWNER");
+        }
+        return true;
+    }
+
+    public boolean canManageDevice(Integer deviceId, User relativeUser){
+        UserDevice device = userDeviceRepository.findByIdWithUser(deviceId)
+                .orElseThrow(() -> new EntityNotFoundException("DEVICE_NOT_FOUND"));
+
+        User patient = device.getUser();
+
+        if(!hasActiveRelationship(patient.getUserId(), relativeUser.getUserId())){
+            throw new AccessDeniedException("YOU_ARE_NOT_RELATED_TO_DEVICE_OWNER");
+        }
+        return true;
     }
 }

@@ -14,6 +14,6 @@ public class LoginResponse {
 
     private UserResponseDto user;
     private String accessJwtToken;  // 1 hour jwt
-    private String refreshToken; // 90 days refresh token
-
+    private String refreshToken; // 14 days refresh token
+    private Integer deviceId;
 }

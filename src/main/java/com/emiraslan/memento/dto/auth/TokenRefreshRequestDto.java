@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto.request;
+package com.emiraslan.memento.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
