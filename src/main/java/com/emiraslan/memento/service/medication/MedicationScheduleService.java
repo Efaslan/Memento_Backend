@@ -198,15 +198,14 @@ public class MedicationScheduleService {
 
     // cron job method, each night 00:05
     @Transactional
-    public void autoDeactivateExpiredSchedules() {
-        int updatedCount = scheduleRepository.deactivateExpiredSchedules(LocalDate.now());
-        log.info("Deactivated {} expired medication schedules.", updatedCount);
+    public int autoDeactivateExpiredSchedules() {
+        return scheduleRepository.deactivateExpiredSchedules(LocalDate.now());
     }
 
     // we can't use <= time for medications because time only holds LocalTime and =<
     // would send notifications for past medications as well
     @Transactional
-    public void processMedications(LocalTime now) {
+    public int processMedications(LocalTime now) {
         List<MedicationScheduleTime> currentTimes = timeRepository.findBySchedule_IsActiveTrueAndScheduledTime(now);
 
         int notificationCounter = 0;
@@ -217,6 +216,6 @@ public class MedicationScheduleService {
             notificationService.sendNotificationToUser(time.getSchedule().getPatient().getUserId(), title, body);
             notificationCounter++;
         }
-        log.info("{} notifications sent for Medication Reminders.", notificationCounter);
+        return notificationCounter;
     }
 }

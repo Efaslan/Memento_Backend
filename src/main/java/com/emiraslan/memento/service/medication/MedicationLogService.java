@@ -108,8 +108,7 @@ public class MedicationLogService {
 
     // cron job works every hour to check schedule times and automatically log old ones as SKIPPED if 2 hours past
     @Transactional
-    public void markMissedMedicationsAsSkipped() {
-        log.info("Scheduled Task started: Checking for skipped medication...");
+    public int markMissedMedicationsAsSkipped() {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
@@ -121,7 +120,7 @@ public class MedicationLogService {
 
         if (unloggedOverdueTimes.isEmpty()) {
             log.info("No unlogged overdue medications found.");
-            return;
+            return 0;
         }
 
         // all unlogged medication will be saved as SKIPPED
@@ -137,6 +136,6 @@ public class MedicationLogService {
             logsToSave.add(skippedLog);
         }
         logRepository.saveAll(logsToSave); // batch save the list
-        log.info("Automatically Skipped {} medications.", logsToSave.size());
+        return logsToSave.size();
     }
 }

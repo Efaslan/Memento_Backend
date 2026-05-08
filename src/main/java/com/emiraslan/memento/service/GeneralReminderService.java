@@ -83,7 +83,7 @@ public class GeneralReminderService {
     // because we set the next reminder time or complete the reminder after notification, we don't send multiple notifications
     // for a single reminder
     @Transactional
-    public void processGeneralReminders(LocalDateTime now) {
+    public int processGeneralReminders(LocalDateTime now) {
         List<GeneralReminder> dueReminders = reminderRepository.findDueRemindersWithPatient(now);
 
         List<GeneralReminder> toUpdate = new ArrayList<>();
@@ -105,7 +105,7 @@ public class GeneralReminderService {
         // batch write
         if (!toDelete.isEmpty()) reminderRepository.deleteAllInBatch(toDelete);
         if (!toUpdate.isEmpty()) reminderRepository.saveAll(toUpdate);
-        log.info("{} notifications sent for General Reminders.", notificationCounter);
+        return notificationCounter;
     }
 
     private LocalDateTime calculateNextReminderTime(LocalDateTime currentReminderTime, RecurrenceRule recurrenceRule){

@@ -26,17 +26,22 @@ public class MasterSchedulerService {
         LocalDateTime currentDateTime = LocalDateTime.now(); // for general reminders
         LocalTime currentTime = currentDateTime.toLocalTime().truncatedTo(ChronoUnit.MINUTES); // for medications
 
-        log.info("CRON [Notifications] began: ");
+        log.info("CRON [Notifications] began: Sending notifications for General Reminders and Medications.");
 
-        reminderService.processGeneralReminders(currentDateTime);
-        medicationScheduleService.processMedications(currentTime);
+        int generalNotifCount = reminderService.processGeneralReminders(currentDateTime);
+        int medicationNotifCount = medicationScheduleService.processMedications(currentTime);
+
+        log.info("CRON [Notifications] ended: GeneralReminders: {}, Medications: {} notifications sent.", generalNotifCount, medicationNotifCount);
     }
 
     // checking for missed medications every hour and logs them as skipped if not taken within 2 hours
     @Scheduled(cron = "0 0 * * * *")
     public void masterSkippedMedicationCron() {
-        log.info("CRON [Skipped Medications]: Checking for medications missed by >2 hours");
-        medicationLogService.markMissedMedicationsAsSkipped();
+        log.info("CRON [Skipped Medications] began: Checking for medications missed by >2 hours.");
+
+        int missedMedicationCounter = medicationLogService.markMissedMedicationsAsSkipped();
+
+        log.info("CRON [Skipped Medications] ended: {} medications were logged as SKIPPED.", missedMedicationCounter);
     }
 
     // works at 00:05 each night
@@ -44,8 +49,10 @@ public class MasterSchedulerService {
     public void endOfDayCron() {
         log.info("CRON [End of day] began:");
         // Finds expired medication schedules and deactivates them
-        medicationScheduleService.autoDeactivateExpiredSchedules();
+        int deactivatedSchedules = medicationScheduleService.autoDeactivateExpiredSchedules();
         // Deletes expired refresh tokens
-        userDeviceService.deleteExpiredRefreshTokens();
+        int expiredRefreshTokens = userDeviceService.deleteExpiredRefreshTokens();
+
+        log.info("CRON [End of day] ended: Deactivated {} schedules, and deleted {} expired Refresh Tokens.", deactivatedSchedules, expiredRefreshTokens);
     }
 }

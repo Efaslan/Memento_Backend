@@ -79,9 +79,8 @@ public class UserDeviceService {
         }
     }
     @Transactional
-    public void deleteExpiredRefreshTokens() {
+    public int deleteExpiredRefreshTokens() {
         // deleting all refresh tokens that has an expiry date before now
-        int deletedCount = refreshTokenRepository.deleteExpiredRefreshTokens(LocalDateTime.now());
-        log.info("Deleted {} expired refresh tokens from database.", deletedCount);
+        return refreshTokenRepository.deleteExpiredRefreshTokens(LocalDateTime.now());
     }
 }
