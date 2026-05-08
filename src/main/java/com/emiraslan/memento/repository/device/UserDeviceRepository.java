@@ -2,6 +2,7 @@ package com.emiraslan.memento.repository.device;
 
 import com.emiraslan.memento.entity.UserDevice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,8 @@ public interface UserDeviceRepository extends JpaRepository<UserDevice, Integer>
     Optional<UserDevice> findByIdWithUser(@Param("deviceId") Integer deviceId);
 
     List<UserDevice> findAllByUser_UserId(Integer userId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE UserDevice d SET d.biometricEnabled = :isEnabled WHERE d.deviceId = :deviceId")
+    int updateBiometricStatus(@Param("deviceId") Integer deviceId, @Param("isEnabled") boolean isEnabled);
 }

@@ -83,4 +83,15 @@ public class UserDeviceService {
         // deleting all refresh tokens that has an expiry date before now
         return refreshTokenRepository.deleteExpiredRefreshTokens(LocalDateTime.now());
     }
+
+    @Transactional
+    public void toggleBiometric(Integer deviceId, boolean isBiometricEnabled){
+        int updatedRows = userDeviceRepository.updateBiometricStatus(deviceId, isBiometricEnabled);
+
+        if (updatedRows == 0) {
+            throw new EntityNotFoundException("DEVICE_NOT_FOUND");
+        }
+
+        log.info("Biometric status updated to {} for Device ID: {}", isBiometricEnabled, deviceId);
+    }
 }

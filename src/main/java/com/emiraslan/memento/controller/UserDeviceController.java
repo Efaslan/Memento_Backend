@@ -1,6 +1,7 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.auth.DevicePublicKeyRegisterRequestDto;
+import com.emiraslan.memento.dto.request.BiometricToggleRequestDto;
 import com.emiraslan.memento.dto.request.NotificationTokenRegisterRequestDto;
 import com.emiraslan.memento.dto.response.UserDeviceResponseDto;
 import com.emiraslan.memento.entity.user.User;
@@ -8,6 +9,7 @@ import com.emiraslan.memento.service.notification.NotificationTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -70,6 +72,20 @@ public class UserDeviceController {
             @Valid @RequestBody DevicePublicKeyRegisterRequestDto request
     ) {
         userDeviceService.registerPublicKey(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "Toggle biometric login preference for a device",
+            description = "Biometric status can only be updated for the current user device (checked by mobile)."
+    )
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.isDeviceOwner(#deviceId, principal)")
+    @PatchMapping("/{deviceId}/biometric")
+    public ResponseEntity<Void> toggleBiometric(
+            @PathVariable Integer deviceId,
+            @NotNull @RequestBody BiometricToggleRequestDto request
+    ) {
+        userDeviceService.toggleBiometric(deviceId, request.getIsBiometricEnabled());
         return ResponseEntity.ok().build();
     }
 
