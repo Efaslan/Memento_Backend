@@ -1,5 +1,6 @@
 package com.emiraslan.memento.service.auth;
 
+import com.emiraslan.memento.entity.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -21,7 +22,7 @@ public class JwtService {
     private String secretKey;
 
     // Users log in through emails
-    public String extractUsername(String token) {
+    public String extractUserId(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -35,9 +36,13 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+
+        // casting userdetails to our User entity to reach getUserId method
+        User user = (User) userDetails;
+
         return Jwts.builder()
                 .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername()) // getUsername will return an email
+                .setSubject(String.valueOf(user.getUserId())) // we put the user's id as the subject of JWT
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour short-lived JWT access token
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -45,8 +50,9 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String email = extractUsername(token);
-        return (email.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        final String extractedId = extractUserId(token);
+        User user = (User) userDetails;
+        return (extractedId.equals(String.valueOf(user.getUserId()))) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {

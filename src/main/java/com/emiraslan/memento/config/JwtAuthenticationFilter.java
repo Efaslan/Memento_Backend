@@ -1,5 +1,7 @@
 package com.emiraslan.memento.config;
 
+import com.emiraslan.memento.entity.user.User;
+import com.emiraslan.memento.repository.user.UserRepository;
 import com.emiraslan.memento.service.auth.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,8 +12,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -25,7 +25,7 @@ import static com.emiraslan.memento.service.auth.AuthService.BLACKLIST_PREFIX;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
 
     @Override
@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String userEmail;
+        final String userIdString;
 
         // checking if the header is for auth, if not, continues the filter chain
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -60,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try { // error checking here because global exception handler comes after the jwt security filter
-            userEmail = jwtService.extractUsername(jwt);
+            userIdString = jwtService.extractUserId(jwt);
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Token has expired. Please use refresh token.");
@@ -72,17 +72,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // checks if an email is entered, and it isn't authenticated in SecurityContext
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (userIdString != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail); // find user
+            // parsing string into int
+            Integer userId = Integer.parseInt(userIdString);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+            // finding the user through their id
+            User user = userRepository.findById(userId).orElse(null);
+
+            if (user != null && jwtService.isTokenValid(jwt, user)) {
 
                 // if jwt is valid, create an auth token for the user and get their authorities
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        user,
                         null,
-                        userDetails.getAuthorities()
+                        user.getAuthorities()
                 );
 
                 authToken.setDetails(
@@ -93,7 +97,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-
         // continue the filter chain
         filterChain.doFilter(request, response);
     }
