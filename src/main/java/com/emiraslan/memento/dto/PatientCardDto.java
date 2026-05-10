@@ -1,6 +1,7 @@
 package com.emiraslan.memento.dto;
 
 import com.emiraslan.memento.enums.BloodType;
+import com.emiraslan.memento.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class PatientCardDto { // patient view cards for doctor web application
     private String firstName;
     private String lastName;
     private String email;
+    private Gender gender;
     private LocalDate dateOfBirth;
     private Integer heightCm;
     private Double weightKg;

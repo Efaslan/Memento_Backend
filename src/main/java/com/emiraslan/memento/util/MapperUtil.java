@@ -28,6 +28,7 @@ public class MapperUtil {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .phoneNumber(user.getPhoneNumber())
+                .gender(user.getGender())
                 .role(user.getRole())
                 .build();
     } // see AuthService for dto->entity
@@ -290,6 +291,7 @@ public class MapperUtil {
                 .firstName(patient.getFirstName())
                 .lastName(patient.getLastName())
                 .email(patient.getEmail())
+                .gender(patient.getGender())
                 .dateOfBirth(profile != null ? profile.getDateOfBirth() : null)
                 .heightCm(profile != null ? profile.getHeightCm() : null)
                 .weightKg(profile != null ? profile.getWeightKg() : null)

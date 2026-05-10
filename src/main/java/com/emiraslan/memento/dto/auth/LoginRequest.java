@@ -13,7 +13,7 @@ public class LoginRequest {
     private String email;
 
     @NotBlank(message = "PASSWORD_REQUIRED")
-    @Size(min = 10, max = 30, message = "PASSWORD_MUST_BE_MIN_10_MAX_30_CHARACTERS")
+    @Size(min = 8, max = 30, message = "PASSWORD_MUST_BE_MIN_8_MAX_30_CHARACTERS")
     private String password;
 
     @Size(max = 100, message = "DEVICE_MODEL_TOO_LONG")

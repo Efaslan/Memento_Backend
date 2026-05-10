@@ -119,7 +119,6 @@ public class MedicationLogService {
                 .findOverdueTimesWithoutLogsToday(thresholdTime, startOfDay, now);
 
         if (unloggedOverdueTimes.isEmpty()) {
-            log.info("No unlogged overdue medications found.");
             return 0;
         }
 

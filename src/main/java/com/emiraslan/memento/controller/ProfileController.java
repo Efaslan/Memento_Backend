@@ -1,6 +1,8 @@
 package com.emiraslan.memento.controller;
 
+import com.emiraslan.memento.dto.auth.EmailDto;
 import com.emiraslan.memento.dto.request.DoctorProfileRequestDto;
+import com.emiraslan.memento.dto.request.EmailChangeRequestDto;
 import com.emiraslan.memento.dto.request.PatientProfileRequestDto;
 import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
 import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
@@ -47,11 +49,11 @@ public class ProfileController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @PutMapping("/patient/me")
-    public ResponseEntity<PatientProfileResponseDto> updateMyPatientProfile(
+    public ResponseEntity<PatientProfileResponseDto> upsertMyPatientProfile(
             @Valid @RequestBody PatientProfileRequestDto dto,
             @AuthenticationPrincipal User patient
     ) {
-        return ResponseEntity.ok(profileService.updatePatientProfile(patient.getUserId(), dto));
+        return ResponseEntity.ok(profileService.upsertPatientProfile(patient.getUserId(), dto));
     }
 
     @Operation(
@@ -59,11 +61,11 @@ public class ProfileController {
     )
     @PreAuthorize("hasAuthority('DOCTOR')")
     @PutMapping("/doctor/me")
-    public ResponseEntity<DoctorProfileResponseDto> updateMyDoctorProfile(
+    public ResponseEntity<DoctorProfileResponseDto> upsertMyDoctorProfile(
             @Valid @RequestBody DoctorProfileRequestDto dto,
             @AuthenticationPrincipal User doctor
     ) {
-        return ResponseEntity.ok(profileService.updateDoctorProfile(doctor.getUserId(), dto));
+        return ResponseEntity.ok(profileService.upsertDoctorProfile(doctor.getUserId(), dto));
     }
 
     @Operation(
@@ -75,5 +77,31 @@ public class ProfileController {
             @PathVariable Integer patientId
     ) {
         return ResponseEntity.ok(profileService.getPatientProfile(patientId));
+    }
+
+    @Operation(
+            summary = "Request OTP for email change."
+    )
+    @PostMapping("/email/change-request")
+    public ResponseEntity<String> requestEmailChange(
+            @AuthenticationPrincipal User user,
+            @RequestBody @Valid EmailDto dto) {
+
+        profileService.requestEmailChange(user.getUserId(), dto.getEmail());
+
+        return ResponseEntity.ok("OTP_SENT_TO_NEW_EMAIL");
+    }
+
+    @Operation(
+            summary = "Verify OTP and update email."
+    )
+    @PostMapping("/email/change-verify")
+    public ResponseEntity<String> verifyEmailChange(
+            @AuthenticationPrincipal User user,
+            @RequestBody @Valid EmailChangeRequestDto dto) {
+
+        profileService.verifyAndChangeEmail(user.getUserId(), dto.getNewEmail(), dto.getOtpCode());
+
+        return ResponseEntity.ok("EMAIL_SUCCESSFULLY_UPDATED");
     }
 }

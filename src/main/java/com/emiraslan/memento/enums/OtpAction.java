@@ -2,5 +2,6 @@ package com.emiraslan.memento.enums;
 
 public enum OtpAction {
     PASSWORD_RESET,
-    RELATIONSHIP_INVITE
+    RELATIONSHIP_INVITE,
+    EMAIL_CHANGE
 }

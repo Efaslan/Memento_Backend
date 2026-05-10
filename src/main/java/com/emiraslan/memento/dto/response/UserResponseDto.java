@@ -1,5 +1,6 @@
 package com.emiraslan.memento.dto.response;
 
+import com.emiraslan.memento.enums.Gender;
 import com.emiraslan.memento.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,7 @@ public class UserResponseDto {
     private String firstName;
     private String lastName;
     private String phoneNumber;
+    private Gender gender;
     private UserRole role;
     // No passwordHash, createdAt
 }

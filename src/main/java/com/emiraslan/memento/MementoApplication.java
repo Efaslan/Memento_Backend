@@ -4,7 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-
 @SpringBootApplication
 @EnableScheduling
 public class MementoApplication {
@@ -16,6 +15,8 @@ public class MementoApplication {
         System.out.println("⚠️ Notifications will not work unless you have a serviceAccountKey.json in resources. Please check FirebaseConfig.java class. ⚠️");
 
         // RedisCacheWarmer starts on ApplicationReadyEvent
+
+        // -Dspring.profiles.active=dev
     }
 
     // Setting the timezone with @PostConstruct shows wrong logging times. I directly set the Digital Ocean VM's timezone into Europe/Istanbul

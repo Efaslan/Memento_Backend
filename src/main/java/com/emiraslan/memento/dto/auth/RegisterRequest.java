@@ -1,5 +1,6 @@
 package com.emiraslan.memento.dto.auth;
 
+import com.emiraslan.memento.enums.Gender;
 import com.emiraslan.memento.enums.UserRole;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "PASSWORD_REQUIRED")
-    @Size(min = 10, max = 30, message = "PASSWORD_MUST_BE_MIN_10_MAX_30_CHARACTERS")
+    @Size(min = 8, max = 30, message = "PASSWORD_MUST_BE_MIN_8_MAX_30_CHARACTERS")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).+$",
             message = "Your password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."
@@ -36,6 +37,9 @@ public class RegisterRequest {
     @NotBlank(message = "PHONE_NUMBER_REQUIRED")
     @Pattern(regexp = "^[1-9]\\d{9}$", message = "PHONE_NUMBER_10_DIGITS_DO_NOT_START_WITH_0")
     private String phoneNumber;
+
+    @NotNull(message = "GENDER_REQUIRED")
+    private Gender gender;
 
     @NotNull(message = "ROLE_REQUIRED")
     private UserRole role;

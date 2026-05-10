@@ -2,7 +2,6 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.auth.*;
 import com.emiraslan.memento.dto.auth.TokenRefreshRequestDto;
-import com.emiraslan.memento.dto.response.UserResponseDto;
 import com.emiraslan.memento.service.auth.AuthService;
 import com.emiraslan.memento.service.auth.ResetPasswordService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,13 +20,23 @@ public class AuthController {
     private final AuthService authService;
     private final ResetPasswordService resetPasswordService;
 
-    // Register, Login, Logout endpoints
+    // Register and Login endpoints
     @Operation(
-            description = "Password must be 6 characters at least. Role can be: PATIENT, DOCTOR, or RELATIVE."
+            description = "Role can be: PATIENT, DOCTOR, or RELATIVE."
     )
     @PostMapping("/register")
-    public ResponseEntity<UserResponseDto> register(@Valid @RequestBody RegisterRequest request){
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request){
         return ResponseEntity.ok(authService.register(request));
+    }
+
+    @Operation(
+            summary = "Verifying user emails after registration."
+    )
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+        authService.verifyEmail(token);
+
+        return ResponseEntity.ok("EMAIL_VERIFIED");
     }
 
     @Operation(
@@ -70,7 +79,6 @@ public class AuthController {
         LoginResponse response = authService.verifyPasskeyAndLogin(request);
         return ResponseEntity.ok(response);
     }
-
 
     // Password Reset Endpoints
     @Operation(

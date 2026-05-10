@@ -30,15 +30,9 @@ public class OtpService {
         String otpCode = generateRandomCode();
         String redisKey = "otp:" + OtpAction.PASSWORD_RESET + ":" + user.getEmail();
 
-        saveToRedis(redisKey, otpCode, 5);
+        redisTemplate.opsForValue().set(redisKey, otpCode, Duration.ofMinutes(5));
 
-        String subject = "Şifre Sıfırlama";
-        String body = "Merhaba " + user.getFirstName() + ",\n\n"
-                + "Şifrenizi sıfırlamak için talebiniz alınmıştır. Şifre sıfırlama kodunuz:\n\n"
-                + otpCode + "\n\n"
-                + "(Bu kod 5 dakika boyunca geçerlidir.)";
-
-        emailService.sendSimpleEmail(user.getEmail(), subject, body);
+        emailService.sendPasswordResetEmail(email, user.getFirstName(), otpCode);
     }
 
     public void validateOtpForPasswordReset(String email, String otpCode) {
@@ -57,19 +51,32 @@ public class OtpService {
         // adding both users' email to the key
         String redisKey = "otp:" + OtpAction.RELATIONSHIP_INVITE + ":" + initiator.getEmail() + ":" + targetUser.getEmail();
 
-        saveToRedis(redisKey, otpCode, 10);
+        redisTemplate.opsForValue().set(redisKey, otpCode, Duration.ofMinutes(10));
 
-        String subject = "Yakın Daveti";
-        String body = "Merhaba " + targetUser.getFirstName() + ",\n\n"
-                + initiator.getFirstName() + " " + initiator.getLastName() + " sizi Memento'da yakını olarak eklemek istiyor. Onay kodunuz:\n\n"
-                + otpCode + "\n\n"
-                + "(Bu kod 10 dakika boyunca geçerlidir.)";
+        String initiatorName = initiator.getFirstName() + " " + initiator.getLastName();
 
-        emailService.sendSimpleEmail(targetUser.getEmail(), subject, body);
+        emailService.sendRelationshipInviteEmail(targetEmail, targetUser.getFirstName(), initiatorName, otpCode);
     }
 
     public void validateOtpForRelationshipInvitation(String targetEmail, User initiator, String otpCode) {
         String redisKey = "otp:" + OtpAction.RELATIONSHIP_INVITE + ":" + initiator.getEmail() + ":" + targetEmail;
+        validateAndDeleteFromRedis(redisKey, otpCode);
+    }
+
+    // Email update methods:
+    @Transactional
+    public void generateAndSendOtpForEmailChange(User user, String newEmail) {
+        String otpCode = generateRandomCode();
+
+        String redisKey = "otp:" + OtpAction.EMAIL_CHANGE + ":" + user.getUserId() + ":" + newEmail;
+
+        redisTemplate.opsForValue().set(redisKey, otpCode, Duration.ofMinutes(5));
+
+        emailService.sendEmailUpdateEmail(newEmail, user.getFirstName(), otpCode);
+    }
+
+    public void validateOtpForEmailChange(Integer userId, String newEmail, String otpCode) {
+        String redisKey = "otp:" + OtpAction.EMAIL_CHANGE + ":" + userId + ":" + newEmail;
         validateAndDeleteFromRedis(redisKey, otpCode);
     }
 
@@ -78,10 +85,6 @@ public class OtpService {
         // generates a number between 0-999999
         SecureRandom secureRandom = new SecureRandom();
         return String.format("%06d", secureRandom.nextInt(1000000));
-    }
-
-    private void saveToRedis(String key, String code, int ttlMinutes) {
-        redisTemplate.opsForValue().set(key, code, Duration.ofMinutes(ttlMinutes));
     }
 
     private void validateAndDeleteFromRedis(String redisKey, String otpCode) {

@@ -1,6 +1,5 @@
 package com.emiraslan.memento.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -22,11 +21,6 @@ public class DoctorProfileRequestDto {
     @NotBlank(message = "LAST_NAME_REQUIRED")
     @Size(max = 50, message = "LAST_NAME_TOO_LONG")
     private String lastName;
-
-    @NotBlank(message = "EMAIL_REQUIRED")
-    @Email(message = "INVALID_EMAIL_FORMAT")
-    @Size(max = 255, message = "EMAIL_TOO_LONG")
-    private String email;
 
     @NotBlank(message = "PHONE_NUMBER_REQUIRED")
     @Pattern(regexp = "^[1-9]\\d{9}$", message = "PHONE_NUMBER_10_DIGITS_DO_NOT_START_WITH_0") // starting with 1-9, then 9 more digits

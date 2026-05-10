@@ -4,17 +4,12 @@ import com.emiraslan.memento.dto.auth.LoginRequest;
 import com.emiraslan.memento.dto.auth.LoginResponse;
 import com.emiraslan.memento.dto.auth.PasskeyVerifyRequestDto;
 import com.emiraslan.memento.dto.auth.RegisterRequest;
-import com.emiraslan.memento.dto.response.UserResponseDto;
 import com.emiraslan.memento.entity.*;
-import com.emiraslan.memento.entity.user.DoctorProfile;
-import com.emiraslan.memento.entity.user.PatientProfile;
 import com.emiraslan.memento.entity.user.User;
-import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.device.RefreshTokenRepository;
 import com.emiraslan.memento.repository.device.UserDeviceRepository;
-import com.emiraslan.memento.repository.user.DoctorProfileRepository;
-import com.emiraslan.memento.repository.user.PatientProfileRepository;
 import com.emiraslan.memento.repository.user.UserRepository;
+import com.emiraslan.memento.service.notification.EmailService;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,6 +17,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,20 +41,18 @@ import java.util.UUID;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final PatientProfileRepository patientProfileRepository;
-    private final DoctorProfileRepository doctorProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final StringRedisTemplate redisTemplate;
-
+    private final EmailService emailService;
     private final UserDeviceRepository userDeviceRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
     public static final String BLACKLIST_PREFIX = "jwt:blacklist:";
 
     @Transactional // rollback all changes if the method fails somewhere
-    public UserResponseDto register(RegisterRequest request) {
+    public String register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EntityExistsException("EMAIL_ALREADY_EXISTS");
@@ -70,13 +64,59 @@ public class AuthService {
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .phoneNumber(request.getPhoneNumber())
+                .gender(request.getGender())
                 .role(request.getRole())
+                .isEmailVerified(false)
                 .build();
 
         User savedUser = userRepository.save(user);
-        createEmptyProfileForRole(savedUser);
 
-        return MapperUtil.toUserResponseDto(savedUser);
+        String verificationToken = generateAndSaveTokenToRedis(savedUser.getEmail());
+
+        emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getFirstName(), verificationToken);
+
+        return "REGISTRATION_SUCCESS_CHECK_EMAIL";
+    }
+
+    private String generateAndSaveTokenToRedis(String email) {
+        String token = UUID.randomUUID().toString();
+        String redisKey = "email_verify:" + token;
+
+        // email_verify:token : email, link valid for 24 hours
+        redisTemplate.opsForValue().set(redisKey, email, Duration.ofHours(24));
+
+        return token;
+    }
+
+    @Transactional
+    public void verifyEmail(String token) {
+        String redisKey = "email_verify:" + token;
+        String email = redisTemplate.opsForValue().get(redisKey);
+
+        if (email == null) {
+            throw new IllegalArgumentException("INVALID_OR_EXPIRED_TOKEN");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("USER_NOT_FOUND"));
+
+        if (user.getIsEmailVerified()) {
+            redisTemplate.delete(redisKey); // delete the unnecessary key
+            throw new IllegalStateException("EMAIL_ALREADY_VERIFIED");
+        }
+
+        // set user as verified
+        user.setIsEmailVerified(true);
+        userRepository.save(user);
+
+        // delete the token from redis after it's used
+        redisTemplate.delete(redisKey);
+    }
+
+    @Transactional
+    public int deleteUnverifiedAccounts() {
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(23);
+        return userRepository.deleteUnverifiedUsersOlderThan(cutoff);
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -90,6 +130,10 @@ public class AuthService {
         // find the authenticated user
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("USER_NOT_FOUND"));
+
+        if (!user.getIsEmailVerified()) {
+            throw new AccessDeniedException("EMAIL_NOT_VERIFIED");
+        }
 
         // JWT, Refresh Token and UserDevice are handled by helper method
         return generateAuthTokensForDevice(user, request.getDeviceModel(), request.getOsVersion());
@@ -256,23 +300,5 @@ public class AuthService {
             log.error("Signature verification FAILED!", e);
             return false;
         }
-    }
-
-
-    // creates empty profiles on register
-    private void createEmptyProfileForRole(User user) {
-        if (user.getRole() == UserRole.PATIENT) {
-            PatientProfile profile = PatientProfile.builder()
-                    .patient(user)
-                    .build();
-            patientProfileRepository.save(profile);
-        }
-        else if (user.getRole() == UserRole.DOCTOR) {
-            DoctorProfile profile = DoctorProfile.builder()
-                    .doctor(user)
-                    .build();
-            doctorProfileRepository.save(profile);
-        }
-        // no profile for relatives
     }
 }

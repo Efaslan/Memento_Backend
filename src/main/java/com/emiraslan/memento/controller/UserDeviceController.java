@@ -5,7 +5,7 @@ import com.emiraslan.memento.dto.request.BiometricToggleRequestDto;
 import com.emiraslan.memento.dto.request.NotificationTokenRegisterRequestDto;
 import com.emiraslan.memento.dto.response.UserDeviceResponseDto;
 import com.emiraslan.memento.entity.user.User;
-import com.emiraslan.memento.service.notification.NotificationTokenService;
+import com.emiraslan.memento.service.notification.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,7 +26,7 @@ import java.util.List;
 public class UserDeviceController {
 
     private final UserDeviceService userDeviceService;
-    private final NotificationTokenService notificationTokenService;
+    private final NotificationService notificationService;
 
     @Operation(
             summary = "Register or update the device's FCM token.",
@@ -36,7 +36,7 @@ public class UserDeviceController {
     public ResponseEntity<Void> registerFcmToken(
             @Valid @RequestBody NotificationTokenRegisterRequestDto request
     ) {
-        notificationTokenService.upsertNotificationToken(request);
+        notificationService.upsertNotificationToken(request);
         return ResponseEntity.ok().build();
     }
 

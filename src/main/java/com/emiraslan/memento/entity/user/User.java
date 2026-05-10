@@ -1,5 +1,6 @@
 package com.emiraslan.memento.entity.user;
 
+import com.emiraslan.memento.enums.Gender;
 import com.emiraslan.memento.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -46,6 +47,14 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 10)
     private UserRole role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", length = 20)
+    private Gender gender;
+
+    @Column(name = "is_email_verified")
+    @Builder.Default
+    private Boolean isEmailVerified = false;
 
     @Column(name = "created_at")
     @Builder.Default
