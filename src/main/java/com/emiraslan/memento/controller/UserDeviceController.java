@@ -32,11 +32,13 @@ public class UserDeviceController {
             summary = "Register or update the device's FCM token.",
             description = "Registers the device's FCM token using the Refresh Token. Push notifications are used for Alerts, Medication reminders, General Reminders, and Daily Logs. The aim is to motivate, while not bothering, the users into keeping track of their medication and daily consumptions."
     )
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.isDeviceOwner(#request.deviceId, principal)")
     @PostMapping("/register/fcm-token")
     public ResponseEntity<Void> registerFcmToken(
-            @Valid @RequestBody NotificationTokenRegisterRequestDto request
+            @Valid @RequestBody NotificationTokenRegisterRequestDto request,
+            @AuthenticationPrincipal User user
     ) {
-        notificationService.upsertNotificationToken(request);
+        notificationService.upsertNotificationToken(user.getUserId(), request);
         return ResponseEntity.ok().build();
     }
 

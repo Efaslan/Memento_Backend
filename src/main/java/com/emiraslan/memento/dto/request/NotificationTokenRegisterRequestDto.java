@@ -1,6 +1,7 @@
 package com.emiraslan.memento.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,6 @@ public class NotificationTokenRegisterRequestDto {
     @Size(max = 255, message = "FCM_TOKEN_TOO_LONG")
     private String fcmToken;
 
-    @NotBlank(message = "REFRESH_TOKEN_REQUIRED_FOR_DEVICE_LINKING")
-    private String refreshToken;
+    @NotNull(message = "DEVICE_ID_REQUIRED")
+    private Integer deviceId;
 }

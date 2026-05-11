@@ -37,9 +37,11 @@ public class RedisCacheWarmer {
         // save them into redis as a set
         for (NotificationToken token : allTokens) {
             String redisKey = "notificationTokens:user:" + token.getUserDevice().getUser().getUserId();
-            redisTemplate.opsForSet().add(redisKey, token.getFcmToken());
-        }
+            // We're converting deviceId into a string to use it as a field in the hash.
+            String deviceIdString = String.valueOf(token.getUserDevice().getDeviceId());
 
+            redisTemplate.opsForHash().put(redisKey, deviceIdString, token.getFcmToken());
+        }
         log.info("Successfully loaded {} NotificationTokens Tokens into Redis.", allTokens.size());
     }
 }
