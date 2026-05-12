@@ -1,7 +1,48 @@
 version: '3.8'
+
 services:
   redis:
     image: redis:latest
     container_name: memento-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
+
+  postgres:
+    image: postgres:15
+    container_name: memento-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: memento
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: memento-ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  # Downloading Qwen2.5:1.5b LLM on Ollama
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: memento-ollama-init
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        while ! ollama list > /dev/null 2>&1; do sleep 2; done
+        echo "Downloading LLM model: qwen2.5:1.5b..."
+        ollama pull qwen2.5:1.5b
+        echo "LLM ready!"
+
+volumes:
+  postgres_data:
+  ollama_data:

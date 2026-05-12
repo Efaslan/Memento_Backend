@@ -13,7 +13,7 @@ import org.hibernate.validator.constraints.Range;
 @AllArgsConstructor
 public class DailyLogRequestDto {
 
-    @Size(max = 255, message = "DESCRIPTION_TOO_LONG")
+    @Size(max = 2000, message = "DESCRIPTION_TOO_LONG")
     private String description;
 
     @Range(min = 0, max = 5000, message = "QUANTITY_ML_MIN_0_MAX_5000")
