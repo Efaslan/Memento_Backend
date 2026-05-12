@@ -25,10 +25,10 @@ public class EmailService{
 
         if(fromEmail == null || fromEmail.trim().isEmpty()){
             log.error("Unable to send email! Please check application.properties file and fill 'spring.mail.username' and 'spring.mail.password'.");
-            throw new IllegalStateException("EMAIL_NOT_CONFIGURED");
+            throw new IllegalStateException("SMTP_NOT_CONFIGURED");
         }
         try {
-            // Multipurpose Internet Mail Extensions (Mime) Message, enables html and other attachments instead of simple texts in SimpleMailMessage
+            // Multipurpose Internet Mail Extensions (Mime) Message, enables HTML and other attachments instead of simple texts in SimpleMailMessage
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -41,16 +41,16 @@ public class EmailService{
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            log.info("Email successfully sent to: {}", to);
+            log.info("{} email successfully sent to: {}", templateName, to);
 
         } catch (MessagingException e) {
-            log.error("Failed to send email to {}", to, e);
+            log.error("Failed to send {} email to {}", templateName, to, e);
             throw new RuntimeException("SEND_EMAIL_FAILED");
         }
     }
 
     public void sendPasswordResetEmail(String to, String userName, String otpCode) {
-        // Context is a dictionary that will hold variables for the html to display
+        // Context is a dictionary that will hold variables for the HTML to display
         Context context = new Context();
         context.setVariable("name", userName);
         context.setVariable("otpCode", otpCode);

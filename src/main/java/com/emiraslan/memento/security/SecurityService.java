@@ -221,13 +221,19 @@ public class SecurityService {
         return true;
     }
 
-    public boolean canManageDevice(Integer deviceId, User relativeUser){
+    public boolean canManageDevice(Integer deviceId, User user){
         UserDevice device = userDeviceRepository.findByIdWithUser(deviceId)
                 .orElseThrow(() -> new EntityNotFoundException("DEVICE_NOT_FOUND"));
 
-        User patient = device.getUser();
+        User deviceOwner = device.getUser();
 
-        if(!hasActiveRelationship(patient.getUserId(), relativeUser.getUserId())){
+        // if device owner is the user making the request, allow them
+        if (deviceOwner.getUserId().equals(user.getUserId())) {
+            return true;
+        }
+
+        // if the user isn't the device owner, and isn't related to the owner, throw 403
+        if(!hasActiveRelationship(deviceOwner.getUserId(), user.getUserId())){
             throw new AccessDeniedException("YOU_ARE_NOT_RELATED_TO_DEVICE_OWNER");
         }
         return true;

@@ -84,11 +84,10 @@ public class NotificationService {
                         .build();
 
                 // send it to Google
-                String response = FirebaseMessaging.getInstance().send(message);
-                log.info("Notification Sent to {}. Response: {}", userId, response);
-
+                FirebaseMessaging.getInstance().send(message);
+                // successful notifications are logged by the cron job
             } catch (Exception e) {
-                log.error("Failed to send notification to {}: {}", userId, e.getMessage());
+                log.error("Failed to send notification to UserId: {}. ERROR: {}", userId, e.getMessage());
 
                 if (e.getMessage() != null && (e.getMessage().contains("registration-token-not-registered") ||
                         e.getMessage().contains("invalid-argument"))) {
