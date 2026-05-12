@@ -30,10 +30,7 @@ import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -119,6 +116,7 @@ public class AuthService {
         return userRepository.deleteUnverifiedUsersOlderThan(cutoff);
     }
 
+    @Transactional
     public LoginResponse login(LoginRequest request) {
 
         authenticationManager.authenticate( // manager calls provider to authenticate user data
@@ -136,14 +134,37 @@ public class AuthService {
         }
 
         // JWT, Refresh Token and UserDevice are handled by helper method
-        return generateAuthTokensForDevice(user, request.getDeviceModel(), request.getOsVersion());
+        return generateAuthTokensForDevice(user, request);
     }
 
-    private LoginResponse generateAuthTokensForDevice(User user, String deviceModel, String osVersion) {
+    private LoginResponse generateAuthTokensForDevice(User user, LoginRequest request) {
 
-        // register new device
-        UserDevice device = MapperUtil.toUserDeviceEntity(user, deviceModel, osVersion);
-        UserDevice savedDevice = userDeviceRepository.save(device);
+        UserDevice savedDevice = null;
+        Integer requestDeviceId = request.getDeviceId();
+        
+        // if a deviceId is included in the login request
+        if (requestDeviceId != null) {
+            // check if the user owns this device
+            Optional<UserDevice> existingDeviceOpt = userDeviceRepository.findByDeviceIdAndUser(requestDeviceId, user);
+
+            // if yes, update the devices info
+            if (existingDeviceOpt.isPresent()) {
+                UserDevice existingDevice = existingDeviceOpt.get();
+                existingDevice.setOsVersion(request.getOsVersion());
+                existingDevice.setDeviceModel(request.getDeviceModel());
+                existingDevice.setLastActive(LocalDateTime.now());
+
+                // save the updated device
+                savedDevice = userDeviceRepository.save(existingDevice);
+                // delete the device's refresh token because we'll be giving it a new one
+                refreshTokenRepository.deleteByDeviceId(savedDevice.getDeviceId());
+            }
+        }
+        // if savedDevice is still null, that means the user logs in for the first time, create them a new device
+        if (savedDevice == null) {
+            UserDevice newDevice = MapperUtil.toUserDeviceEntity(user, request.getDeviceModel(), request.getOsVersion());
+            savedDevice = userDeviceRepository.save(newDevice);
+        }
 
         // create a 14-day refresh token unique for this device
         RefreshToken refreshToken = MapperUtil.toRefreshTokenEntity(savedDevice);
@@ -239,7 +260,7 @@ public class AuthService {
 
         // delete redis key and previous expired refresh token from DBs
         redisTemplate.delete(redisKey);
-        refreshTokenRepository.deleteByUserDevice_DeviceId(device.getDeviceId());
+        refreshTokenRepository.deleteByDeviceId(device.getDeviceId());
 
         // generate a new RefreshToken for the device and save it to DB
         RefreshToken refreshToken = MapperUtil.toRefreshTokenEntity(device);
