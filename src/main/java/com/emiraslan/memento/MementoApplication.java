@@ -12,13 +12,9 @@ public class MementoApplication {
         SpringApplication.run(MementoApplication.class, args);
 
         System.out.println("Hello and welcome!");
-        System.out.println("⚠️ Notifications will not work unless you have a serviceAccountKey.json in resources. Please check FirebaseConfig.java class. ⚠️");
 
         // RedisCacheWarmer starts on ApplicationReadyEvent
-
-        // -Dspring.profiles.active=dev
     }
-
     // Setting the timezone with @PostConstruct shows wrong logging times. I directly set the Digital Ocean VM's timezone into Europe/Istanbul
     // Todo: update LocalDateTimes into Instants for different timezones
 }

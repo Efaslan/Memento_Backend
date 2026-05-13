@@ -27,7 +27,7 @@ public class FirebaseConfig {
                 .getResourceAsStream("serviceAccountKey.json");
 
         if (serviceAccount == null) {
-            log.warn("⚠️ serviceAccountKey.json not found in resources! Notifications will not work.");
+            log.warn("⚠️ serviceAccountKey.json not found in resources! Notifications will not work. ⚠️");
             return null;
         }
         FirebaseOptions options = FirebaseOptions.builder()
