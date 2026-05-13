@@ -4,8 +4,10 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,26 +16,31 @@ import java.io.InputStream;
 @Slf4j
 public class FirebaseConfig {
 
+    @Value("${firebase.credential.path}")
+    private Resource firebaseCredential;
+
     @Bean
-    public FirebaseApp firebaseApp() throws IOException {
+    public FirebaseApp firebaseApp() {
         // return the current one if it's working to prevent errors
         if (!FirebaseApp.getApps().isEmpty()) {
             return FirebaseApp.getInstance();
         }
 
-        // reads json from /resources for key
-        InputStream serviceAccount = getClass()
-                .getClassLoader()
-                .getResourceAsStream("serviceAccountKey.json");
-
-        if (serviceAccount == null) {
-            log.warn("⚠️ serviceAccountKey.json not found in resources! Notifications will not work. ⚠️");
+        if (firebaseCredential == null || !firebaseCredential.exists()) {
+            log.warn("⚠️ Firebase credential file not found at provided path! Notifications will not work. ⚠️");
             return null;
         }
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
 
-        return FirebaseApp.initializeApp(options);
+        try (InputStream serviceAccount = firebaseCredential.getInputStream()) {
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
+            log.info("Firebase successfully started.");
+
+            return FirebaseApp.initializeApp(options);
+        } catch (IOException e) {
+            log.error("❌ Failed to initialize Firebase: ", e);
+            return null;
+        }
     }
 }
