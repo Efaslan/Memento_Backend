@@ -2,7 +2,7 @@ name: Memento Production Deployment
 
 on:
   push:
-    branches: [ "main" ] # Auto deploy when pushed to main branch
+    branches: [ "master" ] # Auto deploy when pushed to master branch
 
 jobs:
   build-and-deploy:
