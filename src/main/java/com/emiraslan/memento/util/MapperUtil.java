@@ -14,7 +14,6 @@ import com.emiraslan.memento.entity.user.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class MapperUtil {
@@ -310,10 +309,10 @@ public class MapperUtil {
                 .build();
     }
 
-    public static RefreshToken toRefreshTokenEntity(UserDevice device) {
+    public static RefreshToken toRefreshTokenEntity(UserDevice device, String hashedJti) {
         return RefreshToken.builder()
                 .userDevice(device)
-                .refreshToken(UUID.randomUUID().toString())
+                .refreshToken(hashedJti)
                 .expiryDate(LocalDateTime.now().plusDays(14))
                 .build();
     }

@@ -16,18 +16,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.spec.X509EncodedKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -72,6 +70,7 @@ public class AuthService {
         return "REGISTRATION_SUCCESS_CHECK_EMAIL";
     }
 
+    // Token for the verification link email
     private String generateAndSaveTokenToRedis(String email) {
         String token = UUID.randomUUID().toString();
         String redisKey = "email_verify:" + token;
@@ -155,6 +154,8 @@ public class AuthService {
                 savedDevice = userDeviceRepository.save(existingDevice);
                 // delete the device's refresh token because we'll be giving it a new one
                 refreshTokenRepository.deleteByDeviceId(savedDevice.getDeviceId());
+                // tell Hibernate to immediately execute the deletion and not wait for the end of the Transaction
+                refreshTokenRepository.flush();
             }
         }
         // if savedDevice is still null, that means the user logs in for the first time, create them a new device
@@ -163,158 +164,122 @@ public class AuthService {
             savedDevice = userDeviceRepository.save(newDevice);
         }
 
-        // create a 14-day refresh token unique for this device
-        RefreshToken refreshToken = MapperUtil.toRefreshTokenEntity(savedDevice);
+        // --- Creating the JWTs ---
+
+        // generate random JTI for Refresh JWT and hash it
+        String jti = UUID.randomUUID().toString();
+        String hashedJti = hashJti(jti);
+
+        // create a 14-day refresh token unique for this device and save the hashedJti to DB
+        RefreshToken refreshToken = MapperUtil.toRefreshTokenEntity(savedDevice, hashedJti);
         refreshTokenRepository.save(refreshToken);
 
-        // create an access token (JWT) that is valid for 1 hour
+        // create an Access JWT that is valid for 15 minutes
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", user.getRole());
         extraClaims.put("userId", user.getUserId());
-        String jwt = jwtService.generateToken(extraClaims, user);
+
+        String accessJwt = jwtService.generateAccessToken(extraClaims, user);
+        String refreshJwt = jwtService.generateRefreshJwt(user, savedDevice.getDeviceId(), jti); // real JTI goes into user's Refresh JWT
 
         return LoginResponse.builder()
                 .deviceId(savedDevice.getDeviceId())
-                .accessJwtToken(jwt)
-                .refreshToken(refreshToken.getRefreshToken())
+                .accessJwtToken(accessJwt)
+                .refreshToken(refreshJwt)
                 .user(MapperUtil.toUserResponseDto(user))
                 .build();
     }
 
     // Refreshing Access Tokens (JWT) with Refresh Tokens
     @Transactional
-    public AccessTokenRefreshResponseDto refreshAccessToken(String refreshTokenString) {
+    public AccessTokenRefreshResponseDto refreshAccessToken(String oldRefreshJwt) {
 
-        RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(refreshTokenString)
-                .orElseThrow(() -> new IllegalStateException("INVALID_REFRESH_TOKEN"));
+        // Check if the Refresh JWT has expired or has false signature. (There already is a cleaner CRON that works every day at 00:05 for expired tokens)
+        // This check accounts for the small timeframe between 00:00-00:05 that Refresh JWTs might be cancelled after 14 days of not using the app
+        jwtService.validateRefreshJwt(oldRefreshJwt);
 
-        // we auto-delete refresh tokens at the end of days. So there is no need to check if it has expired
+        // Extract JTI and deviceId from the Refresh JWT
+        String incomingJti = jwtService.extractJti(oldRefreshJwt);
+        Integer deviceId = jwtService.extractDeviceId(oldRefreshJwt);
 
-        User user = refreshToken.getUserDevice().getUser();
+        // hash the incoming JTI from Refresh JWT, to compare the token in DBs
+        String incomingHashedJti = hashJti(incomingJti);
 
-        // update the device's last active info
-        refreshToken.getUserDevice().setLastActive(LocalDateTime.now());
-        userDeviceRepository.save(refreshToken.getUserDevice());
+        RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(incomingHashedJti)
+                .orElse(null); // not throwing errors because we'll be checking for Refresh JWTs in grace period
 
-        // generate a new short-lived JWT (refresh token stays the same)
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("role", user.getRole());
-        extraClaims.put("userId", user.getUserId());
-        String newJwt = jwtService.generateToken(extraClaims, user);
+        // Check Redis for a Refresh JWT in the grace period
+        String redisGracePeriodKey = "refresh_jwt_grace:" + incomingHashedJti;
+        boolean isWithinGracePeriod = redisTemplate.hasKey(redisGracePeriodKey);
 
-        return AccessTokenRefreshResponseDto.builder()
-                .accessJwtToken(newJwt)
-                .build();
-    }
+        // If the Refresh JWT doesn't exist in DB, there are two possibilities:
+        if (refreshToken == null){
+            // 1. The user has network problems, and they couldn't receive the new Refresh JWT.
+            // If the Refresh JWT they are using is in the grace period:
+            if (isWithinGracePeriod){
+                // find the device's current Refresh JWT in the DB. If it exists, reassign user's Refresh JWT (previous one) to the new one in DB.
+                refreshToken = refreshTokenRepository.findByUserDevice_DeviceId(deviceId)
+                        .orElseThrow(() -> new EntityNotFoundException("REFRESH_TOKEN_NOT_FOUND"));
+            } else {
+                // If the Refresh JWT isn't in grace period, that means someone else might have copied the old token.
+                // We force logout by deleting the device and deleting all associated tokens (FCM & Refresh JTI) with cascade.
+                userDeviceRepository.deleteById(deviceId);
 
-    // for passkey verification after RefreshToken expiration. We give the mobile frontend a random text,
-    // and receive it back after it gets signed with the private key from Trusted Execution Environment (TEE), or
-    // from the disk encrypted with the user's app-special PIN code if biometric data isn't available.
-    public String generatePasskeyChallenge(Integer deviceId) {
-        // creating a unique challenge text for the device
-        String challenge = UUID.randomUUID().toString();
-
-        String redisKey = "passkey:challenge:device:" + deviceId;
-
-        // save the key:challenge to redis with 3 minutes TTL. ONLY save the challenge if the key is ABSENT
-        // This helps prevent overwrite attacks while a user is trying to complete the passkey verification challenge
-        Boolean isChallengeActive = redisTemplate.opsForValue().setIfAbsent(redisKey, challenge, Duration.ofMinutes(3));
-
-        if (Boolean.FALSE.equals(isChallengeActive)) {
-            throw new IllegalStateException("CHALLENGE_ALREADY_ACTIVE_PLEASE_WAIT");
+                log.warn("⚠ Potential Refresh JWT THEFT for Device ID: {}. Completely wiped the device to force logout.", deviceId);
+                throw new AccessDeniedException("POTENTIAL_REFRESH_JWT_THEFT_DETECTED");
+            }
         }
 
-        return challenge;
-    }
-
-    @Transactional
-    public LoginResponse verifyPasskeyAndLogin(PasskeyVerifyRequestDto requestDto){
-        // find the device
-        UserDevice device = userDeviceRepository.findById(requestDto.getDeviceId())
-                .orElseThrow(() -> new EntityNotFoundException("DEVICE_NOT_FOUND"));
-
-        // can't decode the challenge without a public key
-        if (device.getPublicKey() == null) {
-            throw new IllegalStateException("PUBLIC_KEY_NOT_REGISTERED_FOR_DEVICE_USE_PASSWORD_FOR_LOGIN");
-        }
-
-        // get the challenge text from redis
-        String redisKey = "passkey:challenge:device:" + device.getDeviceId();
-        String activeChallenge = redisTemplate.opsForValue().get(redisKey);
-
-        if (activeChallenge == null) {
-            throw new IllegalStateException("CHALLENGE_EXPIRED_OR_NOT_FOUND");
-        }
-
-        // decode the signature with the public key, and see if it equals the challenge text from redis
-        boolean isSignatureValid = verifySignature(device.getPublicKey(), activeChallenge, requestDto.getSignature());
-
-        if (!isSignatureValid) {
-            throw new BadCredentialsException("INVALID_SIGNATURE");
-        }
-
-        // delete redis key and previous expired refresh token from DBs
-        redisTemplate.delete(redisKey);
-        refreshTokenRepository.deleteByDeviceId(device.getDeviceId());
-
-        // generate a new RefreshToken for the device and save it to DB
-        RefreshToken refreshToken = MapperUtil.toRefreshTokenEntity(device);
-        refreshTokenRepository.save(refreshToken);
-
+        // if all is ok, get the user from the device
+        UserDevice device = refreshToken.getUserDevice();
         User user = device.getUser();
 
-        // generate the access JWT
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("role", user.getRole());
-        extraClaims.put("userId", user.getUserId());
-        String newAccessJwt = jwtService.generateToken(extraClaims, user);
+        // generate new JTI for Refresh JWT and hash it
+        String newJti = UUID.randomUUID().toString();
+        String newHashedJti = hashJti(newJti);
+
+        // save the hashed JTI to DB
+        refreshToken.setRefreshToken(newHashedJti);
+        refreshTokenRepository.saveAndFlush(refreshToken);
 
         // update the device's last active info
         device.setLastActive(LocalDateTime.now());
         userDeviceRepository.save(device);
 
-        // return device id (mobile already has it), new refresh and JWT access tokens
-        return LoginResponse.builder()
-                .deviceId(device.getDeviceId())
-                .refreshToken(refreshToken.getRefreshToken())
-                .accessJwtToken(newAccessJwt)
+        // save the previous Refresh JWT to Redis for grace period
+        redisTemplate.opsForValue().set(redisGracePeriodKey, "oldToken", 5, TimeUnit.MINUTES);
+        // not blacklisting the previous Access JWT because it will already be expired when the users use their Refresh JWTs
+
+        // set the claims for new Access Jwt
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getRole());
+        extraClaims.put("userId", user.getUserId());
+
+        // Generate 2 new JWTs
+        String newAccessJwt = jwtService.generateAccessToken(extraClaims, user);
+        String newRefreshJwt = jwtService.generateRefreshJwt(user, deviceId, newJti); // We're giving the user's JWT, the real JTI (its hashed in DB)
+
+        return AccessTokenRefreshResponseDto.builder()
+                .refreshJwt(newRefreshJwt)
+                .accessJwt(newAccessJwt)
                 .build();
     }
 
-    private boolean verifySignature(String base64PublicKey, String challenge, String base64Signature){
+    private String hashJti(String jti) {
         try {
-            // formatting the public key into a byte array
-            byte[] publicKeyBytes = Base64.getDecoder().decode(base64PublicKey);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256"); // get sha-256 instance
+            byte[] hash = digest.digest(jti.getBytes(StandardCharsets.UTF_8)); // turn the JTI into a byte array
 
-            // we define the bytes as a public key created with x509 standards
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
+            StringBuilder hexString = new StringBuilder();
 
-            // create a factory that builds RSA keys (our pair is the public key - mobile has the private key)
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
-            // creating the public key object using our X509 keySpec
-            PublicKey publicKey = keyFactory.generatePublic(keySpec);
-
-            // Prepare the Signature machine to verify an SHA-256 hash sealed with an RSA Private Key
-            Signature signature = Signature.getInstance("SHA256withRSA");
-
-            // we will use this public key to unseal the signature sent by mobile
-            signature.initVerify(publicKey);
-
-            // hash the challenge with SHA256 and find its always 32 byte fingerprint, and keep it in memory for comparison
-            signature.update(challenge.getBytes());
-
-            // format the encrypted signature from mobile into a byte array
-            byte[] signatureBytes = Base64.getDecoder().decode(base64Signature);
-
-            // 1. unseal signatureBytes using the publicKey
-            // 2. compare the unsealed hash with our own hashed copy of the challenge
-            // 3. if they match, return true
-            return signature.verify(signatureBytes);
-
-        } catch (Exception e){
-            log.error("Signature verification FAILED!", e);
-            return false;
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b); // turns the negative valued bytes into 0-255 integers and convert them to hexadecimals
+                if (hex.length() == 1) hexString.append('0'); // add 0 if the hex is 1 letter.  a -> 0a
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Error hashing Refresh JTI", e);
         }
     }
 }

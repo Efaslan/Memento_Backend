@@ -1,6 +1,5 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.auth.DevicePublicKeyRegisterRequestDto;
 import com.emiraslan.memento.dto.response.UserDeviceResponseDto;
 import com.emiraslan.memento.entity.UserDevice;
 import com.emiraslan.memento.repository.device.RefreshTokenRepository;
@@ -40,18 +39,6 @@ public class UserDeviceService {
         return userDeviceRepository.findAllByUser_UserId(patientId).stream()
                 .map(MapperUtil::toUserDeviceResponseDto)
                 .toList();
-    }
-
-    @Transactional
-    public void registerPublicKey(DevicePublicKeyRegisterRequestDto request) {
-        UserDevice device = userDeviceRepository.findById(request.getDeviceId())
-                .orElseThrow(() -> new EntityNotFoundException("DEVICE_NOT_FOUND"));
-
-        device.setPublicKey(request.getPublicKey());
-        device.setBiometricEnabled(request.getBiometricEnabled());
-
-        userDeviceRepository.save(device);
-        log.info("Public key and biometric preferences registered for Device ID: {}", request.getDeviceId());
     }
 
     @Transactional

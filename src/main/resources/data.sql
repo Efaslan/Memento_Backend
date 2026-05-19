@@ -161,28 +161,28 @@ VALUES (
 -- ==========================================
 
 -- 1. USER DEVICES
-INSERT INTO user_devices (user_id, device_model, os_version, public_key, biometric_enabled, last_active)
+INSERT INTO user_devices (user_id, device_model, os_version, biometric_enabled, last_active)
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.patient@test.com'),
-    'Samsung Galaxy S23', 'Android 14', 'mock_public_key_patient_123', true, CURRENT_TIMESTAMP
+    'Samsung Galaxy S23', 'Android 14', true, CURRENT_TIMESTAMP
 );
 
-INSERT INTO user_devices (user_id, device_model, os_version, public_key, biometric_enabled, last_active)
+INSERT INTO user_devices (user_id, device_model, os_version, biometric_enabled, last_active)
 VALUES (
     (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com'),
-    'iPhone 15 Pro', 'iOS 17', 'mock_public_key_doctor_456', true, CURRENT_TIMESTAMP
+    'iPhone 15 Pro', 'iOS 17', true, CURRENT_TIMESTAMP
 );
 
 -- 2. REFRESH TOKENS
 -- Setting expiry date to 30 days in the future using Postgres INTERVAL
-INSERT INTO refresh_tokens (device_id, refresh_token, expiry_date)
+INSERT INTO refresh_tokens (device_id, hashed_jti, expiry_date)
 VALUES (
     (SELECT device_id FROM user_devices WHERE user_id = (SELECT user_id FROM users WHERE email = 'demo.patient@test.com')),
     'mock_refresh_token_patient_abc123',
     CURRENT_TIMESTAMP + INTERVAL '14 days'
 );
 
-INSERT INTO refresh_tokens (device_id, refresh_token, expiry_date)
+INSERT INTO refresh_tokens (device_id, hashed_jti, expiry_date)
 VALUES (
     (SELECT device_id FROM user_devices WHERE user_id = (SELECT user_id FROM users WHERE email = 'demo.doctor@test.com')),
     'mock_refresh_token_doctor_def456',

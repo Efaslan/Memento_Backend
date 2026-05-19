@@ -36,9 +36,6 @@ public class UserDevice {
     @Column(name = "os_version", length = 50)
     private String osVersion;
 
-    @Column(name = "public_key", length = 1000)
-    private String publicKey;
-
     @Column(name = "biometric_enabled")
     @Builder.Default
     private Boolean biometricEnabled = false;

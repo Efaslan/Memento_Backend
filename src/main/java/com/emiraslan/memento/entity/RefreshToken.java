@@ -29,7 +29,7 @@ public class RefreshToken {
     @JoinColumn(name = "device_id", nullable = false)
     private UserDevice userDevice;
 
-    @Column(name = "refresh_token", nullable = false, unique = true) // indexed with unique
+    @Column(name = "hashed_jti", nullable = false, unique = true) // indexed with unique
     private String refreshToken;
 
     @Column(name = "expiry_date", nullable = false)

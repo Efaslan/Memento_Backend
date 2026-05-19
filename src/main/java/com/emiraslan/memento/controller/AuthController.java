@@ -50,34 +50,11 @@ public class AuthController {
     // Refresh and Access (JWT) Token endpoints
     @Operation(
             summary = "Refresh the Access JWT Token",
-            description = "Send your valid Refresh Token to get a new 1-hour JWT without logging in again."
+            description = "Send your valid Refresh Token to get a new 15-minute JWT without logging in again."
     )
     @PostMapping("/refresh")
     public ResponseEntity<AccessTokenRefreshResponseDto> refresh(@Valid @RequestBody TokenRefreshRequestDto request) {
         return ResponseEntity.ok(authService.refreshAccessToken(request.getRefreshToken()));
-    }
-
-    // we never send the challenge text to the deviceId's device. We send it to whoever made that request's console,
-    // so it is not possible to bother other users with challenge requests
-    // a user can only have 1 passkey challenge at the same time to protect from overwrite attacks
-    @Operation(
-            summary = "Request challenge (random text) for Refresh Token.",
-            description = "After a Refresh Token expires, we generate a 3-minute TTL random text for the private key in mobile device to sign."
-    )
-    @GetMapping("/passkey/challenge/{deviceId}")
-    public ResponseEntity<String> getPasskeyChallenge(@PathVariable Integer deviceId) {
-        String challenge = authService.generatePasskeyChallenge(deviceId);
-        return ResponseEntity.ok(challenge); // return the challenge as a string response
-    }
-
-    @Operation(
-            summary = "Verify the signed challenge (random text) for a new Refresh Token.",
-            description = "If the backend verifies the private key's signature, it returns a new Refresh Token and JWT."
-    )
-    @PostMapping("/passkey/verify")
-    public ResponseEntity<LoginResponse> verifyPasskeyLogin(@Valid @RequestBody PasskeyVerifyRequestDto request) {
-        LoginResponse response = authService.verifyPasskeyAndLogin(request);
-        return ResponseEntity.ok(response);
     }
 
     // Password Reset Endpoints
