@@ -53,7 +53,7 @@ public class AuthController {
             description = "Send your valid Refresh Token to get a new 1-hour JWT without logging in again."
     )
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody TokenRefreshRequestDto request) {
+    public ResponseEntity<AccessTokenRefreshResponseDto> refresh(@Valid @RequestBody TokenRefreshRequestDto request) {
         return ResponseEntity.ok(authService.refreshAccessToken(request.getRefreshToken()));
     }
 

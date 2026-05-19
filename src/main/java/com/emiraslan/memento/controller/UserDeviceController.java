@@ -92,7 +92,7 @@ public class UserDeviceController {
     }
 
     @Operation(summary = "Logout from a device, supports remote logout if users are related.")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canManageDevice(#deviceId, principal)")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE', 'DOCTOR') and @guard.canManageDevice(#deviceId, principal)")
     @DeleteMapping("/logout/{deviceId}")
     public ResponseEntity<Void> logoutDevice(
             @PathVariable Integer deviceId,

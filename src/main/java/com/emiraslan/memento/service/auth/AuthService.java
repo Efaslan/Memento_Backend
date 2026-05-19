@@ -1,9 +1,6 @@
 package com.emiraslan.memento.service.auth;
 
-import com.emiraslan.memento.dto.auth.LoginRequest;
-import com.emiraslan.memento.dto.auth.LoginResponse;
-import com.emiraslan.memento.dto.auth.PasskeyVerifyRequestDto;
-import com.emiraslan.memento.dto.auth.RegisterRequest;
+import com.emiraslan.memento.dto.auth.*;
 import com.emiraslan.memento.entity.*;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.repository.device.RefreshTokenRepository;
@@ -186,7 +183,7 @@ public class AuthService {
 
     // Refreshing Access Tokens (JWT) with Refresh Tokens
     @Transactional
-    public LoginResponse refreshAccessToken(String refreshTokenString) {
+    public AccessTokenRefreshResponseDto refreshAccessToken(String refreshTokenString) {
 
         RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(refreshTokenString)
                 .orElseThrow(() -> new IllegalStateException("INVALID_REFRESH_TOKEN"));
@@ -205,10 +202,8 @@ public class AuthService {
         extraClaims.put("userId", user.getUserId());
         String newJwt = jwtService.generateToken(extraClaims, user);
 
-        return LoginResponse.builder()
+        return AccessTokenRefreshResponseDto.builder()
                 .accessJwtToken(newJwt)
-                .refreshToken(refreshToken.getRefreshToken())
-                .user(MapperUtil.toUserResponseDto(user))
                 .build();
     }
 

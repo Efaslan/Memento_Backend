@@ -1,9 +1,7 @@
 package com.emiraslan.memento.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,9 +32,11 @@ public class MedicationScheduleRequestDto {
     private String notes;
 
     @NotNull(message = "START_DATE_REQUIRED")
+    @FutureOrPresent(message = "START_DATE_MUST_BE_TODAY_OR_FUTURE")
     private LocalDate startDate;
 
     // nullable in case isPrn = true
+    @Future(message = "END_DATE_MUST_BE_IN_FUTURE")
     private LocalDate endDate;
 
     @NotNull(message = "IS_PRN_REQUIRED")
