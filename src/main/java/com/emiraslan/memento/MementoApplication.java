@@ -12,6 +12,7 @@ public class MementoApplication {
         SpringApplication.run(MementoApplication.class, args);
 
         System.out.println("Hello and welcome!");
+        System.out.println("⚠️ Reminder: AI services will not work without a valid API key in application.properties! ⚠️");
 
         // RedisCacheWarmer starts on ApplicationReadyEvent
     }

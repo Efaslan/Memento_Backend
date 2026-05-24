@@ -86,8 +86,8 @@ public class PatientRelationshipService {
                 .orElseThrow(() -> new EntityNotFoundException("TARGET_CAREGIVER_NOT_FOUND"));
 
         // checking the relationship role first to prevent OTP from being deleted early
-        if (caregiver.getRole() == UserRole.DOCTOR || dto.getRelationshipType() == RelationshipType.DOCTOR) {
-            throw new IllegalArgumentException("PATIENTS_CANNOT_ADD_DOCTORS");
+        if (caregiver.getRole() == UserRole.DOCTOR || dto.getRelationshipType() == RelationshipType.DOCTOR || caregiver.getRole() == UserRole.PATIENT) {
+            throw new IllegalArgumentException("PATIENTS_CAN_ONLY_ADD_RELATIVES");
         }
 
         // OTP is needed for when patients add relationships

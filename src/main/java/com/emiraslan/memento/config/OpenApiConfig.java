@@ -38,6 +38,7 @@ public class OpenApiConfig {
                 .addTagsItem(new Tag().name("08 - Alerts").description("Critical situations (such as fall detections) of Patient users."))
                 .addTagsItem(new Tag().name("09 - Medication Schedules").description("Medication schedules of Patient users."))
                 .addTagsItem(new Tag().name("10 - Medication Logs").description("Medication intake logs of Patient users."))
+                .addTagsItem(new Tag().name("11 - AI Assistant").description("In-app AI assistant for user questions."))
 
                 // JWT Authorize button config
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))

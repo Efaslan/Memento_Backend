@@ -21,6 +21,7 @@ import java.util.Optional;
 public class DailyLogService {
 
     private final DailyLogRepository dailyLogRepository;
+    private final AiService aiService;
 
     // brings last x days' reports. For example, if given 7, it will return this week's reports. 0 returns today
     public List<DailyLogResponseDto> getRecentLogs(Integer patientId, Integer daysBack) {
@@ -45,6 +46,15 @@ public class DailyLogService {
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.atTime(LocalTime.MAX);
 
+        // Formatting the user's description with AI
+        String finalDescription = dto.getDescription();
+        if (finalDescription != null && !finalDescription.trim().isEmpty()) {
+            finalDescription = aiService.formatDailyLog(finalDescription, patient);
+        }
+
+        // Set the new description
+        dto.setDescription(finalDescription);
+
         // check if today's log exists
         Optional<DailyLog> existingLogOpt = dailyLogRepository
                 .findTopByPatient_UserIdAndCreatedAtBetween(patient.getUserId(), start, end);
@@ -61,7 +71,6 @@ public class DailyLogService {
         } else {
             // create log if not
             log = MapperUtil.toDailyLogEntity(dto, patient);
-            dailyLogRepository.save(log);
         }
 
         return MapperUtil.toDailyLogResponseDto(dailyLogRepository.save(log));
