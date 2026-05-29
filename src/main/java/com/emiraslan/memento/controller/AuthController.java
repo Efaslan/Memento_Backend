@@ -4,8 +4,10 @@ import com.emiraslan.memento.dto.auth.*;
 import com.emiraslan.memento.dto.auth.TokenRefreshRequestDto;
 import com.emiraslan.memento.service.auth.AuthService;
 import com.emiraslan.memento.service.auth.ResetPasswordService;
+import com.emiraslan.memento.util.HttpRequestUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +27,15 @@ public class AuthController {
             description = "Role can be: PATIENT, DOCTOR, or RELATIVE."
     )
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request){
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<String> register(
+            @Valid @RequestBody RegisterRequest request,
+            HttpServletRequest httpRequest
+    ){
+
+        String ipAddress = HttpRequestUtil.extractClientIp(httpRequest);
+        String userAgent = HttpRequestUtil.extractUserAgent(httpRequest);
+
+        return ResponseEntity.ok(authService.register(request, ipAddress, userAgent));
     }
 
     @Operation(

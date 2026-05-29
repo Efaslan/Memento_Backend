@@ -3,8 +3,11 @@ package com.emiraslan.memento.service.auth;
 import com.emiraslan.memento.dto.auth.*;
 import com.emiraslan.memento.entity.*;
 import com.emiraslan.memento.entity.user.User;
+import com.emiraslan.memento.entity.user.UserConsent;
+import com.emiraslan.memento.enums.ConsentType;
 import com.emiraslan.memento.repository.device.RefreshTokenRepository;
 import com.emiraslan.memento.repository.device.UserDeviceRepository;
+import com.emiraslan.memento.repository.user.UserConsentRepository;
 import com.emiraslan.memento.repository.user.UserRepository;
 import com.emiraslan.memento.service.notification.EmailService;
 import com.emiraslan.memento.util.MapperUtil;
@@ -40,11 +43,12 @@ public class AuthService {
     private final EmailService emailService;
     private final UserDeviceRepository userDeviceRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserConsentRepository userConsentRepository;
 
     public static final String BLACKLIST_PREFIX = "jwt:blacklist:";
 
     @Transactional // rollback all changes if the method fails somewhere
-    public String register(RegisterRequest request) {
+    public String register(RegisterRequest request, String ipAddress, String userAgent) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EntityExistsException("EMAIL_ALREADY_EXISTS");
@@ -62,6 +66,16 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        UserConsent privacyConsent = MapperUtil.toUserConsentEntity(
+                savedUser,
+                ConsentType.PRIVACY_POLICY,
+                request.getPrivacyPolicyVersion(),
+                request.getIsPrivacyPolicyAccepted(),
+                ipAddress,
+                userAgent
+        );
+        userConsentRepository.save(privacyConsent);
 
         String verificationToken = generateAndSaveTokenToRedis(savedUser.getEmail());
 

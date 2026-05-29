@@ -1,8 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.auth.EmailDto;
 import com.emiraslan.memento.dto.request.DoctorProfileRequestDto;
-import com.emiraslan.memento.dto.request.EmailChangeRequestDto;
 import com.emiraslan.memento.dto.request.PatientProfileRequestDto;
 import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
 import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
@@ -22,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/profiles")
 @RequiredArgsConstructor
-@Tag(name = "03 - Profiles")
+@Tag(name = "04 - Profiles")
 @SecurityRequirement(name = "bearerAuth")
 public class ProfileController {
 
@@ -77,31 +75,5 @@ public class ProfileController {
             @PathVariable Integer patientId
     ) {
         return ResponseEntity.ok(profileService.getPatientProfile(patientId));
-    }
-
-    @Operation(
-            summary = "Request OTP for email change."
-    )
-    @PostMapping("/email/change-request")
-    public ResponseEntity<String> requestEmailChange(
-            @AuthenticationPrincipal User user,
-            @RequestBody @Valid EmailDto dto) {
-
-        profileService.requestEmailChange(user.getUserId(), dto.getEmail());
-
-        return ResponseEntity.ok("OTP_SENT_TO_NEW_EMAIL");
-    }
-
-    @Operation(
-            summary = "Verify OTP and update email."
-    )
-    @PostMapping("/email/change-verify")
-    public ResponseEntity<String> verifyEmailChange(
-            @AuthenticationPrincipal User user,
-            @RequestBody @Valid EmailChangeRequestDto dto) {
-
-        profileService.verifyAndChangeEmail(user.getUserId(), dto.getNewEmail(), dto.getOtpCode());
-
-        return ResponseEntity.ok("EMAIL_SUCCESSFULLY_UPDATED");
     }
 }

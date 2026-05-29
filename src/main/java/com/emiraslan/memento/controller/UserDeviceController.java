@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/devices")
 @RequiredArgsConstructor
-@Tag(name = "02 - User Devices")
+@Tag(name = "03 - User Devices")
 public class UserDeviceController {
 
     private final UserDeviceService userDeviceService;

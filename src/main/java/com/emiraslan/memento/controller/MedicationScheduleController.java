@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/medications/schedules")
 @RequiredArgsConstructor
-@Tag(name = "09 - Medication Schedules")
+@Tag(name = "10 - Medication Schedules")
 @SecurityRequirement(name = "bearerAuth")
 public class MedicationScheduleController {
 

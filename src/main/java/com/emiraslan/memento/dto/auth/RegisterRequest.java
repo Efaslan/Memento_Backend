@@ -43,4 +43,13 @@ public class RegisterRequest {
 
     @NotNull(message = "ROLE_REQUIRED")
     private UserRole role;
+
+    // Privacy agreement fields
+
+    @NotNull(message = "PRIVACY_POLICY_CONSENT_REQUIRED")
+    @AssertTrue(message = "YOU_MUST_ACCEPT_PRIVACY_POLICY") // Must be true
+    private Boolean isPrivacyPolicyAccepted;
+
+    @NotBlank(message = "KVKK_VERSION_REQUIRED")
+    private String privacyPolicyVersion;
 }

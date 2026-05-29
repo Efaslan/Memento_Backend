@@ -7,10 +7,8 @@ import com.emiraslan.memento.entity.*;
 import com.emiraslan.memento.entity.medication.MedicationLog;
 import com.emiraslan.memento.entity.medication.MedicationSchedule;
 import com.emiraslan.memento.entity.medication.MedicationScheduleTime;
-import com.emiraslan.memento.entity.user.DoctorProfile;
-import com.emiraslan.memento.entity.user.PatientProfile;
-import com.emiraslan.memento.entity.user.PatientRelationship;
-import com.emiraslan.memento.entity.user.User;
+import com.emiraslan.memento.entity.user.*;
+import com.emiraslan.memento.enums.ConsentType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -328,6 +326,19 @@ public class MapperUtil {
                 .osVersion(device.getOsVersion())
                 .biometricEnabled(device.getBiometricEnabled())
                 .lastActive(device.getLastActive())
+                .build();
+    }
+
+    // For User Consents
+    public static UserConsent toUserConsentEntity(User user, ConsentType consentType, String documentVersion, Boolean isAccepted, String ipAddress, String userAgent) {
+        return UserConsent.builder()
+                .user(user)
+                .consentType(consentType)
+                .documentVersion(documentVersion)
+                .isAccepted(isAccepted)
+                .consentedAt(LocalDateTime.now())
+                .ipAddress(ipAddress)
+                .userAgent(userAgent)
                 .build();
     }
 }
