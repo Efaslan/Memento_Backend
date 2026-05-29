@@ -39,7 +39,7 @@ public class AiService {
         } catch (Exception e) {
             log.error("Failed to format text with Groq AI: {}", e.getMessage());
             // Returning the original Text-To-Speech description if the AI fails to format it.
-            return descriptionFromSpeech;
+            throw new RuntimeException("AI_DAILY_LOG_FORMATTING_FAILED", e);
         }
     }
 

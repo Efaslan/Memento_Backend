@@ -17,4 +17,7 @@ public class DailyLogResponseDto {
     private String description;
     private Integer quantityMl;
     private LocalDateTime createdAt;
+
+    // message to frontend in case the Groq API couldn't format user speech, and their raw Speech-To-Text description was saved to DB.
+    private String warningMessage;
 }

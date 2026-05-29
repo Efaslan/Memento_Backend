@@ -29,7 +29,7 @@ public class DailyLog {
     private User patient;
 
     // For food
-    @Column(name = "description")
+    @Column(name = "description", length = 1000)
     private String description;
 
     // For water

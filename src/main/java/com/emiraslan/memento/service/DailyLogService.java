@@ -48,8 +48,14 @@ public class DailyLogService {
 
         // Formatting the user's description with AI
         String finalDescription = dto.getDescription();
+        String warningMessage = null;
+
         if (finalDescription != null && !finalDescription.trim().isEmpty()) {
-            finalDescription = aiService.formatDailyLog(finalDescription, patient);
+            try {
+                finalDescription = aiService.formatDailyLog(finalDescription, patient);
+            } catch (Exception e) {
+                warningMessage = e.getMessage();
+            }
         }
 
         // Set the new description
@@ -73,7 +79,13 @@ public class DailyLogService {
             log = MapperUtil.toDailyLogEntity(dto, patient);
         }
 
-        return MapperUtil.toDailyLogResponseDto(dailyLogRepository.save(log));
+        DailyLogResponseDto responseDto = MapperUtil.toDailyLogResponseDto(dailyLogRepository.save(log));
+
+        if (warningMessage != null) {
+            responseDto.setWarningMessage(warningMessage);
+        }
+
+        return responseDto;
     }
 
     public void deleteLog(Integer logId) {
