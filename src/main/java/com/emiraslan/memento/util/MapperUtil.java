@@ -136,6 +136,7 @@ public class MapperUtil {
         return RelationshipResponseDto.builder()
                 .relationshipId(entity.getRelationshipId())
                 .patientUserId(entity.getPatient().getUserId())
+                .patientName(entity.getPatient().getFirstName() + " " + entity.getPatient().getLastName())
                 .caregiverUserId(caregiver.getUserId())
                 .caregiverName(caregiver.getFirstName() + " " + caregiver.getLastName()) // for display
                 .caregiverPhone(caregiver.getPhoneNumber())

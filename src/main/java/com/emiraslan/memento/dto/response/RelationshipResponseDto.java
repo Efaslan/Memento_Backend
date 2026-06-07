@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class RelationshipResponseDto {
     private Integer relationshipId;
     private Integer patientUserId;
+    private String patientName;
     private Integer caregiverUserId;
     // For displaying additional info about the caregiver
     private String caregiverName;
