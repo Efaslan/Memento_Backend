@@ -1,28 +1,25 @@
-# Memento: AI-Assisted Elderly Care & Daily Monitoring System (Backend)
+# Memento: AI-Assisted Elderly Care System
 
-> **⚠️ Status:** This project is currently under development as part of my **Bachelor's Thesis**.
+> **Info:** I'm developing this project for my **Bachelor's Thesis**, together with a mobile developer.
 
-Memento is an android app designed to enhance the safety and well-being of elderly individuals. It processes real-time data from mobile phones to detect falls and manages medication schedules, navigation, and emergency alerts for caregivers.
+Memento is a mobile app designed to enhance the daily lives of elderly individuals. Our primary objective is to minimize the workload on elderly users to help them overcome technological barriers, while providing a secure platform for their relatives to easily monitor their daily routines.
 
 ---
 
 ## Quick Start
 
-You can run this project immediately without installing MSSQL. The project is configured to use an **In-Memory H2 Database** with pre-populated mock data.
+Only Docker Engine is needed to run the project, Spring Boot will automatically spin up PostgreSQL (populated with mock data) and Redis containers via the included compose.yaml file.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/Efaslan/Memento_Backend]
-    ```
-2.  **Open in IntelliJ IDEA (or Eclipse)** and run `MementoApplication.java`.
-3.  **Explore the API:**
-    For the Swagger UI, visit: `http://localhost:8080/swagger-ui/index.html`.
-4.  **Explore the database:**
-    For the H2 In-Memory Database, visit: `http://localhost:8080/h2-console`.
+1. **Start the Application:** Make sure Docker Engine is running in the background, then run `MementoApplication.java`.
+
+2. **Explore the API:** Once the application is running, you can visit the Swagger UI at:
+   `http://localhost:8080/swagger-ui/index.html`
+
+> **Note:** Features like email notifications and DailyLog text formatting require additional configurations in the `application.properties` file such as SMTP settings and `GROQ_API_KEY`.
 
 ### Test Credentials
 
-The system starts with a populated database. You can use these credentials in the Swagger UI to get a JWT Token and test endpoints:
+You can use these test entities to receive Access JWTs for Swagger instead of configuring SMTP settings for registration:
 
 | Role | Email | Password
 | :--- | :--- | :---
@@ -34,28 +31,26 @@ The system starts with a populated database. You can use these credentials in th
 
 ## Tech Stack
 
-* **Language:** Java 17
-* **Framework:** Spring Boot 3
-* **Security:** Spring Security & JWT Authentication
-* **Database:** MSSQL Server (Dev) / H2 In-Memory (Test)
-* **Architecture:** N-Tier Layered Architecture (Controller-Service-Repository)
-* **Documentation:** Open API (Swagger UI)
-* **Build Tool:** Maven
+**Java 17** | **Spring Boot 3** | **PostgreSQL** | **Redis**  | **Groq AI** | **Docker**
 
 ---
 
-## Key Features (In-progress)
+## Key Features
 
-* **Action-Oriented AI Support:** Backend infrastructure supporting the mobile AI assistant; processes natural language intents (e.g., *"I took my medicine"*) to trigger database actions automatically.
-* **Medication Management:** Schedules reminders for medicines and tracks intake compliance.
-* **Daily Logs:** Tracks daily hydration (`WATER`) and nutrition (`FOOD`) for future reference.
-* **Role-Based Access Control (RBAC):** A unified ecosystem connecting **Patients**, **Relatives**, and **Doctors** with distinct permissions.
-* **Notification System:** Push notifications for emergencies and reminders.
+* **Security:** Session management utilizing rotated Refresh (14 days) and Access (15 minutes) JWTs. Rate limiting is enforced via Bucket4j to prevent API abuse.
+
+* **Caching:** Utilizes Redis for storing OTPs, email verification links, and managing the JWT Blacklist. It also caches FCM (Firebase Cloud Messaging) tokens alongside the database to ensure rapid and efficient execution of the notification cron jobs.
+
+* **Relative Monitoring:** Allows users to link their family members or caregivers to their accounts via the app. These relatives can securely track the elderly user's daily schedules, including medication adherence and nutritional intake.
+
+* **AI Integration:** Integrated with Groq API to process natural language voice inputs into structured daily nutritional logs, and to power an in-app guide assistant.
+
+* **Medication & Health Tracking:** Automated cron jobs for medication reminders, tracking intake compliance, and logging daily hydration/nutrition.
+
+* **Emergency Alert System:** Processes critical events (such as detected falls) from the mobile client and automatically dispatches push notifications to designated emergency contacts.
 
 ---
 
 ### Database Schema (ERD)
 
-The system uses a normalized relational database model designed to handle complex relationships between patients, caregivers, and medical logs.
-
-<img width="796" height="871" alt="erd" src="https://github.com/user-attachments/assets/102eddd7-6ff0-48ff-9a4a-8b3b484a9daf" />
+<img width="796" height="871" alt="erd" src="assets/erd_schema.png" />

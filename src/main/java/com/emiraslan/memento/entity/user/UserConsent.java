@@ -25,7 +25,6 @@ public class UserConsent {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // PRIVACY_POLICY
     @Enumerated(EnumType.STRING)
     @Column(name = "consent_type", nullable = false, length = 50)
     private ConsentType consentType;

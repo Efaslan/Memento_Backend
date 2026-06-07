@@ -67,15 +67,9 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        UserConsent privacyConsent = MapperUtil.toUserConsentEntity(
-                savedUser,
-                ConsentType.PRIVACY_POLICY,
-                request.getPrivacyPolicyVersion(),
-                request.getIsPrivacyPolicyAccepted(),
-                ipAddress,
-                userAgent
-        );
-        userConsentRepository.save(privacyConsent);
+        UserConsent privacyConsent = MapperUtil.toUserConsentEntity(savedUser, ConsentType.PRIVACY_POLICY, request.getPrivacyPolicyVersion(), request.getIsPrivacyPolicyAccepted(), ipAddress, userAgent);
+        UserConsent termsAndConditionsConsent = MapperUtil.toUserConsentEntity(savedUser, ConsentType.TERMS_AND_CONDITIONS, request.getTermsAndConditionsVersion(), request.getIsTermsAndConditionsAccepted(), ipAddress, userAgent);
+        userConsentRepository.saveAll(List.of(privacyConsent, termsAndConditionsConsent));
 
         String verificationToken = generateAndSaveTokenToRedis(savedUser.getEmail());
 

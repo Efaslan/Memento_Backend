@@ -29,8 +29,8 @@ public class RegisterRequest {
     @NotBlank(message = "PASSWORD_REQUIRED")
     @Size(min = 8, max = 30, message = "PASSWORD_MUST_BE_MIN_8_MAX_30_CHARACTERS")
     @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).+$",
-            message = "Your password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character."
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
+            message = "Your password must contain at least one uppercase letter, one lowercase letter, and one digit."
     )
     private String password;
 
@@ -52,4 +52,11 @@ public class RegisterRequest {
 
     @NotBlank(message = "KVKK_VERSION_REQUIRED")
     private String privacyPolicyVersion;
+
+    @NotNull(message = "TERMS_AND_CONDITIONS_CONSENT_REQUIRED")
+    @AssertTrue(message = "YOU_MUST_ACCEPT_TERMS_AND_CONDITIONS") // Must be true
+    private Boolean isTermsAndConditionsAccepted;
+
+    @NotBlank(message = "TERMS_AND_CONDITIONS_VERSION_REQUIRED")
+    private String termsAndConditionsVersion;
 }
