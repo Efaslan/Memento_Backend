@@ -34,7 +34,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(String.valueOf(user.getUserId())) // we put the user's id as the subject of JWT
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 min short-lived JWT access token
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15 * 4 * 24)) // 15 min short-lived JWT access token todo 24 hours for testing now
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

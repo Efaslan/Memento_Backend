@@ -31,8 +31,8 @@ public class MedicationScheduleRequestDto {
     @Size(max = 255, message = "NOTES_TOO_LONG")
     private String notes;
 
+    // can be any date
     @NotNull(message = "START_DATE_REQUIRED")
-    @FutureOrPresent(message = "START_DATE_MUST_BE_TODAY_OR_FUTURE")
     private LocalDate startDate;
 
     // nullable in case isPrn = true

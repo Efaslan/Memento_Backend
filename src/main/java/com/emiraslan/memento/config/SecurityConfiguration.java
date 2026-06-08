@@ -61,7 +61,7 @@ public class SecurityConfiguration {
 
         corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
 
-        corsConfiguration.setAllowedMethods(List.of("GET", "PUT", "DELETE", "POST", "OPTIONS"));
+        corsConfiguration.setAllowedMethods(List.of("GET", "PUT", "DELETE", "POST", "OPTIONS", "PATCH"));
 
         corsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
 
