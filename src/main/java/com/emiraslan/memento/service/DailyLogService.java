@@ -42,44 +42,60 @@ public class DailyLogService {
     // adds or update a new log
     @Transactional
     public DailyLogResponseDto upsertTodayLog(DailyLogRequestDto dto, User patient) {
+
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.atTime(LocalTime.MAX);
-
-        // Formatting the user's description with AI
-        String finalDescription = dto.getDescription();
-        String warningMessage = null;
-
-        if (finalDescription != null && !finalDescription.trim().isEmpty()) {
-            try {
-                finalDescription = aiService.formatDailyLog(finalDescription, patient);
-            } catch (Exception e) {
-                warningMessage = e.getMessage();
-            }
-        }
-
-        // Set the new description
-        dto.setDescription(finalDescription);
 
         // check if today's log exists
         Optional<DailyLog> existingLogOpt = dailyLogRepository
                 .findTopByPatient_UserIdAndCreatedAtBetween(patient.getUserId(), start, end);
 
-        DailyLog log;
+
+        String incomingDescription = dto.getDescription();
+        String finalDescription = incomingDescription; // assigning the incoming as final at first, we will check if the DB already has the same description to not waste AI credits
+        String warningMessage = null;
+        boolean shouldCallAi = false;
+
+        if (incomingDescription != null && !incomingDescription.trim().isEmpty()) {
+            if (existingLogOpt.isEmpty()) {
+                // If the DB's description is empty, we'll do AI formatting for sure
+                shouldCallAi = true;
+            } else {
+                // If the DB has a description, check if it's the same with the incoming one
+                String dbDescription = existingLogOpt.get().getDescription();
+                if (!incomingDescription.equals(dbDescription)) {
+                    // If different, we'll format it again
+                    shouldCallAi = true;
+                }
+            }
+        }
+
+        if (shouldCallAi) {
+            try {
+                finalDescription = aiService.formatDailyLog(incomingDescription, patient);
+            } catch (Exception e) {
+                warningMessage = e.getMessage();
+                // If there's an error, the finalDescription will be equal to the incomingDescription, thanks to the first assignment
+            }
+        }
+
+        DailyLog logEntity;
 
         if (existingLogOpt.isPresent()) {
             // if it exists, update it
-            log = existingLogOpt.get();
+            logEntity = existingLogOpt.get();
 
-            log.setDescription(dto.getDescription());
-            log.setQuantityMl(dto.getQuantityMl());
+            logEntity.setDescription(finalDescription);
+            logEntity.setQuantityMl(dto.getQuantityMl());
 
         } else {
             // create log if not
-            log = MapperUtil.toDailyLogEntity(dto, patient);
+            dto.setDescription(finalDescription);
+            logEntity = MapperUtil.toDailyLogEntity(dto, patient);
         }
 
-        DailyLogResponseDto responseDto = MapperUtil.toDailyLogResponseDto(dailyLogRepository.save(log));
+        DailyLogResponseDto responseDto = MapperUtil.toDailyLogResponseDto(dailyLogRepository.save(logEntity));
 
         if (warningMessage != null) {
             responseDto.setWarningMessage(warningMessage);

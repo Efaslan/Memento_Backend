@@ -39,7 +39,7 @@ You can use these test entities to receive Access JWTs for Swagger instead of co
 
 * **Security:** Session management utilizing rotated Refresh (14 days) and Access (15 minutes) JWTs. Rate limiting is enforced via Bucket4j to prevent API abuse.
 
-* **Caching:** Utilizes Redis for storing OTPs, email verification links, and managing the JWT Blacklist. It also caches FCM (Firebase Cloud Messaging) tokens alongside the database to ensure rapid and efficient execution of the notification cron jobs.
+* **Caching:** Utilizes Redis for storing OTPs and email verification links. It also caches FCM (Firebase Cloud Messaging) tokens alongside the database to ensure rapid and efficient execution of the notification cron jobs.
 
 * **Relative Monitoring:** Allows users to link their family members or caregivers to their accounts via the app. These relatives can securely track the elderly user's daily schedules, including medication adherence and nutritional intake.
 

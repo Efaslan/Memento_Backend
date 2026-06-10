@@ -81,16 +81,9 @@ public class UserDeviceController {
     @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE', 'DOCTOR') and @guard.canManageDevice(#deviceId, principal)")
     @DeleteMapping("/logout/{deviceId}")
     public ResponseEntity<Void> logoutDevice(
-            @PathVariable Integer deviceId,
-            @RequestHeader(value = "Authorization") String authHeader
+            @PathVariable Integer deviceId
     ) {
-
-        String jwt = null;
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);
-        }
-
-        userDeviceService.logoutDevice(deviceId, jwt);
+        userDeviceService.logoutDevice(deviceId);
         return ResponseEntity.ok().build();
     }
 }

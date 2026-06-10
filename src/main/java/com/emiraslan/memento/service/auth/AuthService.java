@@ -45,8 +45,6 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserConsentRepository userConsentRepository;
 
-    public static final String BLACKLIST_PREFIX = "jwt:blacklist:";
-
     @Transactional // rollback all changes if the method fails somewhere
     public String register(RegisterRequest request, String ipAddress, String userAgent) {
 
@@ -256,7 +254,6 @@ public class AuthService {
 
         // save the previous Refresh JWT to Redis for grace period
         redisTemplate.opsForValue().set(redisGracePeriodKey, "oldToken", 5, TimeUnit.MINUTES);
-        // not blacklisting the previous Access JWT because it will already be expired when the users use their Refresh JWTs
 
         // set the claims for new Access Jwt
         Map<String, Object> extraClaims = new HashMap<>();

@@ -8,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,15 +17,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import static com.emiraslan.memento.service.auth.AuthService.BLACKLIST_PREFIX;
-
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final StringRedisTemplate redisTemplate;
 
     @Override
     protected void doFilterInternal(
@@ -47,17 +43,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // removing "Bearer " from token
         jwt = authHeader.substring(7);
-
-        // Redis blacklist control
-        String redisKey = BLACKLIST_PREFIX + jwt;
-
-        Boolean isBlacklisted = redisTemplate.hasKey(redisKey);
-        if (isBlacklisted) {
-            // return 401
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Token is invalidated. Please login again.");
-            return;
-        }
 
         try { // error checking here because global exception handler comes after the jwt security filter
             userIdString = jwtService.extractUserId(jwt);
