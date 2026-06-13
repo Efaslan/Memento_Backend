@@ -15,9 +15,6 @@ import java.time.LocalDateTime;
 public class MedicationLogResponseDto {
     private Integer medicationLogId;
     private Integer scheduleTimeId;
-    private Integer patientUserId;
     private LocalDateTime takenAt;
     private MedicationStatus status;
-    private String medicationName;
-    private String dosage;
 }

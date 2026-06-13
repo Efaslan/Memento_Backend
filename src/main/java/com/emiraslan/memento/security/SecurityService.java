@@ -207,6 +207,14 @@ public class SecurityService {
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND"));
     }
 
+    public boolean canAccessSchedule(Integer scheduleId, User user) {
+
+        Integer targetPatientId = medicationScheduleRepository.findPatientIdByScheduleId(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND"));
+
+        return canViewPatientData(targetPatientId, user);
+    }
+
     // ========================================================================
     // USER DEVICE SECURITY
     // ========================================================================

@@ -1,7 +1,6 @@
 package com.emiraslan.memento.service.medication;
 
 import com.emiraslan.memento.dto.response.MedicationLogResponseDto;
-import com.emiraslan.memento.dto.response.MedicationLogSummaryResponseDto;
 import com.emiraslan.memento.entity.medication.MedicationLog;
 import com.emiraslan.memento.entity.medication.MedicationScheduleTime;
 import com.emiraslan.memento.entity.user.User;
@@ -13,10 +12,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -37,42 +32,40 @@ public class MedicationLogService {
     // timespan for "TAKEN" status
     private static final int ON_TIME_TOLERANCE_MINUTES = 30;
 
-    public MedicationLogSummaryResponseDto getRecentLogsSummary(Integer patientId, Integer daysBack, Integer page, Integer size) {
+    public List<MedicationLogResponseDto> getLogsBySchedule(Integer scheduleId, Integer daysBack) {
 
+        // calculate dates from Today - daysBack
         LocalDate today = LocalDate.now();
         LocalDateTime endDateTime = today.atTime(LocalTime.MAX);
         LocalDateTime startDateTime = today.minusDays(daysBack).atStartOfDay();
 
-        // latest logs are on top
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "takenAt"));
+        List<MedicationLog> logs = logRepository.findLogsByScheduleIdAndDateRange(scheduleId, startDateTime, endDateTime);
 
-        // pull the log statistics of all logs between the given dates
-        MedicationLogSummaryResponseDto.StatsProjection stats = logRepository.getStatistics(patientId, startDateTime, endDateTime);
-
-        // pull the logs with pagination
-        Page<MedicationLog> logPage = logRepository.findByPatient_UserIdAndTakenAtBetween(
-                patientId, startDateTime, endDateTime, pageable
-        );
-
-        // maps the logs into dto pages
-        Page<MedicationLogResponseDto> dtoPage = logPage.map(MapperUtil::toMedicationLogResponseDto);
-
-        return MedicationLogSummaryResponseDto.builder()
-                .takenCount(stats.getTakenCount())
-                .delayedCount(stats.getDelayedCount())
-                .skippedCount(stats.getSkippedCount())
-                .logs(dtoPage)
-                .build();
+        return logs.stream()
+                .map(MapperUtil::toMedicationLogResponseDto)
+                .toList();
     }
 
     // creates a new log
     @Transactional
     public MedicationLogResponseDto logMedicationTaken(User patient, Integer scheduleTimeId) {
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = now.toLocalDate().atTime(LocalTime.MAX);
+
+        boolean alreadyLoggedToday = logRepository.existsByScheduleTime_TimeIdAndTakenAtBetween(
+                scheduleTimeId, startOfDay, endOfDay
+        );
+
+        if (alreadyLoggedToday) {
+            throw new IllegalStateException("MEDICATION_ALREADY_LOGGED_TODAY");
+        }
+
         MedicationScheduleTime scheduleTime = timeRepository.findById(scheduleTimeId)
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
 
         // get the status
-        LocalDateTime now = LocalDateTime.now();
         MedicationStatus status = determineStatus(scheduleTime.getScheduledTime(), now);
 
         // build and save the log

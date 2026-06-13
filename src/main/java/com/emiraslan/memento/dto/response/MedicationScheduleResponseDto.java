@@ -27,6 +27,10 @@ public class MedicationScheduleResponseDto {
     private Boolean isPrn;
     private Boolean isActive;
 
+    private Integer takenPercentage;
+    private Integer delayedPercentage;
+    private Integer skippedPercentage;
+
     private List<TimeInfoDto> times;
 
     // Time information from MedicationSchedulesTime. We combine the two tables in one dto class.

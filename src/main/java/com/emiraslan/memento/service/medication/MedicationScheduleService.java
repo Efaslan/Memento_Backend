@@ -11,6 +11,7 @@ import com.emiraslan.memento.repository.medication.MedicationScheduleTimeReposit
 import com.emiraslan.memento.repository.user.UserRepository;
 import com.emiraslan.memento.service.notification.NotificationService;
 import com.emiraslan.memento.util.MapperUtil;
+import com.emiraslan.memento.repository.medication.ScheduleStatsProjection;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,7 @@ public class MedicationScheduleService {
         List<Integer> scheduleIds = schedules.stream()
                 .map(MedicationSchedule::getScheduleId)
                 .toList();
+
         // pull all times from the schedule id list
         List<MedicationScheduleTime> scheduleTimes = timeRepository.findBySchedule_ScheduleIdIn(scheduleIds);
 
@@ -53,11 +55,46 @@ public class MedicationScheduleService {
         Map<Integer, List<MedicationScheduleTime>> scheduleIdsWithTimes = scheduleTimes.stream()
                 .collect(Collectors.groupingBy(time -> time.getSchedule().getScheduleId()));
 
+        // pull all statistics for these schedules in one query
+        List<ScheduleStatsProjection> statsList = logRepository.getStatisticsByScheduleIds(scheduleIds);
+
+        // group the statistics by their schedule ids for O(1) lookup
+        Map<Integer, ScheduleStatsProjection> statsMap = statsList.stream()
+                .collect(Collectors.toMap(ScheduleStatsProjection::getScheduleId, stats -> stats));
+
         // create the DTOs with schedules and their times
         return schedule -> {
             List<MedicationScheduleTime> timesForThisSchedule = scheduleIdsWithTimes.getOrDefault(schedule.getScheduleId(), Collections.emptyList());
-            return MapperUtil.toMedicationScheduleResponseDto(schedule, timesForThisSchedule);
+            MedicationScheduleResponseDto dto = MapperUtil.toMedicationScheduleResponseDto(schedule, timesForThisSchedule);
+
+            ScheduleStatsProjection stats = statsMap.get(schedule.getScheduleId());
+
+            if (stats != null) {
+                long taken = stats.getTakenCount();
+                long delayed = stats.getDelayedCount();
+                long skipped = stats.getSkippedCount();
+                long totalLogs = taken + delayed + skipped;
+
+                // calculating percentages of the log status'
+                if (totalLogs > 0) {
+                    dto.setTakenPercentage((int) Math.round((double) taken / totalLogs * 100));
+                    dto.setDelayedPercentage((int) Math.round((double) delayed / totalLogs * 100));
+                    dto.setSkippedPercentage((int) Math.round((double) skipped / totalLogs * 100));
+                } else {
+                    setZeroPercentages(dto);
+                }
+            } else {
+                setZeroPercentages(dto); // all %0 if no logs
+            }
+
+            return dto;
         };
+    }
+
+    private void setZeroPercentages(MedicationScheduleResponseDto dto) {
+        dto.setTakenPercentage(0);
+        dto.setDelayedPercentage(0);
+        dto.setSkippedPercentage(0);
     }
 
     // brings active medication schedules and times

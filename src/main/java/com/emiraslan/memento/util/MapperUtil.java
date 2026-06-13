@@ -224,19 +224,11 @@ public class MapperUtil {
     public static MedicationLogResponseDto toMedicationLogResponseDto(MedicationLog entity) {
         if (entity == null) return null;
 
-        // get medicationName through relations
-        String medicationName = "";
-        if (entity.getScheduleTime() != null && entity.getScheduleTime().getSchedule() != null) {
-            medicationName = entity.getScheduleTime().getSchedule().getMedicationName();
-        }
-
         return MedicationLogResponseDto.builder()
                 .medicationLogId(entity.getMedicationLogId())
                 .scheduleTimeId(entity.getScheduleTime().getTimeId()) // medicine's assigned time id
-                .patientUserId(entity.getPatient().getUserId())
                 .takenAt(entity.getTakenAt())
                 .status(entity.getStatus())
-                .medicationName(medicationName) // for display
                 .build();
     }
 

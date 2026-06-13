@@ -57,7 +57,8 @@ public class DailyLogService {
         String warningMessage = null;
         boolean shouldCallAi = false;
 
-        if (incomingDescription != null && !incomingDescription.trim().isEmpty()) {
+        // the description can't be null, but it can be empty string so we're checking with trim
+        if (!dto.getIsManualEditing() && !incomingDescription.trim().isEmpty()) {
             if (existingLogOpt.isEmpty()) {
                 // If the DB's description is empty, we'll do AI formatting for sure
                 shouldCallAi = true;
