@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/assistant")
 @RequiredArgsConstructor
-@Tag(name = "12 - AI Assistant")
+@Tag(name = "13 - AI Assistant")
 @SecurityRequirement(name = "bearerAuth")
 public class AiController {
 

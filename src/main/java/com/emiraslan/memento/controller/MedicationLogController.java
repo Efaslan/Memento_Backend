@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/medications/logs")
 @RequiredArgsConstructor
-@Tag(name = "11 - Medication Logs")
+@Tag(name = "12 - Medication Logs")
 @SecurityRequirement(name = "bearerAuth")
 public class MedicationLogController {
 

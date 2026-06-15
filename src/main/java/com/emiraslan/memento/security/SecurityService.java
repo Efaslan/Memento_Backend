@@ -1,7 +1,9 @@
 package com.emiraslan.memento.security;
 
 import com.emiraslan.memento.dto.request.GeneralReminderRequestDto;
+import com.emiraslan.memento.dto.request.GoalRequestDto;
 import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
+import com.emiraslan.memento.entity.Goal;
 import com.emiraslan.memento.entity.UserDevice;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.enums.RelationshipType;
@@ -28,6 +30,7 @@ public class SecurityService {
     private final MedicationScheduleRepository medicationScheduleRepository;
     private final MedicationScheduleTimeRepository timesRepository;
     private final UserDeviceRepository userDeviceRepository;
+    private final GoalRepository goalRepository;
 
     // --- helper method ----
     private boolean hasActiveRelationship(Integer patientId, Integer caregiverId){
@@ -93,11 +96,6 @@ public class SecurityService {
         // patients do not need to include id in their request. It is automatically set in service
         if (user.getRole() == UserRole.PATIENT) {
             return true;
-        }
-
-        // this will throw 400 error if doctors or relatives did not include patient's id. Does not block patients because of method order
-        if (dto.getPatientUserId() == null) {
-            throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
         }
 
         if (!hasActiveRelationship(dto.getPatientUserId(), user.getUserId())) {
@@ -243,6 +241,39 @@ public class SecurityService {
         // if the user isn't the device owner, and isn't related to the owner, throw 403
         if(!hasActiveRelationship(deviceOwner.getUserId(), user.getUserId())){
             throw new AccessDeniedException("YOU_ARE_NOT_RELATED_TO_DEVICE_OWNER");
+        }
+        return true;
+    }
+
+    // ========================================================================
+    // GOAL SECURITY
+    // ========================================================================
+
+    public boolean canCreateGoal(GoalRequestDto dto, User user) {
+        if (user.getRole() == UserRole.PATIENT) {
+            return true;
+        }
+
+        if (!hasActiveRelationship(dto.getPatientUserId(), user.getUserId())) {
+            throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
+        }
+        return true;
+    }
+
+    public boolean canModifyGoal(Integer goalId, User user) {
+
+        Integer targetPatientId = goalRepository.findPatientIdByGoalId(goalId)
+                .orElseThrow(() -> new EntityNotFoundException("GOAL_NOT_FOUND"));
+
+        return canViewPatientData(targetPatientId, user);
+    }
+
+    public boolean canCompleteGoal(Integer goalId, User user) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new EntityNotFoundException("GOAL_NOT_FOUND"));
+
+        if (!goal.getPatient().getUserId().equals(user.getUserId())) {
+            throw new AccessDeniedException("ONLY_GOAL_OWNERS_CAN_COMPLETE_THEIR_GOALS");
         }
         return true;
     }

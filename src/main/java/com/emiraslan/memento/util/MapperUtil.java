@@ -334,4 +334,59 @@ public class MapperUtil {
                 .userAgent(userAgent)
                 .build();
     }
+
+    // For Goals
+    public static GoalResponseDto toGoalResponseDto(Goal goal) {
+        if (goal == null) {
+            return null;
+        }
+
+        return GoalResponseDto.builder()
+                .goalId(goal.getGoalId())
+                .goalType(goal.getGoalType())
+                .title(goal.getTitle())
+                .targetValue(goal.getTargetValue())
+                .unit(goal.getUnit())
+                .isActive(goal.getIsActive())
+                .createdAt(goal.getCreatedAt())
+                .build();
+    }
+
+    public static Goal toGoalEntity(GoalRequestDto dto, User patient, User creator){
+        return Goal.builder()
+                .patient(patient)
+                .creator(creator)
+                .goalType(dto.getGoalType())
+                .title(dto.getTitle())
+                .targetValue(dto.getTargetValue())
+                .unit(dto.getUnit())
+                .isActive(true)
+                .build();
+    }
+
+    // For Goal Logs
+    public static GoalLog toGoalLogEntity(GoalLogRequestDto dto, Goal goal) {
+        if (dto == null || goal == null) {
+            return null;
+        }
+
+        return GoalLog.builder()
+                .goal(goal)
+                .progressValue(dto.getProgressValue())
+                // createdAt is automatic
+                .build();
+    }
+
+    public static GoalLogResponseDto toGoalLogResponseDto(GoalLog log) {
+        if (log == null) {
+            return null;
+        }
+
+        return GoalLogResponseDto.builder()
+                .goalLogId(log.getGoalLogId())
+                .status(log.getStatus())
+                .progressValue(log.getProgressValue())
+                .createdAt(log.getCreatedAt())
+                .build();
+    }
 }

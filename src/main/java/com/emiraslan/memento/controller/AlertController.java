@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/alerts")
 @RequiredArgsConstructor
-@Tag(name = "09 - Alerts")
+@Tag(name = "10 - Alerts")
 @SecurityRequirement(name = "bearerAuth")
 public class AlertController {
 

@@ -36,10 +36,11 @@ public class OpenApiConfig {
                 .addTagsItem(new Tag().name("06 - Saved Locations").description("Saved locations of Patient users."))
                 .addTagsItem(new Tag().name("07 - General Reminders").description("Non-medical reminders of Patient users."))
                 .addTagsItem(new Tag().name("08 - Daily Logs").description("Food and water consumption logs of Patient users."))
-                .addTagsItem(new Tag().name("09 - Alerts").description("Critical situations (such as fall detections) of Patient users."))
-                .addTagsItem(new Tag().name("10 - Medication Schedules").description("Medication schedules of Patient users."))
-                .addTagsItem(new Tag().name("11 - Medication Logs").description("Medication intake logs of Patient users."))
-                .addTagsItem(new Tag().name("12 - AI Assistant").description("In-app AI assistant for user questions."))
+                .addTagsItem(new Tag().name("09 - Goals").description("Daily goals of Patient users."))
+                .addTagsItem(new Tag().name("10 - Alerts").description("Critical situations (such as fall detections) of Patient users."))
+                .addTagsItem(new Tag().name("11 - Medication Schedules").description("Medication schedules of Patient users."))
+                .addTagsItem(new Tag().name("12 - Medication Logs").description("Medication intake logs of Patient users."))
+                .addTagsItem(new Tag().name("13 - AI Assistant").description("In-app AI assistant for user questions."))
 
                 // JWT Authorize button config
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
