@@ -1,7 +1,6 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.auth.*;
-import com.emiraslan.memento.dto.auth.TokenRefreshRequestDto;
 import com.emiraslan.memento.service.auth.AuthService;
 import com.emiraslan.memento.service.auth.ResetPasswordService;
 import com.emiraslan.memento.util.HttpRequestUtil;

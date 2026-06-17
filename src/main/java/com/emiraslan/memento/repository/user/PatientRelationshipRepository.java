@@ -1,7 +1,6 @@
 package com.emiraslan.memento.repository.user;
 
 import com.emiraslan.memento.entity.user.PatientRelationship;
-import com.emiraslan.memento.enums.RelationshipType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;

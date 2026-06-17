@@ -2,6 +2,7 @@ package com.emiraslan.memento.security;
 
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.exception.RateLimitExceededException;
+import com.emiraslan.memento.util.HttpRequestUtil;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
@@ -58,7 +59,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private String resolveKey(HttpServletRequest request, String path) {
         // the key contains the ip in case of auth endpoints because the user isn't authenticated yet
         if (path.startsWith("/api/v1/auth")) {
-            return "rate_limit:ip:" + request.getRemoteAddr();
+            return "rate_limit:ip:" + HttpRequestUtil.extractClientIp(request);
         }
 
         // get the security context if the request isn't made to /auth
@@ -72,14 +73,14 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
 
         // fallback to ip address for insurance
-        return "rate_limit:ip:" + request.getRemoteAddr();
+        return "rate_limit:ip:" + HttpRequestUtil.extractClientIp(request);
     }
 
     private BucketConfiguration resolveBucketConfig(String path) {
         // maximum 5 request to /auth endpoints in 1 minute
         if (path.startsWith("/api/v1/auth")) {
-            return BucketConfiguration.builder()
-                    .addLimit(limit -> limit.capacity(5).refillGreedy(5, Duration.ofMinutes(1)))
+            return BucketConfiguration.builder() // /auth endpoint protection is also done through Cloudflare (Max 15 requests per 10 seconds). Note: ISS often give same IP to many users with CGNAT
+                    .addLimit(limit -> limit.capacity(20).refillGreedy(20, Duration.ofMinutes(1)))
                     .build();
         }
 
