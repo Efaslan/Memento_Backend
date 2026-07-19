@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -21,7 +22,7 @@ public class EmailService{
     @Value("${memento.mail.sender}")
     private String fromEmail;
 
-    public void sendEmail(String to, String subject, String templateName, Context context) {
+    private void sendEmail(String to, String subject, String templateName, Context context) {
 
         if(fromEmail == null || fromEmail.trim().isEmpty()){
             log.error("Unable to send email! Please check application.properties file and fill 'spring.mail.username' and 'spring.mail.password'.");
@@ -49,6 +50,7 @@ public class EmailService{
         }
     }
 
+    @Async
     public void sendPasswordResetEmail(String to, String userName, String otpCode) {
         // Context is a dictionary that will hold variables for the HTML to display
         Context context = new Context();
@@ -58,6 +60,7 @@ public class EmailService{
         sendEmail(to, "Şifre Sıfırlama Talebi", "password-reset", context);
     }
 
+    @Async
     public void sendRelationshipInviteEmail(String to, String targetName, String initiatorFullName, String otpCode) {
         Context context = new Context();
         context.setVariable("targetName", targetName);
@@ -67,6 +70,7 @@ public class EmailService{
         sendEmail(to, "Yeni Bir Yakın Davetiniz Var", "relationship-invite", context);
     }
 
+    @Async
     public void sendEmailUpdateEmail(String to, String userName, String otpCode) {
         Context context = new Context();
         context.setVariable("name", userName);
@@ -75,6 +79,7 @@ public class EmailService{
         sendEmail(to, "E-posta Adresi Güncelleme Doğrulaması", "email-update", context);
     }
 
+    @Async
     public void sendVerificationEmail(String to, String userName, String token) {
         String verificationLink = "https://emir-memento.me/api/v1/auth/verify?token=" + token;
 

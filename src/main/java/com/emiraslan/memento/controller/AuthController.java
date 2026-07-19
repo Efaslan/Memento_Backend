@@ -1,6 +1,7 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.auth.*;
+import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.service.auth.AuthService;
 import com.emiraslan.memento.service.auth.ResetPasswordService;
 import com.emiraslan.memento.util.HttpRequestUtil;
@@ -26,7 +27,7 @@ public class AuthController {
             description = "Role can be: PATIENT, DOCTOR, or RELATIVE."
     )
     @PostMapping("/register")
-    public ResponseEntity<String> register(
+    public ResponseEntity<BasicStringResponse> register(
             @Valid @RequestBody RegisterRequest request,
             HttpServletRequest httpRequest
     ){

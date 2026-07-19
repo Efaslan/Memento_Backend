@@ -51,19 +51,22 @@ public class MedicationLogService {
     public MedicationLogResponseDto logMedicationTaken(User patient, Integer scheduleTimeId) {
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
-        LocalDateTime endOfDay = now.toLocalDate().atTime(LocalTime.MAX);
-
-        boolean alreadyLoggedToday = logRepository.existsByScheduleTime_TimeIdAndTakenAtBetween(
-                scheduleTimeId, startOfDay, endOfDay
-        );
-
-        if (alreadyLoggedToday) {
-            throw new IllegalStateException("MEDICATION_ALREADY_LOGGED_TODAY");
-        }
-
         MedicationScheduleTime scheduleTime = timeRepository.findById(scheduleTimeId)
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
+
+        boolean isPrnSchedule = scheduleTime.getScheduledTime() == null; // only PRN schedules have null times
+
+        if (!isPrnSchedule){
+            LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
+            LocalDateTime endOfDay = now.toLocalDate().atTime(LocalTime.MAX);
+
+            boolean alreadyLoggedToday = logRepository.existsByScheduleTime_TimeIdAndTakenAtBetween(
+                    scheduleTimeId, startOfDay, endOfDay
+            );
+            if (alreadyLoggedToday) {
+                throw new IllegalStateException("MEDICATION_ALREADY_LOGGED_TODAY");
+            }
+        }
 
         // get the status
         MedicationStatus status = determineStatus(scheduleTime.getScheduledTime(), now);

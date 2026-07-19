@@ -82,6 +82,16 @@ public class PatientRelationshipController {
         return ResponseEntity.ok(relationshipService.togglePrimaryContactStatus(relationshipId));
     }
 
+    @Operation(
+            summary = "Deactivating relationships instead of deleting them."
+    )
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canUpdateRelationship(#relationshipId, principal)")
+    @PatchMapping("/{relationshipId}/deactivate")
+    public ResponseEntity<Void> deactivateRelationship(@PathVariable Integer relationshipId) {
+        relationshipService.deactivateRelationship(relationshipId);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Get paginated and searchable list of patients for a doctor")
     @PreAuthorize("hasAuthority('DOCTOR')")
     @GetMapping("/my-patients")

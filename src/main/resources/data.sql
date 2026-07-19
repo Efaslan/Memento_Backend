@@ -3,16 +3,16 @@
 -- Password for all: 1234567Ab+
 -- ==========================================
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, gender, role, is_email_verified, created_at)
-VALUES ('demo.patient@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Ahmet', 'Yilmaz', '05551112233', 'MALE', 'PATIENT', true, CURRENT_TIMESTAMP);
+VALUES ('demo.patient@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Ahmet', 'Yilmaz', '5551112233', 'MALE', 'PATIENT', true, CURRENT_TIMESTAMP);
 
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, gender, role, is_email_verified, created_at)
-VALUES ('demo.doctor@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Zeynep', 'Kaya', '05554445566', 'FEMALE', 'DOCTOR', true, CURRENT_TIMESTAMP);
+VALUES ('demo.doctor@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Zeynep', 'Kaya', '5554445566', 'FEMALE', 'DOCTOR', true, CURRENT_TIMESTAMP);
 
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, gender, role, is_email_verified, created_at)
-VALUES ('demo.son@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Mehmet', 'Yilmaz', '05557778899', 'MALE', 'RELATIVE', true, CURRENT_TIMESTAMP);
+VALUES ('demo.son@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Mehmet', 'Yilmaz', '5557778899', 'MALE', 'RELATIVE', true, CURRENT_TIMESTAMP);
 
 INSERT INTO users (email, password_hash, first_name, last_name, phone_number, gender, role, is_email_verified, created_at)
-VALUES ('demo.daughter@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Ayse', 'Demir', '05550001122', 'FEMALE', 'RELATIVE', true, CURRENT_TIMESTAMP);
+VALUES ('demo.daughter@test.com', '$2a$10$y4AUDJTufaJLc.cLE2JzI.jrdCzY62ZY0H.DsAboQFx8kGuJh6vmW', 'Ayse', 'Demir', '5550001122', 'FEMALE', 'RELATIVE', true, CURRENT_TIMESTAMP);
 
 -- ==========================================
 -- PROFILES

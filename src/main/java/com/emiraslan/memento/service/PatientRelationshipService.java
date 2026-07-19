@@ -188,4 +188,12 @@ public class PatientRelationshipService {
 
         return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
     }
+
+    @Transactional
+    public void deactivateRelationship(Integer relationshipId) {
+        PatientRelationship relationship = relationshipRepository.findById(relationshipId)
+                .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
+        relationship.setIsActive(false);
+        relationshipRepository.save(relationship);
+    }
 }

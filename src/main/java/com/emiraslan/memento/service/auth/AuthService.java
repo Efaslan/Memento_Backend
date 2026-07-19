@@ -1,6 +1,7 @@
 package com.emiraslan.memento.service.auth;
 
 import com.emiraslan.memento.dto.auth.*;
+import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.entity.*;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.entity.user.UserConsent;
@@ -46,7 +47,7 @@ public class AuthService {
     private final UserConsentRepository userConsentRepository;
 
     @Transactional // rollback all changes if the method fails somewhere
-    public String register(RegisterRequest request, String ipAddress, String userAgent) {
+    public BasicStringResponse register(RegisterRequest request, String ipAddress, String userAgent) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EntityExistsException("EMAIL_ALREADY_EXISTS");
@@ -73,7 +74,7 @@ public class AuthService {
 
         emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getFirstName(), verificationToken);
 
-        return "REGISTRATION_SUCCESS_CHECK_EMAIL";
+        return new BasicStringResponse("REGISTRATION_SUCCESS_CHECK_EMAIL");
     }
 
     // Token for the verification link email
