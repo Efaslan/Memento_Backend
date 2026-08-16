@@ -7,7 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+
 
 @Data
 @Builder
@@ -32,11 +33,7 @@ public class DailyLog {
     @Column(name = "description", length = 1000)
     private String description;
 
-    // For water
-    @Column(name = "quantity_ml")
-    private Integer quantityMl;
-
     @Column(name = "created_at")
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDate createdAt = LocalDate.now();
 }

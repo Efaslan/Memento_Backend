@@ -156,7 +156,6 @@ public class MapperUtil {
                 .dailyLogId(entity.getDailyLogId())
                 .patientUserId(entity.getPatient().getUserId())
                 .description(entity.getDescription())
-                .quantityMl(entity.getQuantityMl())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
@@ -166,7 +165,6 @@ public class MapperUtil {
         return DailyLog.builder()
                 .patient(patient)
                 .description(dto.getDescription())
-                .quantityMl(dto.getQuantityMl())
                 // createdAt is now() by default
                 .build();
     }

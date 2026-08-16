@@ -2,6 +2,7 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.request.DailyLogRequestDto;
 import com.emiraslan.memento.dto.response.DailyLogResponseDto;
+import com.emiraslan.memento.dto.response.DailyLogWithWaterResponseDto;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.service.DailyLogService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +35,7 @@ public class DailyLogController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/my/recent/{days}")
-    public ResponseEntity<List<DailyLogResponseDto>> getMyRecentLogs(
+    public ResponseEntity<List<DailyLogWithWaterResponseDto>> getMyRecentLogs(
             @PathVariable
             @Range(min = 0, max = 90, message = "Days back must be between 0 and 90.")
             Integer days,
@@ -68,7 +69,7 @@ public class DailyLogController {
     @Operation(summary = "A patient's daily logs for doctors and relatives")
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/{patientId}/recent/{days}")
-    public ResponseEntity<List<DailyLogResponseDto>> getPatientRecentLogs(
+    public ResponseEntity<List<DailyLogWithWaterResponseDto>> getPatientRecentLogs(
             @PathVariable Integer patientId,
             @PathVariable
             @Range(min = 0, max = 90, message = "Days back must be between 0 and 90.")

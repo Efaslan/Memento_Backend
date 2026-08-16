@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @Builder
@@ -15,8 +15,7 @@ public class DailyLogResponseDto {
     private Integer dailyLogId;
     private Integer patientUserId;
     private String description;
-    private Integer quantityMl;
-    private LocalDateTime createdAt;
+    private LocalDate createdAt;
 
     // message to frontend in case the Groq API couldn't format user speech, and their raw Speech-To-Text description was saved to DB.
     private String warningMessage;

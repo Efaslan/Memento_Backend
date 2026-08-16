@@ -20,4 +20,17 @@ public interface GoalLogRepository extends JpaRepository<GoalLog, Integer> {
             @Param("start") LocalDate start,
             @Param("end") LocalDate end
     );
+
+    @Query("""
+    SELECT gl FROM GoalLog gl
+    JOIN gl.goal g
+    WHERE g.patient.userId = :patientId
+      AND g.goalType = 'WATER'
+      AND gl.createdAt BETWEEN :startDate AND :endDate
+""")
+    List<GoalLog> findWaterLogsByDateRange(
+            @Param("patientId") Integer patientId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }
