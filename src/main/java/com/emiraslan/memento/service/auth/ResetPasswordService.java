@@ -1,5 +1,6 @@
 package com.emiraslan.memento.service.auth;
 
+import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.repository.user.UserRepository;
 import com.emiraslan.memento.service.notification.OtpService;
@@ -18,12 +19,13 @@ public class ResetPasswordService {
 
 
     @Transactional
-    public void requestPasswordReset(String email) {
+    public BasicStringResponse requestPasswordReset(String email) {
         otpService.generateAndSendOtpForPasswordReset(email);
+        return new BasicStringResponse("We have sent you a 6-digit code you can use to reset your password. Please check your inbox.");
     }
 
     @Transactional
-    public void resetPassword(String email, String otpCode, String newPassword){
+    public BasicStringResponse resetPassword(String email, String otpCode, String newPassword){
 
         otpService.validateOtpForPasswordReset(email, otpCode);
 
@@ -32,5 +34,7 @@ public class ResetPasswordService {
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+
+        return new BasicStringResponse("Your password has been successfully updated.");
     }
 }

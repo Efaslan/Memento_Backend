@@ -1,6 +1,7 @@
 package com.emiraslan.memento.service;
 
 import com.emiraslan.memento.dto.PatientCardDto;
+import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.dto.response.RelationshipResponseDto;
 import com.emiraslan.memento.dto.request.RelationshipRequestDto;
 import com.emiraslan.memento.entity.user.PatientProfile;
@@ -66,8 +67,10 @@ public class PatientRelationshipService {
     }
 
     @Transactional
-    public void relationshipRequestByPatient(String email, User initiator){
+    public BasicStringResponse relationshipRequestByPatient(String email, User initiator){
         otpService.generateAndSendOtpForRelationshipInvitation(email, initiator);
+
+        return new BasicStringResponse("6-digit OTP successfully sent to the target email.");
     }
 
     @Transactional
@@ -120,9 +123,6 @@ public class PatientRelationshipService {
     // common logic for saving/updating relationships
     private RelationshipResponseDto createRelationship(User patient, User caregiver, RelationshipType type, Boolean isPrimaryContact) {
 
-        if (patient.getUserId().equals(caregiver.getUserId())) {
-            throw new IllegalArgumentException("SELF_RELATION_NOT_ALLOWED");
-        }
         // duplicate check
         Optional<PatientRelationship> existingRel = relationshipRepository
                 .findByPatient_UserIdAndCaregiver_UserId(patient.getUserId(), caregiver.getUserId());

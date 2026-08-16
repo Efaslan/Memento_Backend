@@ -1,5 +1,6 @@
 package com.emiraslan.memento.controller;
 
+import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.service.AiService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -19,11 +20,11 @@ public class AiController {
     private final AiService aiService;
 
     @PostMapping("/chat")
-    public ResponseEntity<String> chatWithAssistant(
+    public ResponseEntity<BasicStringResponse> chatWithAssistant(
             @RequestBody String question,
             @AuthenticationPrincipal User user) {
 
-        String answer = aiService.chatWithMementoAssistant(question, user);
+        BasicStringResponse answer = aiService.chatWithMementoAssistant(question, user);
         return ResponseEntity.ok(answer);
     }
 }

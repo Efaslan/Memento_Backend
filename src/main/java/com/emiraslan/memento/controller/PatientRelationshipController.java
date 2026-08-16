@@ -1,6 +1,7 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.PatientCardDto;
+import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.dto.response.RelationshipResponseDto;
 import com.emiraslan.memento.dto.request.RelationshipRequestDto;
 import com.emiraslan.memento.dto.auth.EmailDto;
@@ -44,12 +45,11 @@ public class PatientRelationshipController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping("/request")
-    public ResponseEntity<String> requestRelationship(
+    public ResponseEntity<BasicStringResponse> requestRelationship(
             @RequestBody @Valid EmailDto dto,
             @AuthenticationPrincipal User initiator
     ) {
-        relationshipService.relationshipRequestByPatient(dto.getEmail(), initiator);
-        return ResponseEntity.ok("6-digit OTP successfully sent to the target email.");
+        return ResponseEntity.ok(relationshipService.relationshipRequestByPatient(dto.getEmail(), initiator));
     }
 
     @Operation(description = "Doctors can add patients directly. Patients can add anyone except doctors if they provide the 6-digit OTP sent to their relative's email. Relatives cannot initiate relationships. Type can be: DOCTOR, WIFE, HUSBAND, SON, DAUGHTER, OTHER.")

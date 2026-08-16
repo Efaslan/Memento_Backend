@@ -42,10 +42,8 @@ public class AuthController {
             summary = "Verifying user emails after registration."
     )
     @GetMapping("/verify")
-    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
-        authService.verifyEmail(token);
-
-        return ResponseEntity.ok("EMAIL_VERIFIED");
+    public ResponseEntity<BasicStringResponse> verifyEmail(@RequestParam("token") String token) {
+        return ResponseEntity.ok(authService.verifyEmail(token));
     }
 
     @Operation(
@@ -72,19 +70,17 @@ public class AuthController {
             description = "It will be sent to your email's inbox, and will be valid for 5 minutes."
     )
     @PostMapping("/password-reset/request")
-    public ResponseEntity<String> requestPasswordReset(@RequestBody @Valid EmailDto dto){
-        resetPasswordService.requestPasswordReset(dto.getEmail());
-        return ResponseEntity.ok("We have sent you a 6-digit code you can use to reset your password. Please check your inbox.");
+    public ResponseEntity<BasicStringResponse> requestPasswordReset(@RequestBody @Valid EmailDto dto){
+        return ResponseEntity.ok(resetPasswordService.requestPasswordReset(dto.getEmail()));
     }
 
     @Operation(
             summary = "Reset your password using the OTP in your inbox."
     )
     @PostMapping("/password-reset/reset")
-    public ResponseEntity<String> resetPassword(
+    public ResponseEntity<BasicStringResponse> resetPassword(
             @RequestBody @Valid ResetPasswordDto dto
     ){
-        resetPasswordService.resetPassword(dto.getEmail(), dto.getOtpCode(), dto.getNewPassword());
-        return ResponseEntity.ok("Your password has been successfully updated.");
+        return ResponseEntity.ok(resetPasswordService.resetPassword(dto.getEmail(), dto.getOtpCode(), dto.getNewPassword()));
     }
 }

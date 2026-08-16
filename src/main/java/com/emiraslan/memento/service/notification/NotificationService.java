@@ -5,9 +5,7 @@ import com.emiraslan.memento.entity.NotificationToken;
 import com.emiraslan.memento.entity.UserDevice;
 import com.emiraslan.memento.repository.device.NotificationTokenRepository;
 import com.emiraslan.memento.repository.device.UserDeviceRepository;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -86,13 +84,19 @@ public class NotificationService {
                 // send it to Google
                 FirebaseMessaging.getInstance().send(message);
                 // successful notifications are logged by the cron job
-            } catch (Exception e) {
-                log.error("Failed to send notification to UserId: {}. ERROR: {}", userId, e.getMessage());
+            }
+            catch (FirebaseMessagingException e) {
+                log.error("Failed to send notification to UserId: {}. FIREBASE ERROR: {}", userId, e.getMessage());
 
-                if (e.getMessage() != null && (e.getMessage().contains("registration-token-not-registered") ||
-                        e.getMessage().contains("invalid-argument"))) {
+                MessagingErrorCode errorCode = e.getMessagingErrorCode();
+
+                if (errorCode == MessagingErrorCode.UNREGISTERED || errorCode == MessagingErrorCode.INVALID_ARGUMENT) {
+                    log.info("Deleting invalid FCM Token for UserId: {}", userId);
                     deleteInvalidFcmToken(tokenString); // deleting the invalid token from the db and redis
                 }
+
+            } catch (Exception e) {
+                log.error("Unexpected error sending notification to UserId: {}. ERROR: {}", userId, e.getMessage());
             }
         }
     }
@@ -114,4 +118,6 @@ public class NotificationService {
             log.warn("Invalid NotificationToken deleted from DB and Redis: {}", fcmTokenString);
         }
     }
+
+    // todo her gun saat 9da daily log hatirlatma bildirimi
 }

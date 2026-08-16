@@ -3,6 +3,7 @@ package com.emiraslan.memento.controller;
 import com.emiraslan.memento.dto.auth.EmailDto;
 import com.emiraslan.memento.dto.request.EmailChangeRequestDto;
 import com.emiraslan.memento.dto.request.UserConsentRequest;
+import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.service.UserService;
 import com.emiraslan.memento.util.HttpRequestUtil;
@@ -29,33 +30,29 @@ public class UserController {
             summary = "Request OTP for email change."
     )
     @PostMapping("/email/change-request")
-    public ResponseEntity<String> requestEmailChange(
+    public ResponseEntity<BasicStringResponse> requestEmailChange(
             @AuthenticationPrincipal User user,
             @RequestBody @Valid EmailDto dto
     ) {
-        userService.requestEmailChange(user.getUserId(), dto.getEmail());
-
-        return ResponseEntity.ok("OTP_SENT_TO_NEW_EMAIL");
+        return ResponseEntity.ok(userService.requestEmailChange(user.getUserId(), dto.getEmail()));
     }
 
     @Operation(
             summary = "Verify OTP and update email."
     )
     @PostMapping("/email/change-verify")
-    public ResponseEntity<String> verifyEmailChange(
+    public ResponseEntity<BasicStringResponse> verifyEmailChange(
             @AuthenticationPrincipal User user,
             @RequestBody @Valid EmailChangeRequestDto dto
     ) {
-        userService.verifyAndChangeEmail(user.getUserId(), dto.getNewEmail(), dto.getOtpCode());
-
-        return ResponseEntity.ok("EMAIL_SUCCESSFULLY_UPDATED");
+        return ResponseEntity.ok(userService.verifyAndChangeEmail(user.getUserId(), dto.getNewEmail(), dto.getOtpCode()));
     }
 
     @Operation(
             summary = "Record a user's consent to an agreement other than the Privacy Policy consented during registration."
     )
     @PostMapping("/consents")
-    public ResponseEntity<String> submitConsent(
+    public ResponseEntity<BasicStringResponse> submitConsent(
             @Valid @RequestBody UserConsentRequest request,
             @AuthenticationPrincipal User user,
             HttpServletRequest httpServletRequest
@@ -63,8 +60,6 @@ public class UserController {
         String ipAddress = HttpRequestUtil.extractClientIp(httpServletRequest);
         String userAgent = HttpRequestUtil.extractUserAgent(httpServletRequest);
 
-        userService.recordConsent(user, request,ipAddress, userAgent);
-
-        return ResponseEntity.ok("CONSENT_RECORDED_SUCCESSFULLY");
+        return ResponseEntity.ok(userService.recordConsent(user, request,ipAddress, userAgent));
     }
 }

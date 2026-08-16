@@ -36,12 +36,10 @@ public class PatientProfileRequestDto {
     @Past(message = "DATE_OF_BIRTH_MUST_BE_IN_PAST")
     private LocalDate dateOfBirth;
 
-    // Yetişkin/Yaşlı bir insan için mantıklı sınırlar (cm)
     @NotNull(message = "HEIGHT_REQUIRED")
     @Range(min = 50, max = 251, message = "HEIGHT_BETWEEN_50_AND_251_CM")
     private Integer heightCm;
 
-    // Yetişkin/Yaşlı bir insan için mantıklı sınırlar (kg)
     @NotNull(message = "WEIGHT_REQUIRED")
     @Range(min = 30, max = 635, message = "WEIGHT_BETWEEN_30_AND_635_KG")
     private Double weightKg;

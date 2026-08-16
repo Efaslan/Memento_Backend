@@ -1,5 +1,6 @@
 package com.emiraslan.memento.service;
 
+import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.entity.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -44,18 +45,18 @@ public class AiService {
     }
 
     // AI Assistant helps users with their questions about the app
-    public String chatWithMementoAssistant(String question, User user) {
+    public BasicStringResponse chatWithMementoAssistant(String question, User user) {
         log.info("UserId: {} asked Memento Assistant: {}", user.getUserId(), question);
 
         try {
-            return chatClient.prompt()
+            return new BasicStringResponse(chatClient.prompt()
                     .system(chatbotPrompt)
                     .user(question)
                     .call()
-                    .content();
+                    .content());
         } catch (Exception e) {
             log.error("Failed to get response from Groq AI: {}", e.getMessage());
-            return "AI_ASSISTANT_FAILED_TO_RESPOND";
+            return new BasicStringResponse("AI_ASSISTANT_FAILED_TO_RESPOND");
         }
     }
 }

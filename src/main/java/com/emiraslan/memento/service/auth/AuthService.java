@@ -89,7 +89,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void verifyEmail(String token) {
+    public BasicStringResponse verifyEmail(String token) {
         String redisKey = "email_verify:" + token;
         String email = redisTemplate.opsForValue().get(redisKey);
 
@@ -111,6 +111,8 @@ public class AuthService {
 
         // delete the token from redis after it's used
         redisTemplate.delete(redisKey);
+
+        return new BasicStringResponse("EMAIL_VERIFIED");
     }
 
     @Transactional
