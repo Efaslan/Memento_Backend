@@ -27,7 +27,7 @@ public class GoalRequestDto {
     private String title;
 
     @Positive(message = "TARGET_VALUE_MUST_BE_POSITIVE")
-    private Double targetValue;
+    private Double currentTargetValue;
 
     @Size(max = 20, message = "UNIT_TOO_LONG")
     private String unit;

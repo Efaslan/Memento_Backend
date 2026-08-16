@@ -42,7 +42,7 @@ public class Goal {
 
     // 2.5 liter or 5000 steps
     @Column(name = "target_value")
-    private Double targetValue;
+    private Double currentTargetValue;
 
     // Liter, steps, glasses, minutes
     @Column(name = "unit", length = 20)

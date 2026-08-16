@@ -48,7 +48,7 @@ public class GoalLogService {
 
         if(log.getProgressValue() == 0){
             log.setStatus(GoalStatus.NOT_DONE);
-        } else if (log.getProgressValue() < goal.getTargetValue()) {
+        } else if (log.getProgressValue() < goal.getCurrentTargetValue()) {
             log.setStatus(GoalStatus.PARTIAL);
         } else {
             log.setStatus(GoalStatus.COMPLETED);

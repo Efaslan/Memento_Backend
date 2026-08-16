@@ -36,6 +36,12 @@ public class GoalLog {
     @Column(name = "progress_value")
     private Double progressValue;
 
+    @Column(name = "log_target_value")
+    private Double logTargetValue;
+
+    @Column(name = "log_unit", length = 20)
+    private String logUnit;
+
     // Time isn't needed because this is daily
     @Column(name = "created_at", nullable = false)
     @Builder.Default

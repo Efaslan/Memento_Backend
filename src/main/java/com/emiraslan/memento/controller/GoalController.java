@@ -2,6 +2,7 @@ package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.request.GoalLogRequestDto;
 import com.emiraslan.memento.dto.request.GoalRequestDto;
+import com.emiraslan.memento.dto.response.ActiveGoalsResponseDto;
 import com.emiraslan.memento.dto.response.GoalLogResponseDto;
 import com.emiraslan.memento.dto.response.GoalResponseDto;
 import com.emiraslan.memento.entity.user.User;
@@ -34,17 +35,17 @@ public class GoalController {
     @Operation(summary = "For patient users. Retrieves their own active goals.")
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/active/me")
-    public ResponseEntity<List<GoalResponseDto>> getMyActiveGoals(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<ActiveGoalsResponseDto>> getMyActiveGoals(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(goalService.getActiveGoalsByPatient(user.getUserId()));
     }
 
-    // --- DOCTOR / RELATIVE OPERATIONS ---
+    // --- RELATIVE OPERATIONS ---
     @Operation(
             description = "For doctors and relatives. Retrieves patient's active goals. Accessible only if you have an active relationship with the patient."
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
-    public ResponseEntity<List<GoalResponseDto>> getPatientActiveGoals(@PathVariable Integer patientId) {
+    public ResponseEntity<List<ActiveGoalsResponseDto>> getPatientActiveGoals(@PathVariable Integer patientId) {
         return ResponseEntity.ok(goalService.getActiveGoalsByPatient(patientId));
     }
 
@@ -55,12 +56,9 @@ public class GoalController {
             description = "Retrieves patient's goals (without today's logs) filtered by active/inactive status."
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canViewPatientData(#patientId, principal)")
-    @GetMapping("/patient/{patientId}/active-status")
-    public ResponseEntity<List<GoalResponseDto>> getGoalsByActiveStatus(
-            @PathVariable Integer patientId,
-            @RequestParam(required = false, defaultValue = "true") Boolean isActive
-    ) {
-        return ResponseEntity.ok(goalService.getGoalsByActiveStatus(patientId, isActive));
+    @GetMapping("/patient/{patientId}/deactivated")
+    public ResponseEntity<List<GoalResponseDto>> getDeactivatedGoals(@PathVariable Integer patientId) {
+        return ResponseEntity.ok(goalService.getDeactivatedGoals(patientId));
     }
 
     @Operation(
@@ -72,6 +70,7 @@ public class GoalController {
             @Valid @RequestBody GoalRequestDto dto,
             @AuthenticationPrincipal User creator
     ) {
+
         return ResponseEntity.ok(goalService.createGoal(dto, creator));
     }
 
@@ -114,7 +113,7 @@ public class GoalController {
     @GetMapping("/{goalId}/logs")
     public ResponseEntity<List<GoalLogResponseDto>> getLogsByGoal(
             @PathVariable Integer goalId,
-            @RequestParam(required = false, defaultValue = "7") @Range(min = 7, max = 14) Integer daysBack
+            @RequestParam(required = true, defaultValue = "7") @Range(min = 7, max = 30) Integer daysBack
     ) {
         return ResponseEntity.ok(goalLogService.getLogsByGoal(goalId, daysBack));
     }

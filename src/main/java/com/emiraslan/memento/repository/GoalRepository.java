@@ -1,6 +1,7 @@
 package com.emiraslan.memento.repository;
 
 import com.emiraslan.memento.entity.Goal;
+import com.emiraslan.memento.enums.GoalType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,5 +31,8 @@ public interface GoalRepository extends JpaRepository<Goal, Integer> {
     Optional<Integer> findPatientIdByGoalId(Integer goalId);
 
     // Brings active or deactivated goals
-    List<Goal> findByPatient_UserIdAndIsActive(Integer patientId, Boolean isActive);
+    List<Goal> findByPatient_UserIdAndIsActiveFalse(Integer patientId);
+
+    // For finding if a Goal already exists for known GoalTypes (Water, etc.)
+    Optional<Goal> findByPatient_UserIdAndGoalType(Integer patientId, GoalType goalType);
 }

@@ -3,6 +3,8 @@ package com.emiraslan.memento.util;
 import com.emiraslan.memento.dto.*;
 import com.emiraslan.memento.dto.request.*;
 import com.emiraslan.memento.dto.response.*;
+import com.emiraslan.memento.dto.response.medication.MedicationLogResponseDto;
+import com.emiraslan.memento.dto.response.medication.MedicationScheduleResponseDto;
 import com.emiraslan.memento.entity.*;
 import com.emiraslan.memento.entity.medication.MedicationLog;
 import com.emiraslan.memento.entity.medication.MedicationSchedule;
@@ -345,7 +347,7 @@ public class MapperUtil {
                 .goalId(goal.getGoalId())
                 .goalType(goal.getGoalType())
                 .title(goal.getTitle())
-                .targetValue(goal.getTargetValue())
+                .currentTargetValue(goal.getCurrentTargetValue())
                 .unit(goal.getUnit())
                 .isActive(goal.getIsActive())
                 .createdAt(goal.getCreatedAt())
@@ -358,7 +360,7 @@ public class MapperUtil {
                 .creator(creator)
                 .goalType(dto.getGoalType())
                 .title(dto.getTitle())
-                .targetValue(dto.getTargetValue())
+                .currentTargetValue(dto.getCurrentTargetValue())
                 .unit(dto.getUnit())
                 .isActive(true)
                 .build();
@@ -373,6 +375,8 @@ public class MapperUtil {
         return GoalLog.builder()
                 .goal(goal)
                 .progressValue(dto.getProgressValue())
+                .logTargetValue(goal.getCurrentTargetValue())
+                .logUnit(goal.getUnit())
                 // createdAt is automatic
                 .build();
     }
@@ -386,6 +390,8 @@ public class MapperUtil {
                 .goalLogId(log.getGoalLogId())
                 .status(log.getStatus())
                 .progressValue(log.getProgressValue())
+                .logTargetValue(log.getLogTargetValue())
+                .logUnit(log.getLogUnit())
                 .createdAt(log.getCreatedAt())
                 .build();
     }

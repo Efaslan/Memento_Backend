@@ -16,5 +16,7 @@ public class GoalLogResponseDto {
     private Integer goalLogId;
     private GoalStatus status;
     private Double progressValue;
+    private Double logTargetValue;
+    private String logUnit;
     private LocalDate createdAt;
 }
