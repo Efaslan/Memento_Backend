@@ -1,7 +1,9 @@
 package com.emiraslan.memento.controller;
 
 import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
-import com.emiraslan.memento.dto.response.MedicationScheduleResponseDto;
+import com.emiraslan.memento.dto.response.medication.ActiveSchedulesResponseDto;
+import com.emiraslan.memento.dto.response.medication.DeactivatedSchedulesResponseDto;
+import com.emiraslan.memento.dto.response.medication.MedicationScheduleResponseDto;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.service.medication.MedicationScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,13 +13,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Range;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/medications/schedules")
@@ -35,8 +34,11 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me")
-    public ResponseEntity<List<MedicationScheduleResponseDto>> getMyActiveSchedules(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(scheduleService.getActiveSchedulesByPatient(user.getUserId()));
+    public ResponseEntity<ActiveSchedulesResponseDto> getMyActiveSchedules(
+            @AuthenticationPrincipal User user,
+            @RequestParam(defaultValue = "false") boolean includeStatistics
+    ) {
+        return ResponseEntity.ok(scheduleService.getActiveSchedules(user.getUserId(), includeStatistics));
     }
 
     @Operation(
@@ -44,7 +46,7 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me/history")
-    public ResponseEntity<Page<MedicationScheduleResponseDto>> getMyScheduleHistory(
+    public ResponseEntity<DeactivatedSchedulesResponseDto> getMyScheduleHistory(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") @Min(0) Integer page,
             @RequestParam(defaultValue = "20") @Range(min = 1, max = 20) Integer size
@@ -96,10 +98,11 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<MedicationScheduleResponseDto>> getPatientActiveSchedules(
-            @PathVariable Integer patientId
+    public ResponseEntity<ActiveSchedulesResponseDto> getPatientActiveSchedules(
+            @PathVariable Integer patientId,
+            @RequestParam(defaultValue = "false") boolean includeStatistics
     ) {
-        return ResponseEntity.ok(scheduleService.getActiveSchedulesByPatient(patientId));
+        return ResponseEntity.ok(scheduleService.getActiveSchedules(patientId, includeStatistics));
     }
 
     @Operation(
@@ -107,7 +110,7 @@ public class MedicationScheduleController {
     )
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}/history")
-    public ResponseEntity<Page<MedicationScheduleResponseDto>> getPatientScheduleHistory(
+    public ResponseEntity<DeactivatedSchedulesResponseDto> getPatientScheduleHistory(
             @PathVariable Integer patientId,
             @RequestParam(defaultValue = "0") @Min(0) Integer page,
             @RequestParam(defaultValue = "20") @Range(min = 1, max = 20) Integer size

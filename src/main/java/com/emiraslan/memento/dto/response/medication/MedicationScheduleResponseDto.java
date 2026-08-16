@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto.response;
+package com.emiraslan.memento.dto.response.medication;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -27,11 +27,9 @@ public class MedicationScheduleResponseDto {
     private Boolean isPrn;
     private Boolean isActive;
 
-    private Integer takenPercentage;
-    private Integer delayedPercentage;
-    private Integer skippedPercentage;
-
+    private MedicationStatsResponseDto stats;
     private List<TimeInfoDto> times;
+    private List<MedicationLogResponseDto> todayLogs;
 
     // Time information from MedicationSchedulesTime. We combine the two tables in one dto class.
     @Data

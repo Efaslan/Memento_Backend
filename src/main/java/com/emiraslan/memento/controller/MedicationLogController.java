@@ -1,6 +1,6 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.response.MedicationLogResponseDto;
+import com.emiraslan.memento.dto.response.medication.MedicationLogResponseDto;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.service.medication.MedicationLogService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +31,7 @@ public class MedicationLogController {
     @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE', 'DOCTOR') and @guard.canAccessSchedule(#scheduleId, principal)")
     public ResponseEntity<List<MedicationLogResponseDto>> getScheduleLogs(
             @PathVariable Integer scheduleId,
-            @RequestParam(required = false, defaultValue = "7") @Range(min = 7, max = 14) Integer daysBack
+            @RequestParam(required = true, defaultValue = "7") @Range(min = 7, max = 30) Integer daysBack
     ) {
         List<MedicationLogResponseDto> response = logService.getLogsBySchedule(scheduleId, daysBack);
         return ResponseEntity.ok(response);

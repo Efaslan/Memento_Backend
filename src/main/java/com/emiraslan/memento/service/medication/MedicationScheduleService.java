@@ -1,7 +1,11 @@
 package com.emiraslan.memento.service.medication;
 
 import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
-import com.emiraslan.memento.dto.response.MedicationScheduleResponseDto;
+import com.emiraslan.memento.dto.response.medication.ActiveSchedulesResponseDto;
+import com.emiraslan.memento.dto.response.medication.DeactivatedSchedulesResponseDto;
+import com.emiraslan.memento.dto.response.medication.MedicationScheduleResponseDto;
+import com.emiraslan.memento.dto.response.medication.MedicationStatsResponseDto;
+import com.emiraslan.memento.entity.medication.MedicationLog;
 import com.emiraslan.memento.entity.medication.MedicationSchedule;
 import com.emiraslan.memento.entity.medication.MedicationScheduleTime;
 import com.emiraslan.memento.entity.user.User;
@@ -16,18 +20,15 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,88 +42,105 @@ public class MedicationScheduleService {
     private final MedicationLogRepository logRepository;
     private final NotificationService notificationService;
 
-    private Function<MedicationSchedule, MedicationScheduleResponseDto> buildScheduleMapper(List<MedicationSchedule> schedules){
+    public ActiveSchedulesResponseDto getActiveSchedules(Integer patientId, boolean includeStatistics) {
 
-        // pile the schedule ids into a list
-        List<Integer> scheduleIds = schedules.stream()
-                .map(MedicationSchedule::getScheduleId)
-                .toList();
-
-        // pull all times from the schedule id list
-        List<MedicationScheduleTime> scheduleTimes = timeRepository.findBySchedule_ScheduleIdIn(scheduleIds);
-
-        // group the times by their schedule ids
-        Map<Integer, List<MedicationScheduleTime>> scheduleIdsWithTimes = scheduleTimes.stream()
-                .collect(Collectors.groupingBy(time -> time.getSchedule().getScheduleId()));
-
-        // pull all statistics for these schedules in one query
-        List<ScheduleStatsProjection> statsList = logRepository.getStatisticsByScheduleIds(scheduleIds);
-
-        // group the statistics by their schedule ids for O(1) lookup
-        Map<Integer, ScheduleStatsProjection> statsMap = statsList.stream()
-                .collect(Collectors.toMap(ScheduleStatsProjection::getScheduleId, stats -> stats));
-
-        // create the DTOs with schedules and their times
-        return schedule -> {
-            List<MedicationScheduleTime> timesForThisSchedule = scheduleIdsWithTimes.getOrDefault(schedule.getScheduleId(), Collections.emptyList());
-            MedicationScheduleResponseDto dto = MapperUtil.toMedicationScheduleResponseDto(schedule, timesForThisSchedule);
-
-            ScheduleStatsProjection stats = statsMap.get(schedule.getScheduleId());
-
-            if (stats != null) {
-                long taken = stats.getTakenCount();
-                long delayed = stats.getDelayedCount();
-                long skipped = stats.getSkippedCount();
-                long totalLogs = taken + delayed + skipped;
-
-                // calculating percentages of the log status'
-                if (totalLogs > 0) {
-                    dto.setTakenPercentage((int) Math.round((double) taken / totalLogs * 100));
-                    dto.setDelayedPercentage((int) Math.round((double) delayed / totalLogs * 100));
-                    dto.setSkippedPercentage((int) Math.round((double) skipped / totalLogs * 100));
-                } else {
-                    setZeroPercentages(dto);
-                }
-            } else {
-                setZeroPercentages(dto); // all %0 if no logs
-            }
-
-            return dto;
-        };
-    }
-
-    private void setZeroPercentages(MedicationScheduleResponseDto dto) {
-        dto.setTakenPercentage(0);
-        dto.setDelayedPercentage(0);
-        dto.setSkippedPercentage(0);
-    }
-
-    // brings active medication schedules and times
-    public List<MedicationScheduleResponseDto> getActiveSchedulesByPatient(Integer patientId) {
+        // 1. Get all active schedules
         List<MedicationSchedule> activeSchedules = scheduleRepository.findByPatient_UserIdAndIsActiveTrue(patientId);
 
         if (activeSchedules.isEmpty()){
-            return Collections.emptyList();
+            return new ActiveSchedulesResponseDto(Collections.emptyList(), null);
         }
 
-        return activeSchedules.stream()
-                .map(buildScheduleMapper(activeSchedules))
+        List<Integer> scheduleIds = activeSchedules.stream()
+                .map(MedicationSchedule::getScheduleId)
                 .toList();
+
+        // 2. Add all times to the schedules and map them into DTOs
+        List<MedicationScheduleResponseDto> dtos = buildBaseDtos(activeSchedules, scheduleIds);
+
+        // 3. Add today's logs to the schedules
+        attachTodayLogs(dtos, scheduleIds);
+
+        // 4. Add medication consumption statistics on demand
+        MedicationStatsResponseDto statsDto = null;
+        if (includeStatistics) {
+            statsDto = buildMedicationStatsDto(patientId, true);
+        }
+
+        return new ActiveSchedulesResponseDto(dtos, statsDto);
+    }
+
+    private List<MedicationScheduleResponseDto> buildBaseDtos(List<MedicationSchedule> schedules, List<Integer> scheduleIds) {
+        List<MedicationScheduleTime> scheduleTimes = timeRepository.findBySchedule_ScheduleIdIn(scheduleIds);
+
+        Map<Integer, List<MedicationScheduleTime>> timesMap = scheduleTimes.stream()
+                .collect(Collectors.groupingBy(time -> time.getSchedule().getScheduleId()));
+
+        return schedules.stream().map(schedule -> {
+            List<MedicationScheduleTime> times = timesMap.getOrDefault(schedule.getScheduleId(), Collections.emptyList()); // group times and schedules together
+            MedicationScheduleResponseDto dto = MapperUtil.toMedicationScheduleResponseDto(schedule, times); // map them into our DTO
+
+            dto.setTodayLogs(Collections.emptyList()); // Empty list for schedules without logs
+
+            return dto;
+        }).collect(Collectors.toList()); // Mutable list
+    }
+
+    private void attachTodayLogs(List<MedicationScheduleResponseDto> dtos, List<Integer> scheduleIds) {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
+
+        List<MedicationLog> logs = logRepository.findTodayLogsByScheduleIds(scheduleIds, startOfDay, endOfDay);
+
+        Map<Integer, List<MedicationLog>> logsMap = logs.stream()
+                .collect(Collectors.groupingBy(log -> log.getScheduleTime().getSchedule().getScheduleId()));
+
+        // Match logs with their schedules
+        for (MedicationScheduleResponseDto dto : dtos) {
+            List<MedicationLog> scheduleLogs = logsMap.getOrDefault(dto.getScheduleId(), Collections.emptyList());
+
+            // Add the logs to MedicationScheduleResponseDto's todayLogs field
+            dto.setTodayLogs(scheduleLogs.stream().map(MapperUtil::toMedicationLogResponseDto).toList());
+        }
+    }
+
+    private MedicationStatsResponseDto buildMedicationStatsDto(Integer patientId, Boolean isActive) {
+
+        ScheduleStatsProjection stats = logRepository.getOverallStatisticsByPatient(patientId, isActive);
+
+        if (stats == null || stats.getTotalLogs() == 0) {
+            return null;
+        }
+
+        // add percentages to DTO
+        return MedicationStatsResponseDto.builder()
+                .takenPercentage((int) Math.round((double) stats.getTakenCount() / stats.getTotalLogs() * 100))
+                .delayedPercentage((int) Math.round((double) stats.getDelayedCount() / stats.getTotalLogs() * 100))
+                .skippedPercentage((int) Math.round((double) stats.getSkippedCount() / stats.getTotalLogs() * 100))
+                .totalPastLogs(stats.getTotalLogs())
+                .build();
     }
 
     // brings all past schedules of a patient
-    public Page<MedicationScheduleResponseDto> getAllPastSchedulesByPatient(Integer patientId, int page, int size) {
+    public DeactivatedSchedulesResponseDto getAllPastSchedulesByPatient(Integer patientId, int page, int size) {
 
-        // sorting to show the latest expired schedules on top
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "endDate"));
-
         Page<MedicationSchedule> schedulePage = scheduleRepository.findByPatient_UserIdAndIsActiveFalse(patientId, pageable);
 
         if (schedulePage.isEmpty()) {
-            return schedulePage.map(schedule -> MapperUtil.toMedicationScheduleResponseDto(schedule, Collections.emptyList()));
+            return new DeactivatedSchedulesResponseDto(Page.empty(pageable), null);
         }
 
-        return schedulePage.map(buildScheduleMapper(schedulePage.getContent()));
+        List<MedicationSchedule> schedules = schedulePage.getContent();
+        List<Integer> scheduleIds = schedules.stream().map(MedicationSchedule::getScheduleId).toList();
+
+        // We don't add today's logs in contrast to active schedules
+        List<MedicationScheduleResponseDto> dtos = buildBaseDtos(schedules, scheduleIds);
+        Page<MedicationScheduleResponseDto> pageResult = new PageImpl<>(dtos, pageable, schedulePage.getTotalElements());
+        MedicationStatsResponseDto statsDto = buildMedicationStatsDto(patientId, false);
+
+
+        return new DeactivatedSchedulesResponseDto(pageResult, statsDto);
     }
 
     @Transactional

@@ -1,4 +1,4 @@
-package com.emiraslan.memento.dto.response;
+package com.emiraslan.memento.dto.response.medication;
 
 import com.emiraslan.memento.enums.MedicationStatus;
 import lombok.AllArgsConstructor;

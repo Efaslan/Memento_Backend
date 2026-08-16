@@ -1,6 +1,6 @@
 package com.emiraslan.memento.service.medication;
 
-import com.emiraslan.memento.dto.response.MedicationLogResponseDto;
+import com.emiraslan.memento.dto.response.medication.MedicationLogResponseDto;
 import com.emiraslan.memento.entity.medication.MedicationLog;
 import com.emiraslan.memento.entity.medication.MedicationScheduleTime;
 import com.emiraslan.memento.entity.user.User;

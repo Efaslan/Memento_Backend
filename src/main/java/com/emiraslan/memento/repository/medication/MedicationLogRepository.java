@@ -25,19 +25,35 @@ public interface MedicationLogRepository extends JpaRepository<MedicationLog, In
 
     @Query("""
     SELECT
-        t.schedule.scheduleId AS scheduleId,
         COALESCE(SUM(CASE WHEN m.status = 'TAKEN' THEN 1 ELSE 0 END), 0) AS takenCount,
         COALESCE(SUM(CASE WHEN m.status = 'DELAYED' THEN 1 ELSE 0 END), 0) AS delayedCount,
-        COALESCE(SUM(CASE WHEN m.status = 'SKIPPED' THEN 1 ELSE 0 END), 0) AS skippedCount
+        COALESCE(SUM(CASE WHEN m.status = 'SKIPPED' THEN 1 ELSE 0 END), 0) AS skippedCount,
+        COUNT(m.medicationLogId) AS totalLogs
     FROM MedicationLog m
     JOIN m.scheduleTime t
-    WHERE t.schedule.scheduleId IN :scheduleIds
-    GROUP BY t.schedule.scheduleId""")
-    List<ScheduleStatsProjection> getStatisticsByScheduleIds(@Param("scheduleIds") List<Integer> scheduleIds);
+    WHERE t.schedule.patient.userId = :patientId
+      AND t.schedule.isActive = :isActive
+""")
+    ScheduleStatsProjection getOverallStatisticsByPatient(
+            @Param("patientId") Integer patientId,
+            @Param("isActive") Boolean isActive
+    );
 
     // Checks if there is a log assigned to a medication schedule. Used to determine if a doctor can edit the schedule or not
     // Relationship chain: Log -> Time -> Schedule.id
     boolean existsByScheduleTime_Schedule_ScheduleId(Integer scheduleId);
 
     boolean existsByScheduleTime_TimeIdAndTakenAtBetween(Integer scheduleTimeId, LocalDateTime startOfDay, LocalDateTime endOfDay);
+
+    @Query("""
+    SELECT l FROM MedicationLog l
+    JOIN FETCH l.scheduleTime t
+    WHERE t.schedule.scheduleId IN :scheduleIds
+      AND l.takenAt BETWEEN :startOfDay AND :endOfDay
+""")
+    List<MedicationLog> findTodayLogsByScheduleIds(
+            @Param("scheduleIds") List<Integer> scheduleIds,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
 }
