@@ -1,13 +1,9 @@
 package com.emiraslan.memento.service;
 
-import com.emiraslan.memento.dto.request.DoctorProfileRequestDto;
 import com.emiraslan.memento.dto.request.PatientProfileRequestDto;
-import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
 import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
-import com.emiraslan.memento.entity.user.DoctorProfile;
 import com.emiraslan.memento.entity.user.PatientProfile;
 import com.emiraslan.memento.entity.user.User;
-import com.emiraslan.memento.repository.user.DoctorProfileRepository;
 import com.emiraslan.memento.repository.user.PatientProfileRepository;
 import com.emiraslan.memento.repository.user.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
@@ -21,7 +17,6 @@ import org.springframework.stereotype.Service;
 public class ProfileService {
 
     private final PatientProfileRepository patientProfileRepository;
-    private final DoctorProfileRepository doctorProfileRepository;
     private final UserRepository userRepository;
 
     // PATIENT PROFILE OPERATIONS
@@ -63,43 +58,5 @@ public class ProfileService {
         PatientProfile updatedProfile = patientProfileRepository.save(profile);
 
         return MapperUtil.toPatientProfileResponseDto(updatedProfile);
-    }
-
-    // DOCTOR PROFILE OPERATIONS
-
-    public DoctorProfileResponseDto getDoctorProfile(Integer doctorId) {
-        DoctorProfile profile = doctorProfileRepository.findById(doctorId)
-                .orElseThrow(() -> new EntityNotFoundException("DOCTOR_PROFILE_NOT_FOUND: " + doctorId));
-
-        return MapperUtil.toDoctorProfileResponseDto(profile);
-    }
-
-    @Transactional
-    public DoctorProfileResponseDto upsertDoctorProfile(Integer doctorId, DoctorProfileRequestDto dto) {
-        User user = userRepository.findById(doctorId)
-                .orElseThrow(() -> new EntityNotFoundException("USER_NOT_FOUND"));
-
-        // bring it if profile exists, or create it
-        DoctorProfile profile = doctorProfileRepository.findById(doctorId)
-                .orElseGet(() -> DoctorProfile.builder()
-                        .doctor(user)
-                        .build());
-
-        // profile data
-        profile.setSpecialization(dto.getSpecialization());
-        profile.setHospitalName(dto.getHospitalName());
-        profile.setTitle(dto.getTitle());
-
-        // user data
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setPhoneNumber(dto.getPhoneNumber());
-
-        // email is not updated here
-
-        userRepository.save(user);
-        DoctorProfile updatedProfile = doctorProfileRepository.save(profile);
-
-        return MapperUtil.toDoctorProfileResponseDto(updatedProfile);
     }
 }

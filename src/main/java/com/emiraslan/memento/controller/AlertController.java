@@ -54,7 +54,7 @@ public class AlertController {
             summary = "A relative is checking the situation.",
             description = "Alert status becomes 'acknowledged' when a primary contact affirms the notification."
     )
-    @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canAcknowledgeAlert(#alertId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canAcknowledgeAlert(#alertId, principal)")
     @PostMapping("/{alertId}/acknowledge")
     public ResponseEntity<AlertResponseDto> acknowledgeAlert(
             @PathVariable Integer alertId,
@@ -66,7 +66,7 @@ public class AlertController {
     @Operation(
             description = "A patient's history of critical situations. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAnyAuthority('RELATIVE', 'DOCTOR') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<AlertResponseDto>> getPatientAlerts(
             @PathVariable Integer patientId

@@ -43,7 +43,7 @@ public class User implements UserDetails {
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
-    // PATIENT, DOCTOR, RELATIVE
+    // PATIENT, RELATIVE
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 10)
     private UserRole role;

@@ -24,7 +24,7 @@ public class AuthController {
 
     // Register and Login endpoints
     @Operation(
-            description = "Role can be: PATIENT, DOCTOR, or RELATIVE."
+            description = "Role can be: PATIENT or RELATIVE."
     )
     @PostMapping("/register")
     public ResponseEntity<BasicStringResponse> register(

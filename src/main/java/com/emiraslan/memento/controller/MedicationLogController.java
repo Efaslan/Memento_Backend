@@ -28,7 +28,7 @@ public class MedicationLogController {
             summary = "Brings a medication schedule's logs. Maximum daysBack is 14."
     )
     @GetMapping("/{scheduleId}")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE', 'DOCTOR') and @guard.canAccessSchedule(#scheduleId, principal)")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canAccessSchedule(#scheduleId, principal)")
     public ResponseEntity<List<MedicationLogResponseDto>> getScheduleLogs(
             @PathVariable Integer scheduleId,
             @RequestParam(required = true, defaultValue = "7") @Range(min = 7, max = 30) Integer daysBack

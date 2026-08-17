@@ -39,7 +39,7 @@ public interface MedicationLogRepository extends JpaRepository<MedicationLog, In
             @Param("isActive") Boolean isActive
     );
 
-    // Checks if there is a log assigned to a medication schedule. Used to determine if a doctor can edit the schedule or not
+    // Checks if there is a log assigned to a medication schedule. Used to determine if the schedule can be edited or not
     // Relationship chain: Log -> Time -> Schedule.id
     boolean existsByScheduleTime_Schedule_ScheduleId(Integer scheduleId);
 

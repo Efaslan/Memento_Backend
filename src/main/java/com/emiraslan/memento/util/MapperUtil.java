@@ -133,7 +133,7 @@ public class MapperUtil {
     public static RelationshipResponseDto toRelationshipResponseDto(PatientRelationship entity) {
         if (entity == null) return null;
 
-        User caregiver = entity.getCaregiver(); // caregiver(relative or doctor) cannot be null
+        User caregiver = entity.getCaregiver(); // caregiver(relative) cannot be null
 
         return RelationshipResponseDto.builder()
                 .relationshipId(entity.getRelationshipId())
@@ -173,12 +173,12 @@ public class MapperUtil {
     public static MedicationScheduleResponseDto toMedicationScheduleResponseDto(MedicationSchedule entity, List<MedicationScheduleTime> times) {
         if (entity == null) return null;
 
-        String doctorName = "Unknown"; // default in case of null
-        Integer doctorId = null;
+        String creatorName = "Unknown"; // default in case of null
+        Integer creatorId = null;
 
-        if (entity.getDoctor() != null) {
-            doctorId = entity.getDoctor().getUserId();
-            doctorName = entity.getDoctor().getFirstName() + " " + entity.getDoctor().getLastName();
+        if (entity.getCreator() != null) {
+            creatorId = entity.getCreator().getUserId();
+            creatorName = entity.getCreator().getFirstName() + " " + entity.getCreator().getLastName();
         }
 
         List<MedicationScheduleResponseDto.TimeInfoDto> timeList =
@@ -192,8 +192,8 @@ public class MapperUtil {
         return MedicationScheduleResponseDto.builder()
                 .scheduleId(entity.getScheduleId())
                 .patientUserId(entity.getPatient().getUserId())
-                .doctorUserId(doctorId)
-                .doctorName(doctorName)
+                .creatorUserId(creatorId)
+                .creatorName(creatorName)
                 .medicationName(entity.getMedicationName())
                 .dosage(entity.getDosage())
                 .notes(entity.getNotes())
@@ -206,11 +206,11 @@ public class MapperUtil {
     }
 
     // No ScheduleTimes here, Service saves them through a loop
-    public static MedicationSchedule toMedicationScheduleEntity(MedicationScheduleRequestDto dto, User patient, User doctor) {
+    public static MedicationSchedule toMedicationScheduleEntity(MedicationScheduleRequestDto dto, User patient, User creator) {
         if (dto == null) return null;
         return MedicationSchedule.builder()
                 .patient(patient)
-                .doctor(doctor) // can be null
+                .creator(creator) // can be null
                 .medicationName(dto.getMedicationName())
                 .dosage(dto.getDosage())
                 .notes(dto.getNotes())
@@ -232,24 +232,6 @@ public class MapperUtil {
                 .build();
     }
 
-    // DoctorProfile Mapping (entity->dto only, no dto->entity because profiles are auto created on register)
-    public static DoctorProfileResponseDto toDoctorProfileResponseDto(DoctorProfile entity) {
-        if (entity == null) return null;
-
-        User doctor = entity.getDoctor();
-
-        return DoctorProfileResponseDto.builder()
-                .doctorUserId(entity.getDoctorUserId())
-                .firstName(doctor.getFirstName())
-                .lastName(doctor.getLastName())
-                .email(doctor.getEmail())
-                .phoneNumber(doctor.getPhoneNumber())
-                .specialization(entity.getSpecialization())
-                .hospitalName(entity.getHospitalName())
-                .title(entity.getTitle())
-                .build();
-    }
-
     // PatientProfile Mapping (entity->dto only)
     public static PatientProfileResponseDto toPatientProfileResponseDto(PatientProfile entity) {
         if (entity == null) return null;
@@ -267,26 +249,6 @@ public class MapperUtil {
                 .weightKg(entity.getWeightKg())
                 .bloodType(entity.getBloodType())
                 .emergencyNotes(entity.getEmergencyNotes())
-                .build();
-    }
-
-    // for doctor webpage
-    public static PatientCardDto toPatientCardDto(PatientRelationship relationship, PatientProfile profile){
-        if (relationship == null) return null;
-        User patient = relationship.getPatient();
-
-        return PatientCardDto.builder()
-                .relationshipId(relationship.getRelationshipId())
-                .patientId(patient.getUserId())
-                .firstName(patient.getFirstName())
-                .lastName(patient.getLastName())
-                .email(patient.getEmail())
-                .gender(patient.getGender())
-                .dateOfBirth(profile != null ? profile.getDateOfBirth() : null)
-                .heightCm(profile != null ? profile.getHeightCm() : null)
-                .weightKg(profile != null ? profile.getWeightKg() : null)
-                .bloodType(profile != null && profile.getBloodType() != null ? profile.getBloodType() : null)
-                .emergencyNotes(profile != null ? profile.getEmergencyNotes() : null)
                 .build();
     }
 

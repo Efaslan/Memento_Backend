@@ -14,10 +14,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "patient_relationships", indexes = {
         // unique = true, avoids duplicate relationships between two people
-        @Index(name = "idx_rel_patient_caregiver", columnList = "patient_user_id, caregiver_user_id", unique = true),
-
-        // for doctors and relatives to quickly find their patients
-        @Index(name = "idx_rel_caregiver_active", columnList = "caregiver_user_id, is_active")
+        @Index(name = "idx_rel_patient_caregiver", columnList = "patient_user_id, caregiver_user_id", unique = true)
 })
 public class PatientRelationship {
 
@@ -31,7 +28,7 @@ public class PatientRelationship {
     @JoinColumn(name = "patient_user_id", nullable = false) // FK
     private User patient;
 
-    // Relationship's Caregiver(Doctor/Relative) side
+    // Relationship's Caregiver (Relative) side
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "caregiver_user_id", nullable = false) // FK
     private User caregiver;

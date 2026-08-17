@@ -1,6 +1,5 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.PatientCardDto;
 import com.emiraslan.memento.dto.response.BasicStringResponse;
 import com.emiraslan.memento.dto.response.RelationshipResponseDto;
 import com.emiraslan.memento.dto.request.RelationshipRequestDto;
@@ -31,7 +30,7 @@ public class PatientRelationshipController {
 
     // lists all active relationships of a patient
     @Operation(description = "All relationships of a user.")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE')")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE')")
     @GetMapping("/me")
     public ResponseEntity<List<RelationshipResponseDto>> getMyRelationships(
             @AuthenticationPrincipal User user
@@ -52,8 +51,8 @@ public class PatientRelationshipController {
         return ResponseEntity.ok(relationshipService.relationshipRequestByPatient(dto.getEmail(), initiator));
     }
 
-    @Operation(description = "Doctors can add patients directly. Patients can add anyone except doctors if they provide the 6-digit OTP sent to their relative's email. Relatives cannot initiate relationships. Type can be: DOCTOR, WIFE, HUSBAND, SON, DAUGHTER, OTHER.")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR')")
+    @Operation(description = "Patients can add their relatives if they provide the 6-digit OTP sent to their relative's email. Relatives cannot initiate relationships. Type can be: WIFE, HUSBAND, SON, DAUGHTER, OTHER.")
+    @PreAuthorize("hasAuthority('PATIENT')")
     @PostMapping
     public ResponseEntity<RelationshipResponseDto> addRelationship(
             @Valid @RequestBody RelationshipRequestDto dto,
@@ -61,22 +60,21 @@ public class PatientRelationshipController {
         return ResponseEntity.ok(relationshipService.addRelationship(dto, initiator));
     }
 
-    @Operation(description = "Updates relationship type and/or primary contact status. Doctor relationships can only be edited by doctors.")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'DOCTOR', 'RELATIVE') and @guard.canUpdateRelationship(#relationshipId, principal)")
+    @Operation(description = "Updates relationship type and/or primary contact status.")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canUpdateRelationship(#relationshipId, principal)")
     @PutMapping("/{relationshipId}")
     public ResponseEntity<RelationshipResponseDto> updateRelationship(
             @PathVariable Integer relationshipId,
-            @Valid @RequestBody RelationshipResponseDto dto,
-            @AuthenticationPrincipal User user
+            @Valid @RequestBody RelationshipResponseDto dto
     ) {
-        return ResponseEntity.ok(relationshipService.updateRelationship(relationshipId, dto, user));
+        return ResponseEntity.ok(relationshipService.updateRelationship(relationshipId, dto));
     }
 
     @Operation(
             summary = "Sets the primary contact status as true or false.",
             description = "Primary contacts receive notifications during alerts, such as when the Patient falls."
     )
-    @PreAuthorize("hasAnyAuthority('PATIENT') and @guard.canUpdateRelationship(#relationshipId, principal)")
+    @PreAuthorize("hasAuthority('PATIENT') and @guard.canUpdateRelationship(#relationshipId, principal)")
     @PatchMapping("/{relationshipId}/toggle-primary")
     public ResponseEntity<RelationshipResponseDto> togglePrimaryStatus(@PathVariable Integer relationshipId) {
         return ResponseEntity.ok(relationshipService.togglePrimaryContactStatus(relationshipId));
@@ -90,19 +88,5 @@ public class PatientRelationshipController {
     public ResponseEntity<Void> deactivateRelationship(@PathVariable Integer relationshipId) {
         relationshipService.deactivateRelationship(relationshipId);
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Get paginated and searchable list of patients for a doctor")
-    @PreAuthorize("hasAuthority('DOCTOR')")
-    @GetMapping("/my-patients")
-    public ResponseEntity<Slice<PatientCardDto>> getMyPatients(
-            @AuthenticationPrincipal User doctor,
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("patient.firstName").ascending());
-
-        return ResponseEntity.ok(relationshipService.getDoctorPatients(doctor, search, pageable));
     }
 }

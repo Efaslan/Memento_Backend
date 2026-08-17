@@ -17,8 +17,8 @@ import java.util.List;
 public class MedicationScheduleResponseDto {
     private Integer scheduleId;
     private Integer patientUserId;
-    private Integer doctorUserId;
-    private String doctorName; // For showing the doctor's name on mobile
+    private Integer creatorUserId;
+    private String creatorName;
     private String medicationName;
     private String dosage;
     private String notes;

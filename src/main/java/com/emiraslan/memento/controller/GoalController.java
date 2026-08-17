@@ -41,9 +41,9 @@ public class GoalController {
 
     // --- RELATIVE OPERATIONS ---
     @Operation(
-            description = "For doctors and relatives. Retrieves patient's active goals. Accessible only if you have an active relationship with the patient."
+            description = "For relatives. Retrieves patient's active goals. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
     public ResponseEntity<List<ActiveGoalsResponseDto>> getPatientActiveGoals(@PathVariable Integer patientId) {
         return ResponseEntity.ok(goalService.getActiveGoalsByPatient(patientId));
@@ -55,16 +55,16 @@ public class GoalController {
             summary = "For goal details page.",
             description = "Retrieves patient's goals (without today's logs) filtered by active/inactive status."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}/deactivated")
     public ResponseEntity<List<GoalResponseDto>> getDeactivatedGoals(@PathVariable Integer patientId) {
         return ResponseEntity.ok(goalService.getDeactivatedGoals(patientId));
     }
 
     @Operation(
-            description = "For all users. patientUserId in DTO is optional for patients but required for doctors/relatives."
+            description = "For all users. patientUserId in DTO is optional for patients but required for relatives."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canCreateGoal(#dto, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canCreateGoal(#dto, principal)")
     @PostMapping
     public ResponseEntity<GoalResponseDto> createGoal(
             @Valid @RequestBody GoalRequestDto dto,
@@ -74,7 +74,7 @@ public class GoalController {
         return ResponseEntity.ok(goalService.createGoal(dto, creator));
     }
 
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyGoal(#goalId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canModifyGoal(#goalId, principal)")
     @PutMapping("/{goalId}")
     public ResponseEntity<GoalResponseDto> updateGoal(
             @PathVariable Integer goalId,
@@ -83,7 +83,7 @@ public class GoalController {
         return ResponseEntity.ok(goalService.updateGoal(goalId, dto));
     }
 
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyGoal(#goalId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canModifyGoal(#goalId, principal)")
     @DeleteMapping("/{goalId}")
     public ResponseEntity<Void> deactivateGoal(@PathVariable Integer goalId) {
         goalService.deactivateGoal(goalId);
@@ -109,7 +109,7 @@ public class GoalController {
             summary = "Retrieves past logs of a specific goal.",
             description = "Fetches the logs within a specified date range (default is last 7 days)."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE', 'PATIENT') and @guard.canModifyGoal(#goalId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canModifyGoal(#goalId, principal)")
     @GetMapping("/{goalId}/logs")
     public ResponseEntity<List<GoalLogResponseDto>> getLogsByGoal(
             @PathVariable Integer goalId,

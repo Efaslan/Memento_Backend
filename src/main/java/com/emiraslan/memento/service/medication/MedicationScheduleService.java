@@ -144,11 +144,11 @@ public class MedicationScheduleService {
     }
 
     @Transactional
-    public MedicationScheduleResponseDto createSchedule(MedicationScheduleRequestDto dto, User doctor) {
+    public MedicationScheduleResponseDto createSchedule(MedicationScheduleRequestDto dto, User creator) {
         User patient = userRepository.findById(dto.getPatientUserId())
                 .orElseThrow(() -> new EntityNotFoundException("USER_PATIENT_NOT_FOUND: " + dto.getPatientUserId()));
 
-        MedicationSchedule schedule = MapperUtil.toMedicationScheduleEntity(dto, patient, doctor);
+        MedicationSchedule schedule = MapperUtil.toMedicationScheduleEntity(dto, patient, creator);
         MedicationSchedule savedSchedule = scheduleRepository.save(schedule);
 
         saveScheduleTimes(savedSchedule, dto);
@@ -157,7 +157,7 @@ public class MedicationScheduleService {
         return MapperUtil.toMedicationScheduleResponseDto(savedSchedule, savedTimes);
     }
 
-    // special update method. The doctor cannot edit parts of a schedule if the patient has taken the medicine according to that schedule before.
+    // Cannot edit parts of a schedule if the patient has taken the medicine according to that schedule before.
     @Transactional
     public MedicationScheduleResponseDto updateSchedule(Integer scheduleId, MedicationScheduleRequestDto dto) {
         MedicationSchedule existing = scheduleRepository.findById(scheduleId)
@@ -168,7 +168,7 @@ public class MedicationScheduleService {
 
         if (hasLogs) {
             // if there are logs, only non-critical fields can be updated
-            // if the doctor tries to edit a medication's name, dosage, or times, there will be an error
+            // if someone tries to edit a medication's name, dosage, or times, there will be an error
             // (comparing current values to the incoming DTO values)
             if (!existing.getMedicationName().equals(dto.getMedicationName()) ||
                     !existing.getDosage().equals(dto.getDosage()) ||
@@ -187,7 +187,7 @@ public class MedicationScheduleService {
             existing.setEndDate(dto.getEndDate());
 
         } else {
-            // if there are no medication logs (patient hasn't taken the medicine) doctor can change anything
+            // if there are no medication logs (patient hasn't taken the medicine) user can change anything
 
             existing.setMedicationName(dto.getMedicationName());
             existing.setDosage(dto.getDosage());
@@ -241,7 +241,7 @@ public class MedicationScheduleService {
         }
     }
 
-    // manual deactivation of a schedule, in case the doctor wants to end it earlier than planned
+    // manual deactivation of a schedule, in case the user wants to end it earlier than planned
     @Transactional
     public void deactivateSchedule(Integer scheduleId) {
         MedicationSchedule schedule = scheduleRepository.findById(scheduleId)

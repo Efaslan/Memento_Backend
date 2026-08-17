@@ -55,23 +55,23 @@ public class MedicationScheduleController {
         return ResponseEntity.ok(scheduleService.getAllPastSchedulesByPatient(user.getUserId(), page, size));
     }
 
-    // -----------------DOCTOR OPERATIONS-------------------
+    // -----------------MUTUAL OPERATIONS-------------------
 
-    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canCreateSchedule(#dto, principal)")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canCreateSchedule(#dto, principal)")
     @PostMapping
     public ResponseEntity<MedicationScheduleResponseDto> createSchedule(
             @Valid @RequestBody MedicationScheduleRequestDto dto,
-            @AuthenticationPrincipal User doctor
+            @AuthenticationPrincipal User creator
     ) {
-        // we force the doctor's id from jwt instead of taking it from the dto
-        return ResponseEntity.ok(scheduleService.createSchedule(dto, doctor));
+        // we force the creator's id from jwt instead of taking it from the dto
+        return ResponseEntity.ok(scheduleService.createSchedule(dto, creator));
     }
 
     @Operation(
             summary = "Update an existing schedule. Please see descriptions.",
             description = "Updating a schedule is heavily restricted in order to protect a patient's medical history. Schedules can only be updated if the patient has no consumption logs on that schedule. If there are logs, only non-critical fields such as: Notes, End Date, and deactivation can be changed."
     )
-    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canModifySchedule(#scheduleId, principal)")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canModifySchedule(#scheduleId, principal)")
     @PutMapping("/{scheduleId}")
     public ResponseEntity<MedicationScheduleResponseDto> updateSchedule(
             @PathVariable Integer scheduleId,
@@ -84,19 +84,19 @@ public class MedicationScheduleController {
             summary = "Deactivating schedules instead of deleting.",
             description = "This is in order to protect medical history. Patient's will not receive notifications about their deactivated schedules."
     )
-    @PreAuthorize("hasAuthority('DOCTOR') and @guard.canModifySchedule(#scheduleId, principal)")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canModifySchedule(#scheduleId, principal)")
     @PatchMapping("/{scheduleId}/deactivate")
     public ResponseEntity<Void> deactivateSchedule(@PathVariable Integer scheduleId) {
         scheduleService.deactivateSchedule(scheduleId);
         return ResponseEntity.noContent().build();
     }
 
-    // -----------------DOCTOR/RELATIVE OPERATIONS-------------------
+    // -----------------RELATIVE OPERATIONS-------------------
 
     @Operation(
-            summary = "A patient's active schedules for a doctor or a relative."
+            summary = "A patient's active schedules for a relative."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<ActiveSchedulesResponseDto> getPatientActiveSchedules(
             @PathVariable Integer patientId,
@@ -106,9 +106,9 @@ public class MedicationScheduleController {
     }
 
     @Operation(
-            summary = "A patient's entire medical history for a doctor or a relative."
+            summary = "A patient's entire medical history for a relative."
     )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}/history")
     public ResponseEntity<DeactivatedSchedulesResponseDto> getPatientScheduleHistory(
             @PathVariable Integer patientId,

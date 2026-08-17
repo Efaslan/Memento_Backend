@@ -1,11 +1,8 @@
 package com.emiraslan.memento.controller;
 
-import com.emiraslan.memento.dto.request.DoctorProfileRequestDto;
 import com.emiraslan.memento.dto.request.PatientProfileRequestDto;
-import com.emiraslan.memento.dto.response.DoctorProfileResponseDto;
 import com.emiraslan.memento.dto.response.PatientProfileResponseDto;
 import com.emiraslan.memento.entity.user.User;
-import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,18 +25,12 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @Operation(
-            description = "Only patients and doctors have profiles."
+            description = "Only patients have profiles."
     )
+    @PreAuthorize("hasAuthority('PATIENT')")
     @GetMapping("/me")
     public ResponseEntity<Object> getMyProfile(@AuthenticationPrincipal User user) {
-        if (user.getRole() == UserRole.PATIENT) {
             return ResponseEntity.ok(profileService.getPatientProfile(user.getUserId()));
-        } else if (user.getRole() == UserRole.DOCTOR) {
-            return ResponseEntity.ok(profileService.getDoctorProfile(user.getUserId()));
-        } else {
-            // relatives do not have profiles
-            return ResponseEntity.notFound().build();
-        }
     }
 
     @Operation(
@@ -55,21 +46,9 @@ public class ProfileController {
     }
 
     @Operation(
-            description = "You can only edit your own profile(doctor). Id is automatically set."
+            summary = "View a patient's profile for Relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAuthority('DOCTOR')")
-    @PutMapping("/doctor/me")
-    public ResponseEntity<DoctorProfileResponseDto> upsertMyDoctorProfile(
-            @Valid @RequestBody DoctorProfileRequestDto dto,
-            @AuthenticationPrincipal User doctor
-    ) {
-        return ResponseEntity.ok(profileService.upsertDoctorProfile(doctor.getUserId(), dto));
-    }
-
-    @Operation(
-            summary = "View a patient's profile for Doctors and Relatives. Accessible only if you have an active relationship with the patient."
-    )
-    @PreAuthorize("hasAnyAuthority('DOCTOR', 'RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<PatientProfileResponseDto> getPatientProfileById(
             @PathVariable Integer patientId

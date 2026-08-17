@@ -6,7 +6,6 @@ import com.emiraslan.memento.dto.request.MedicationScheduleRequestDto;
 import com.emiraslan.memento.entity.Goal;
 import com.emiraslan.memento.entity.UserDevice;
 import com.emiraslan.memento.entity.user.User;
-import com.emiraslan.memento.enums.RelationshipType;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.*;
 import com.emiraslan.memento.repository.device.UserDeviceRepository;
@@ -17,6 +16,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Service("guard")
 @RequiredArgsConstructor
@@ -39,6 +40,7 @@ public class SecurityService {
                 .orElse(false);
     }
 
+    // todo mobilden istek gelirken her zaman patientId bilinicek cunku onu secip ekranina giriyoruz. Bu yuzden relative endpointlerinin hepsinde patientId ekleyebiliriz, her birine ayri security metodu eklemek yerine, sadece iliski kontrolu yapip geceriz. Relative endpointleri icin
     // mutual method to check for relationships
     public boolean canViewPatientData(Integer patientId, User user) {
         if (patientId.equals(user.getUserId())) return true;
@@ -61,11 +63,6 @@ public class SecurityService {
 
                     if (!isPatient && !isCaregiver) {
                         throw new AccessDeniedException("YOU_ARE_NOT_PART_OF_THIS_RELATIONSHIP");
-                    }
-
-                    // only doctor users can update type.doctor relationships
-                    if (rel.getRelationshipType() == RelationshipType.DOCTOR && !isCaregiver) {
-                        throw new AccessDeniedException("ONLY_DOCTORS_CAN_UPDATE_DOCTOR_RELATIONSHIPS");
                     }
 
                     return true;
@@ -178,16 +175,12 @@ public class SecurityService {
                 }).orElseThrow(() -> new EntityNotFoundException("SCHEDULE_TIME_NOT_FOUND"));
     }
 
-    public boolean canCreateSchedule(MedicationScheduleRequestDto dto, User doctor){
-        if (dto.getPatientUserId() == null) throw new IllegalArgumentException("PATIENT_ID_REQUIRED");
+    public boolean canCreateSchedule(MedicationScheduleRequestDto dto, User user){
 
-        return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(dto.getPatientUserId(), doctor.getUserId())
+        return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(dto.getPatientUserId(), user.getUserId())
                 .map(rel -> {
                     if (!Boolean.TRUE.equals(rel.getIsActive())) {
                         throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
-                    }
-                    if (rel.getRelationshipType() != RelationshipType.DOCTOR) {
-                        throw new AccessDeniedException("ONLY_ASSIGNED_DOCTORS_CAN_CREATE_PRESCRIPTIONS");
                     }
                     return true;
                 })
@@ -197,8 +190,8 @@ public class SecurityService {
     public boolean canModifySchedule(Integer scheduleId, User user) {
         return medicationScheduleRepository.findById(scheduleId)
                 .map(schedule -> {
-                    if (schedule.getDoctor() == null || !schedule.getDoctor().getUserId().equals(user.getUserId())) {
-                        throw new AccessDeniedException("ONLY_THE_PRESCRIBING_DOCTOR_CAN_MODIFY_THIS_SCHEDULE");
+                    if (!Objects.equals(schedule.getCreator().getUserId(), user.getUserId()) || !Objects.equals(user.getUserId(), schedule.getPatient().getUserId())) {
+                        throw new AccessDeniedException("YOU_ARE_NOT_PART_OF_THIS_SCHEDULE");
                     }
                     return true;
                 })

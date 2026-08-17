@@ -24,7 +24,7 @@ public class RelationshipRequestDto {
     @NotNull(message = "IS_PRIMARY_CONTACT_REQUIRED")
     private Boolean isPrimaryContact;
 
-    // nullable in case for doctors
+    @NotBlank(message = "OTP_REQUIRED")
     @Pattern(regexp = "^\\d{6}$", message = "OTP_MUST_BE_6_DIGITS")
     private String otpCode;
 }
