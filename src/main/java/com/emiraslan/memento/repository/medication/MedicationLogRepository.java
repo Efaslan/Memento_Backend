@@ -26,7 +26,7 @@ public interface MedicationLogRepository extends JpaRepository<MedicationLog, In
     @Query("""
     SELECT
         COALESCE(SUM(CASE WHEN m.status = 'TAKEN' THEN 1 ELSE 0 END), 0) AS takenCount,
-        COALESCE(SUM(CASE WHEN m.status = 'DELAYED' THEN 1 ELSE 0 END), 0) AS delayedCount,
+        COALESCE(SUM(CASE WHEN m.status = 'LATE_DOSE' THEN 1 ELSE 0 END), 0) AS delayedCount,
         COALESCE(SUM(CASE WHEN m.status = 'SKIPPED' THEN 1 ELSE 0 END), 0) AS skippedCount,
         COUNT(m.medicationLogId) AS totalLogs
     FROM MedicationLog m

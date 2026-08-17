@@ -248,6 +248,7 @@ public class MedicationScheduleService {
                 .orElseThrow(() -> new EntityNotFoundException("SCHEDULE_NOT_FOUND: " + scheduleId));
 
         schedule.setIsActive(false);
+        schedule.setEndDate(LocalDate.now());
         scheduleRepository.save(schedule);
     }
 

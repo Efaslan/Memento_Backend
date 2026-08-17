@@ -3,6 +3,7 @@ package com.emiraslan.memento.security;
 import com.emiraslan.memento.entity.Goal;
 import com.emiraslan.memento.entity.UserDevice;
 import com.emiraslan.memento.entity.user.User;
+import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.*;
 import com.emiraslan.memento.repository.device.UserDeviceRepository;
 import com.emiraslan.memento.repository.medication.MedicationScheduleRepository;
@@ -10,6 +11,7 @@ import com.emiraslan.memento.repository.medication.MedicationScheduleTimeReposit
 import com.emiraslan.memento.repository.user.PatientRelationshipRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -28,20 +30,26 @@ public class SecurityService {
     private final MedicationScheduleTimeRepository timesRepository;
     private final UserDeviceRepository userDeviceRepository;
     private final GoalRepository goalRepository;
+    private final StringRedisTemplate redisTemplate;
 
     // Checking for an active relationship for relatives to view PATIENT data
     public boolean isThePatientOrTheirRelative(Integer targetPatientId, User user) {
 
-        // If patient is trying to access/create for themselves
-        if (Objects.equals(targetPatientId, user.getUserId())) {
+        if (user.getRole() == UserRole.PATIENT) {
+            if (!targetPatientId.equals(user.getUserId())) {
+                throw new AccessDeniedException("PATIENTS_CAN_ONLY_ACCESS_THEIR_OWN_DATA");
+            }
             return true;
         }
+        String redisKey = "relationship:" + targetPatientId + ":" + user.getUserId();
+        String cachedValue = redisTemplate.opsForValue().get(redisKey);
+
         // Check for relationships between 2 users if not
-        return relationshipRepository.findByPatient_UserIdAndCaregiver_UserId(targetPatientId, user.getUserId())
-                .map(rel -> Boolean.TRUE.equals(rel.getIsActive()))
-                .orElseThrow(() ->
-                        new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT")
-                );
+        if (cachedValue != null) {
+            return true; // if cachedValue exists in Redis, that means they have a relationship
+        } else {
+            throw new AccessDeniedException("NO_ACTIVE_RELATIONSHIP_WITH_PATIENT");
+        }
     }
 
     // ========================================================================

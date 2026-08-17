@@ -63,7 +63,6 @@ public class MedicationScheduleController {
             @Valid @RequestBody MedicationScheduleRequestDto dto,
             @AuthenticationPrincipal User creator
     ) {
-        // we force the creator's id from jwt instead of taking it from the dto
         return ResponseEntity.ok(scheduleService.createSchedule(dto, creator));
     }
 

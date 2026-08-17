@@ -29,4 +29,6 @@ public interface PatientRelationshipRepository extends JpaRepository<PatientRela
 
     // checks if a user is primary contact and active. Used for alert acknowledgements
     boolean existsByPatient_UserIdAndCaregiver_UserIdAndIsPrimaryContactTrueAndIsActiveTrue(Integer patientId, Integer caregiverId);
+
+    List<PatientRelationship> findAllByIsActiveTrue();
 }

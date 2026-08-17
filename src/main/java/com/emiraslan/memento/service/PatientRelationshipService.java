@@ -14,6 +14,7 @@ import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +27,11 @@ public class PatientRelationshipService {
     private final PatientRelationshipRepository relationshipRepository;
     private final UserRepository userRepository;
     private final OtpService otpService;
+    private final StringRedisTemplate redisTemplate;
+
+    private String buildRedisKey(Integer patientId, Integer caregiverId) {
+        return "relationship:" + patientId + ":" + caregiverId;
+    }
 
     public List<RelationshipResponseDto> getActiveRelationships(User user) {
         return relationshipRepository.findAllActiveRelationshipsByUserId(user.getUserId())
@@ -92,7 +98,13 @@ public class PatientRelationshipService {
                 .isActive(true)
                 .build();
         }
-        return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
+        PatientRelationship savedRelationship = relationshipRepository.save(relationship);
+
+        // Adding relationships to Redis for quick lookups during Relative relationship security checks
+        String rediskey = buildRedisKey(patient.getUserId(), caregiver.getUserId());
+        redisTemplate.opsForValue().set(rediskey, "true"); // value doesn't matter
+
+        return MapperUtil.toRelationshipResponseDto(savedRelationship);
     }
 
     @Transactional
@@ -125,5 +137,9 @@ public class PatientRelationshipService {
                 .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
         relationship.setIsActive(false);
         relationshipRepository.save(relationship);
+
+        // delete from Redis as well
+        String redisKey = buildRedisKey(relationship.getPatient().getUserId(), relationship.getCaregiver().getUserId());
+        redisTemplate.delete(redisKey);
     }
 }

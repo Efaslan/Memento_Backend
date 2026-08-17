@@ -36,7 +36,7 @@ public class MedicationScheduleRequestDto {
     private LocalDate startDate;
 
     // nullable in case isPrn = true
-    @Future(message = "END_DATE_MUST_BE_IN_FUTURE")
+    @FutureOrPresent(message = "END_DATE_CANT_BE_IN_PAST")
     private LocalDate endDate;
 
     @NotNull(message = "IS_PRN_REQUIRED")
