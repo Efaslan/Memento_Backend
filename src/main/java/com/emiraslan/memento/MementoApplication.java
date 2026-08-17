@@ -18,4 +18,6 @@ public class MementoApplication {
     }
     // Setting the timezone with @PostConstruct shows wrong logging times. I directly set the Digital Ocean VM's timezone into Europe/Istanbul
     // Todo: update LocalDateTimes into Instants for different timezones
+
+    // -Dspring.profiles.active=dev
 }

@@ -67,13 +67,11 @@ public class DailyLogController {
     // relative endpoints
 
     @Operation(summary = "A patient's daily logs for relatives")
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/{patientId}/recent/{days}")
     public ResponseEntity<List<DailyLogWithWaterResponseDto>> getPatientRecentLogs(
             @PathVariable Integer patientId,
-            @PathVariable
-            @Range(min = 0, max = 90, message = "Days back must be between 0 and 90.")
-            Integer days
+            @PathVariable @Range(min = 0, max = 90, message = "Days back must be between 0 and 90.") Integer days
     ) {
         return ResponseEntity.ok(dailyLogService.getRecentLogs(patientId, days));
     }

@@ -59,4 +59,6 @@ public class SavedLocationController {
         // returns 204 (No Content), if successful
         return ResponseEntity.noContent().build();
     }
+
+    // todo relative endpoints
 }

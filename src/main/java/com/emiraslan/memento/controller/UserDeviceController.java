@@ -54,7 +54,7 @@ public class UserDeviceController {
     @Operation(
             summary = "Brings a patient's devices for a relative for remote logout option."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/related/{patientId}")
     public ResponseEntity<List<UserDeviceResponseDto>> getPatientDevices(
             @PathVariable Integer patientId

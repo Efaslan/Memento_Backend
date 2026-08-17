@@ -37,7 +37,7 @@ public class GeneralReminderController {
     @Operation(
             description = "For relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
     public ResponseEntity<List<GeneralReminderResponseDto>> getPatientActiveReminders(@PathVariable Integer patientId) {
         return ResponseEntity.ok(reminderService.getAllRemindersByPatient(patientId));
@@ -47,7 +47,7 @@ public class GeneralReminderController {
     @Operation(
             description = "For all users. Id is automatically set if the user is a patient. Accessible for relatives only if they have an active relationship with the patient."
     )
-    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canCreateReminder(#dto, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.isThePatientOrTheirRelative(#dto.patientUserId, principal)")
     @PostMapping
     public ResponseEntity<GeneralReminderResponseDto> createReminder(
             @Valid @RequestBody GeneralReminderRequestDto dto,

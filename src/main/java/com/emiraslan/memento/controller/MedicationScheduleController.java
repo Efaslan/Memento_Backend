@@ -57,7 +57,7 @@ public class MedicationScheduleController {
 
     // -----------------MUTUAL OPERATIONS-------------------
 
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canCreateSchedule(#dto, principal)")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.isThePatientOrTheirRelative(#dto.patientUserId, principal)")
     @PostMapping
     public ResponseEntity<MedicationScheduleResponseDto> createSchedule(
             @Valid @RequestBody MedicationScheduleRequestDto dto,
@@ -69,7 +69,7 @@ public class MedicationScheduleController {
 
     @Operation(
             summary = "Update an existing schedule. Please see descriptions.",
-            description = "Updating a schedule is heavily restricted in order to protect a patient's medical history. Schedules can only be updated if the patient has no consumption logs on that schedule. If there are logs, only non-critical fields such as: Notes, End Date, and deactivation can be changed."
+            description = "Updating a schedule is restricted in order to protect a patient's medical history. Schedules can only be updated if the patient has no consumption logs on that schedule. If there are logs, only non-critical fields such as: Notes, End Date, and deactivation can be changed."
     )
     @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canModifySchedule(#scheduleId, principal)")
     @PutMapping("/{scheduleId}")
@@ -96,7 +96,7 @@ public class MedicationScheduleController {
     @Operation(
             summary = "A patient's active schedules for a relative."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<ActiveSchedulesResponseDto> getPatientActiveSchedules(
             @PathVariable Integer patientId,
@@ -108,7 +108,7 @@ public class MedicationScheduleController {
     @Operation(
             summary = "A patient's entire medical history for a relative."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/patient/{patientId}/history")
     public ResponseEntity<DeactivatedSchedulesResponseDto> getPatientScheduleHistory(
             @PathVariable Integer patientId,

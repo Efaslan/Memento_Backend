@@ -66,7 +66,7 @@ public class AlertController {
     @Operation(
             description = "A patient's history of critical situations. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<AlertResponseDto>> getPatientAlerts(
             @PathVariable Integer patientId

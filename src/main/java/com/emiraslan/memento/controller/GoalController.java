@@ -43,7 +43,7 @@ public class GoalController {
     @Operation(
             description = "For relatives. Retrieves patient's active goals. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/active/patient/{patientId}")
     public ResponseEntity<List<ActiveGoalsResponseDto>> getPatientActiveGoals(@PathVariable Integer patientId) {
         return ResponseEntity.ok(goalService.getActiveGoalsByPatient(patientId));
@@ -55,7 +55,7 @@ public class GoalController {
             summary = "For goal details page.",
             description = "Retrieves patient's goals (without today's logs) filtered by active/inactive status."
     )
-    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/patient/{patientId}/deactivated")
     public ResponseEntity<List<GoalResponseDto>> getDeactivatedGoals(@PathVariable Integer patientId) {
         return ResponseEntity.ok(goalService.getDeactivatedGoals(patientId));
@@ -64,7 +64,7 @@ public class GoalController {
     @Operation(
             description = "For all users. patientUserId in DTO is optional for patients but required for relatives."
     )
-    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.canCreateGoal(#dto, principal)")
+    @PreAuthorize("hasAnyAuthority('RELATIVE', 'PATIENT') and @guard.isThePatientOrTheirRelative(#dto.patientUserId, principal)")
     @PostMapping
     public ResponseEntity<GoalResponseDto> createGoal(
             @Valid @RequestBody GoalRequestDto dto,
@@ -96,7 +96,7 @@ public class GoalController {
             summary = "For patients only. Upserts today's log for a specific goal.",
             description = "Creates a new log for today if it doesn't exist, or updates the existing one."
     )
-    @PreAuthorize("hasAuthority('PATIENT') and @guard.canCompleteGoal(#goalId, principal)")
+    @PreAuthorize("hasAuthority('PATIENT') and @guard.isGoalOwner(#goalId, principal)")
     @PutMapping("/{goalId}/today")
     public ResponseEntity<GoalLogResponseDto> upsertTodayGoalLog(
             @PathVariable Integer goalId,

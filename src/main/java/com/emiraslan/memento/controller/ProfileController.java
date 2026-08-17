@@ -48,7 +48,7 @@ public class ProfileController {
     @Operation(
             summary = "View a patient's profile for Relatives. Accessible only if you have an active relationship with the patient."
     )
-    @PreAuthorize("hasAuthority('RELATIVE') and @guard.canViewPatientData(#patientId, principal)")
+    @PreAuthorize("hasAuthority('RELATIVE') and @guard.isThePatientOrTheirRelative(#patientId, principal)")
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<PatientProfileResponseDto> getPatientProfileById(
             @PathVariable Integer patientId

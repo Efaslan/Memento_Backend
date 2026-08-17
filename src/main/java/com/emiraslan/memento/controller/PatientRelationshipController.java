@@ -61,7 +61,7 @@ public class PatientRelationshipController {
     }
 
     @Operation(description = "Updates relationship type and/or primary contact status.")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canUpdateRelationship(#relationshipId, principal)")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canModifyRelationship(#relationshipId, principal)")
     @PutMapping("/{relationshipId}")
     public ResponseEntity<RelationshipResponseDto> updateRelationship(
             @PathVariable Integer relationshipId,
@@ -74,7 +74,7 @@ public class PatientRelationshipController {
             summary = "Sets the primary contact status as true or false.",
             description = "Primary contacts receive notifications during alerts, such as when the Patient falls."
     )
-    @PreAuthorize("hasAuthority('PATIENT') and @guard.canUpdateRelationship(#relationshipId, principal)")
+    @PreAuthorize("hasAuthority('PATIENT') and @guard.canModifyRelationship(#relationshipId, principal)")
     @PatchMapping("/{relationshipId}/toggle-primary")
     public ResponseEntity<RelationshipResponseDto> togglePrimaryStatus(@PathVariable Integer relationshipId) {
         return ResponseEntity.ok(relationshipService.togglePrimaryContactStatus(relationshipId));
@@ -83,7 +83,7 @@ public class PatientRelationshipController {
     @Operation(
             summary = "Deactivating relationships instead of deleting them."
     )
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canUpdateRelationship(#relationshipId, principal)")
+    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canModifyRelationship(#relationshipId, principal)")
     @PatchMapping("/{relationshipId}/deactivate")
     public ResponseEntity<Void> deactivateRelationship(@PathVariable Integer relationshipId) {
         relationshipService.deactivateRelationship(relationshipId);
