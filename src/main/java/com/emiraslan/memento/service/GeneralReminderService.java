@@ -91,7 +91,7 @@ public class GeneralReminderService {
 
         int notificationCounter = 0;
         for (GeneralReminder reminder : dueReminders) {
-            notificationService.sendNotificationToUser(reminder.getPatient().getUserId(), "Memento", reminder.getTitle());
+            notificationService.sendNotificationToUser(reminder.getPatient().getUserId(), "Genel Hatırlatmalar", reminder.getTitle());
             notificationCounter++;
 
             // for isRecurring = true reminders

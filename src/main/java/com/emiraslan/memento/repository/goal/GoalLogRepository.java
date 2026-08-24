@@ -1,4 +1,4 @@
-package com.emiraslan.memento.repository;
+package com.emiraslan.memento.repository.goal;
 
 import com.emiraslan.memento.entity.GoalLog;
 import org.springframework.data.jpa.repository.JpaRepository;

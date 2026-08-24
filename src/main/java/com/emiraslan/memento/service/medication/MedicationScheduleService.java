@@ -266,7 +266,7 @@ public class MedicationScheduleService {
 
         int notificationCounter = 0;
         for (MedicationScheduleTime time : currentTimes) {
-            String title = "İlaç Vakti!";
+            String title = "İlaç Vaktiniz Geldi";
             String body = time.getSchedule().getMedicationName() + " ilacından " + time.getSchedule().getDosage() + " alınız.";
 
             notificationService.sendNotificationToUser(time.getSchedule().getPatient().getUserId(), title, body);

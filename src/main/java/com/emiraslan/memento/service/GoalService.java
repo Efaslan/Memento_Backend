@@ -6,11 +6,11 @@ import com.emiraslan.memento.dto.response.GoalResponseDto;
 import com.emiraslan.memento.entity.Goal;
 import com.emiraslan.memento.entity.GoalLog;
 import com.emiraslan.memento.entity.user.User;
-import com.emiraslan.memento.enums.GoalStatus;
 import com.emiraslan.memento.enums.GoalType;
 import com.emiraslan.memento.enums.UserRole;
-import com.emiraslan.memento.repository.GoalRepository;
-import com.emiraslan.memento.repository.GoalWithTodayLogProjection;
+import com.emiraslan.memento.repository.goal.GoalRepository;
+import com.emiraslan.memento.repository.goal.GoalStreakProjection;
+import com.emiraslan.memento.repository.goal.GoalWithTodayLogProjection;
 import com.emiraslan.memento.repository.user.UserRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,7 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +49,10 @@ public class GoalService {
         // Joining Goal and GoalLog in a single query
         List<GoalWithTodayLogProjection> results = goalRepository.findActiveGoalsWithTodayLog(patientId, today);
 
+        List<GoalStreakProjection> streaks = goalRepository.findActiveGoalStreaks(patientId);
+        Map<Integer, Integer> streakMap = streaks.stream()
+                .collect(Collectors.toMap(GoalStreakProjection::getGoalId, GoalStreakProjection::getStreak));
+
         return results.stream().map(result -> {
 
             Goal goal = result.getGoal();
@@ -67,16 +73,13 @@ public class GoalService {
                 );
             } else {
                 // if no logs for today
-                todayLogDto = new ActiveGoalsResponseDto.TodayGoalLogDto(
-                        null,
-                        GoalStatus.NOT_DONE,
-                        0.0,
-                        goalDto.getCurrentTargetValue(),
-                        goalDto.getUnit()
-                );
+                todayLogDto = null;
             }
 
-            return new ActiveGoalsResponseDto(goalDto, todayLogDto);
+            // 0 streak in case there are no logs
+            Integer currentStreak = streakMap.getOrDefault(result.getGoal().getGoalId(), 0);
+
+            return new ActiveGoalsResponseDto(goalDto, todayLogDto, currentStreak);
 
         }).toList();
     }

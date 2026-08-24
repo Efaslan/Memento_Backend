@@ -1,4 +1,4 @@
-package com.emiraslan.memento.repository;
+package com.emiraslan.memento.repository.goal;
 
 import com.emiraslan.memento.entity.Goal;
 import com.emiraslan.memento.entity.GoalLog;

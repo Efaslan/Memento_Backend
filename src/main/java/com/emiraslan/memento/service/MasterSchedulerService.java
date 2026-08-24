@@ -21,6 +21,7 @@ public class MasterSchedulerService {
     private final MedicationLogService medicationLogService;
     private final UserDeviceService userDeviceService;
     private final AuthService authService;
+    private final GoalLogService goalLogService;
 
     // cron that works each minute to find due general reminders and medications and sends out notifications
     @Scheduled(cron = "0 * * * * *")
@@ -51,8 +52,10 @@ public class MasterSchedulerService {
         int expiredRefreshTokens = userDeviceService.deleteExpiredRefreshTokens();
         // Deletes all unverified user accounts
         int removedIdleAccounts = authService.deleteUnverifiedAccounts();
+        // Inserts NOT_DONE GoalLogs for users who skipped their goals
+        int loggedNotDoneGoals = goalLogService.logNotDoneGoals();
 
-        log.info("CRON [End of day]: Deactivated {} schedules, deleted {} expired Refresh Tokens, and removed {} unverified accounts.",
-                deactivatedSchedules, expiredRefreshTokens, removedIdleAccounts);
+        log.info("CRON [End of day]: Deactivated {} schedules, deleted {} expired Refresh Tokens, removed {} unverified accounts, and logged {} not_done goals.",
+                deactivatedSchedules, expiredRefreshTokens, removedIdleAccounts, loggedNotDoneGoals);
     }
 }

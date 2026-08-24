@@ -6,6 +6,7 @@ import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.enums.UserRole;
 import com.emiraslan.memento.repository.*;
 import com.emiraslan.memento.repository.device.UserDeviceRepository;
+import com.emiraslan.memento.repository.goal.GoalRepository;
 import com.emiraslan.memento.repository.medication.MedicationScheduleRepository;
 import com.emiraslan.memento.repository.medication.MedicationScheduleTimeRepository;
 import com.emiraslan.memento.repository.user.PatientRelationshipRepository;

@@ -7,7 +7,7 @@ import com.emiraslan.memento.entity.DailyLog;
 import com.emiraslan.memento.entity.GoalLog;
 import com.emiraslan.memento.entity.user.User;
 import com.emiraslan.memento.repository.DailyLogRepository;
-import com.emiraslan.memento.repository.GoalLogRepository;
+import com.emiraslan.memento.repository.goal.GoalLogRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

@@ -14,12 +14,13 @@ public class ActiveGoalsResponseDto {
     private GoalResponseDto goalDto;
 
     private TodayGoalLogDto todayGoalLog;
+    private Integer streak;
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     public static class TodayGoalLogDto {
-        private Integer goalLogId; // today's logs doesn't exist if this is null
+        private Integer goalLogId;
         private GoalStatus status;
         private Double progressValue;
         private Double logTargetValue;

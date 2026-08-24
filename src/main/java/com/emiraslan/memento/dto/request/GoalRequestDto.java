@@ -26,9 +26,11 @@ public class GoalRequestDto {
     @Size(max = 100, message = "TITLE_TOO_LONG")
     private String title;
 
+    @NotNull(message = "CURRENT_TARGET_VALUE_CANNOT_BE_NULL")
     @Positive(message = "TARGET_VALUE_MUST_BE_POSITIVE")
     private Double currentTargetValue;
 
+    @NotBlank(message = "UNIT_CANT_BE_EMPTY")
     @Size(max = 20, message = "UNIT_TOO_LONG")
     private String unit;
 }

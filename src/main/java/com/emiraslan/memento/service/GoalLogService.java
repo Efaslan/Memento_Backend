@@ -5,8 +5,8 @@ import com.emiraslan.memento.dto.response.GoalLogResponseDto;
 import com.emiraslan.memento.entity.Goal;
 import com.emiraslan.memento.entity.GoalLog;
 import com.emiraslan.memento.enums.GoalStatus;
-import com.emiraslan.memento.repository.GoalLogRepository;
-import com.emiraslan.memento.repository.GoalRepository;
+import com.emiraslan.memento.repository.goal.GoalLogRepository;
+import com.emiraslan.memento.repository.goal.GoalRepository;
 import com.emiraslan.memento.util.MapperUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -41,6 +41,8 @@ public class GoalLogService {
             // Update if log exists
             log = existingLogOpt.get();
             log.setProgressValue(dto.getProgressValue());
+            log.setLogTargetValue(goal.getCurrentTargetValue());
+            log.setLogUnit(goal.getUnit());
         } else {
             // Insert if it doesn't
             log = MapperUtil.toGoalLogEntity(dto, goal);
@@ -69,5 +71,12 @@ public class GoalLogService {
         return logs.stream()
                 .map(MapperUtil::toGoalLogResponseDto)
                 .toList();
+    }
+
+    @Transactional
+    public int logNotDoneGoals() {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        return goalRepository.bulkInsertNotDoneGoals(yesterday);
     }
 }

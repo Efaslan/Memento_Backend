@@ -107,17 +107,6 @@ public class PatientRelationshipService {
         return MapperUtil.toRelationshipResponseDto(savedRelationship);
     }
 
-    @Transactional
-    public RelationshipResponseDto updateRelationship(Integer relationshipId, RelationshipResponseDto dto) {
-        PatientRelationship relationship = relationshipRepository.findById(relationshipId)
-                .orElseThrow(() -> new EntityNotFoundException("RELATIONSHIP_NOT_FOUND"));
-
-        if (dto.getRelationshipType() != null) relationship.setRelationshipType(dto.getRelationshipType());
-        if (dto.getIsPrimaryContact() != null) relationship.setIsPrimaryContact(dto.getIsPrimaryContact());
-
-        return MapperUtil.toRelationshipResponseDto(relationshipRepository.save(relationship));
-    }
-
     // toggle to change primary contacts
     @Transactional
     public RelationshipResponseDto togglePrimaryContactStatus(Integer relationshipId) {

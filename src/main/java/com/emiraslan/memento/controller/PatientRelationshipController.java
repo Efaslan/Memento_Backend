@@ -60,16 +60,6 @@ public class PatientRelationshipController {
         return ResponseEntity.ok(relationshipService.addRelationship(dto, initiator));
     }
 
-    @Operation(description = "Updates relationship type and/or primary contact status.")
-    @PreAuthorize("hasAnyAuthority('PATIENT', 'RELATIVE') and @guard.canModifyRelationship(#relationshipId, principal)")
-    @PutMapping("/{relationshipId}")
-    public ResponseEntity<RelationshipResponseDto> updateRelationship(
-            @PathVariable Integer relationshipId,
-            @Valid @RequestBody RelationshipResponseDto dto
-    ) {
-        return ResponseEntity.ok(relationshipService.updateRelationship(relationshipId, dto));
-    }
-
     @Operation(
             summary = "Sets the primary contact status as true or false.",
             description = "Primary contacts receive notifications during alerts, such as when the Patient falls."
